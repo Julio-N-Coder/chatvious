@@ -3,12 +3,11 @@ import autoprefixer from "autoprefixer";
 import cssnano from "cssnano";
 
 const postcss = {
-  plugins: [tailwindcss, cssnano, autoprefixer],
+  plugins: [tailwindcss, autoprefixer],
 };
 
-// NODE_ENV doesn't work. try to make this work without using NODE_ENV
-// if (process.env.NODE_ENV === "production") {
-//   postcss.plugins.splice(1, 0, cssnano);
-// }
+if (process.env.NODE_ENV === "production") {
+  postcss.plugins.splice(1, 0, cssnano);
+}
 
 export default postcss;

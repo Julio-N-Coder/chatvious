@@ -5,9 +5,11 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "tsc && cp -r ./src/views ./dist && postcss ./src/public/css/styles.css -o ./dist/public/css/styles.css",
+    "build": "tsc && cp -r ./src/views ./dist && webpack --mode=development",
+    "build:prod": "tsc && cp -r ./src/views ./dist && webpack --mode=production --node-env=production",
+    "watch": "webpack --watch",
     "fullBuild": "npm --prefix ./client run build && npm run build",
-    "fullBuild:prod": "npm --prefix ./client run build:prod && npm run build",
+    "fullBuild:prod": "npm --prefix ./client run build:prod && npm run build:prod",
     "dev": "node dist/app.js",
     "start": "NODE_ENV=production node dist/app.js",
     "buildDev": "npm run build && npm run dev",
@@ -24,12 +26,18 @@
   "devDependencies": {
     "@types/express": "^4.17.21",
     "@types/node": "^20.12.2",
+    "@webpack-cli/generators": "^3.0.7",
     "autoprefixer": "^10.4.19",
+    "css-loader": "^7.1.1",
     "cssnano": "^6.1.2",
+    "mini-css-extract-plugin": "^2.8.1",
     "postcss": "^8.4.38",
     "postcss-cli": "^11.0.0",
+    "postcss-loader": "^8.1.1",
     "tailwindcss": "^3.4.3",
     "ts-loader": "^9.5.1",
-    "typescript": "^5.4.3"
+    "typescript": "^5.4.3",
+    "webpack": "^5.91.0",
+    "webpack-cli": "^5.1.4"
   }
 }

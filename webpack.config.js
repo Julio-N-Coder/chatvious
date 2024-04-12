@@ -1,31 +1,21 @@
 import path from "path";
 import MiniCssExtractPlugin from "mini-css-extract-plugin";
-import HtmlWebpackPlugin from "html-webpack-plugin";
 
 const isProduction = process.env.NODE_ENV == "production";
 
 const stylesHandler = MiniCssExtractPlugin.loader;
 
 const config = {
-  entry: "./src/index.tsx",
+  entry: "./src/public/ts/script.ts",
   output: {
-    // filename: "[name]main.js",
-    path: path.resolve("..", "dist", "public"),
-    clean: {
-      keep: /css\//,
-    },
-  },
-  devServer: {
-    static: "../dist/public",
-    open: true,
-    host: "localhost",
+    // filename: "[name].js",
+    path: path.resolve("dist", "public", "ejs"),
+    clean: true,
   },
   devtool: "inline-source-map",
   plugins: [
-    new MiniCssExtractPlugin(),
-    new HtmlWebpackPlugin({
-      template: "./src/index.html",
-      // filename: "./index.html",
+    new MiniCssExtractPlugin({
+      filename: "styles.css", // not dynamic if css file name changes.
     }),
   ],
   module: {
@@ -40,8 +30,8 @@ const config = {
         use: [stylesHandler, "css-loader", "postcss-loader"],
       },
       {
-        test: /\.(woff|woff2|eot|ttf|otf)$/i,
-        type: "asset/resource",
+        test: /\.(eot|svg|ttf|woff|woff2|png|jpg|gif)$/i,
+        type: "asset",
       },
     ],
   },
@@ -57,7 +47,6 @@ export default () => {
   if (isProduction) {
     config.mode = "production";
     delete config.devtool;
-    delete config.devServer;
   } else {
     config.mode = "development";
   }
