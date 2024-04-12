@@ -7,10 +7,12 @@
   "scripts": {
     "build": "tsc && cp -r ./src/views ./dist && postcss ./src/public/css/styles.css -o ./dist/public/css/styles.css",
     "fullBuild": "npm --prefix ./client run build && npm run build",
+    "fullBuild:prod": "npm --prefix ./client run build:prod && npm run build",
     "dev": "node dist/app.js",
     "start": "NODE_ENV=production node dist/app.js",
     "buildDev": "npm run build && npm run dev",
-    "fullDev": "npm run fullBuild && npm dev"
+    "fullDev": "npm run fullBuild && npm dev",
+    "fullStart": "npm run fullBuild:prod && npm start"
   },
   "keywords": [],
   "author": "",
