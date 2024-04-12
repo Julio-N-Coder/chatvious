@@ -1,0 +1,33 @@
+{
+  "name": "chatvious",
+  "version": "1.0.0",
+  "description": "",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc && cp -r ./src/views ./dist && postcss ./src/public/css/styles.css -o ./dist/public/css/styles.css",
+    "fullBuild": "npm --prefix ./client run build && npm run build",
+    "dev": "node dist/app.js",
+    "start": "NODE_ENV=production node dist/app.js",
+    "buildDev": "npm run build && npm run dev",
+    "fullDev": "npm run fullBuild && npm dev"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "ejs": "^3.1.9",
+    "express": "^4.19.2"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.21",
+    "@types/node": "^20.12.2",
+    "autoprefixer": "^10.4.19",
+    "cssnano": "^6.1.2",
+    "postcss": "^8.4.38",
+    "postcss-cli": "^11.0.0",
+    "tailwindcss": "^3.4.3",
+    "ts-loader": "^9.5.1",
+    "typescript": "^5.4.3"
+  }
+}
