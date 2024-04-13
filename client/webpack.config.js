@@ -12,13 +12,14 @@ const config = {
     // filename: "[name]main.js",
     path: path.resolve("..", "dist", "public"),
     clean: {
-      keep: /css\//,
+      keep: /ejs\//,
     },
   },
   devServer: {
     static: "../dist/public",
     open: true,
     host: "localhost",
+    port: 3000,
   },
   devtool: "inline-source-map",
   plugins: [
@@ -50,6 +51,9 @@ const config = {
   },
   optimization: {
     runtimeChunk: "single",
+    splitChunks: {
+      chunks: "all",
+    },
   },
 };
 

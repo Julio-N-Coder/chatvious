@@ -13,7 +13,7 @@
     "dev": "node dist/app.js",
     "start": "NODE_ENV=production node dist/app.js",
     "buildDev": "npm run build && npm run dev",
-    "fullDev": "npm run fullBuild && npm dev",
+    "fullDev": "npm run fullBuild && npm run dev",
     "fullStart": "npm run fullBuild:prod && npm start"
   },
   "keywords": [],
