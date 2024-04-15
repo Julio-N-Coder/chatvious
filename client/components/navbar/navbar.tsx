@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from "react";
-import { Link, NavLink } from "react-router-dom";
-import { Sun, Moon } from "../components/sun-moon";
+import { Link, NavLink, useLocation } from "react-router-dom";
+import { Sun, Moon } from "../sun-moon";
+import { preferedAndThemeToggle, toggleDarkModeMainText } from "./themeChanger";
 
 type NavbarProps = {
   isDarkMode?: boolean;
@@ -15,61 +16,35 @@ export default function Navbar({ isDarkMode, setIsDarkMode }: NavbarProps) {
   const [firstRotate, setFirstRotate] = useState(false);
   const [themeChecked, setThemeChecked] = useState(false);
   const themeSwitchRef = useRef<HTMLInputElement>(null);
+  const location = useLocation();
 
-  function toggleDarkMode() {
-    if (setIsDarkMode != undefined) {
-      setIsDarkMode(!isDarkMode);
+  function updateTheme() {
+    if (location.pathname === "/") {
+      toggleDarkModeMainText(isDefaultDarkMode, themeSwitchRef, setIsDarkMode);
     }
-  }
-
-  // change name to one like function above. maybe swap them
-  function preferedThemeToggle() {
-    if (isDefaultDarkMode && themeSwitchRef.current) {
-      const isCurrentlyDarkMode = themeSwitchRef.current.checked;
-
-      if (isCurrentlyDarkMode) {
-        console.log("currently dark mode");
-        setThemeChecked(true);
-        setPreferedTheme("light");
-        localStorage.setItem("theme", "light");
-      } else {
-        console.log("currently light mode");
-        setThemeChecked(false);
-        setPreferedTheme("dark");
-        localStorage.setItem("theme", "dark");
-      }
-    } else {
-      if (themeSwitchRef.current) {
-        const isCurrentlyLightMode = themeSwitchRef.current.checked;
-
-        if (isCurrentlyLightMode) {
-          setThemeChecked(true);
-          setPreferedTheme("dark");
-          localStorage.setItem("theme", "dark");
-        } else {
-          setThemeChecked(false);
-          setPreferedTheme("light");
-          localStorage.setItem("theme", "light");
-        }
-      }
-    }
+    preferedAndThemeToggle(
+      isDefaultDarkMode,
+      themeSwitchRef,
+      setThemeChecked,
+      setPreferedTheme
+    );
   }
 
   useEffect(() => {
-    console.log("in Effect");
     const darkModeMediaQuery = window.matchMedia(
       "(prefers-color-scheme: dark)"
     );
     const IsOSDefaultDarkMode = darkModeMediaQuery.matches;
-    if (setIsDarkMode != undefined) {
-      setIsDarkMode(IsOSDefaultDarkMode);
-    }
 
     setIsDefaultDarkMode(IsOSDefaultDarkMode);
 
-    // will need to check against default for correct switch order
+    // checks OS default to rotate theme switch or not
+    // and change main text color
     if (IsOSDefaultDarkMode) {
       setFirstRotate(true);
+      if (setIsDarkMode != undefined) {
+        setIsDarkMode(true);
+      }
     }
 
     // check for preference with and check against default theme
@@ -80,7 +55,9 @@ export default function Navbar({ isDarkMode, setIsDarkMode }: NavbarProps) {
         if (preference === "light") {
           setPreferedTheme("light");
           setThemeChecked(true);
-          console.log("light");
+          if (setIsDarkMode != undefined) {
+            setIsDarkMode(false);
+          }
         } else {
           setPreferedTheme("dark");
         }
@@ -90,6 +67,9 @@ export default function Navbar({ isDarkMode, setIsDarkMode }: NavbarProps) {
           setThemeChecked(true);
         } else {
           setPreferedTheme("light");
+          if (setIsDarkMode != undefined) {
+            setIsDarkMode(false);
+          }
         }
       }
     }
@@ -131,10 +111,7 @@ export default function Navbar({ isDarkMode, setIsDarkMode }: NavbarProps) {
             value={`${isDefaultDarkMode ? "light" : "dark"}`}
             // rotate to make switch look like it's checked the same way regardless of os default. use "rotate-180"
             className={`toggle theme-controller ${firstRotate && "rotate-180"}`}
-            onChange={() => {
-              toggleDarkMode();
-              preferedThemeToggle();
-            }}
+            onChange={updateTheme}
           />
           <Moon />
         </label>

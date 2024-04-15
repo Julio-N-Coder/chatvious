@@ -1,5 +1,5 @@
 import React, { ReactNode, ReactElement, useState } from "react";
-import Navbar from "../components/navbar";
+import Navbar from "../components/navbar/navbar";
 
 export default function App() {
   const [isDarkMode, setIsDarkMode] = useState(false);
