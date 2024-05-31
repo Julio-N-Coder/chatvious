@@ -2,6 +2,8 @@ import React, { useEffect, useState, useRef } from "react";
 import { Link, NavLink, useLocation } from "react-router-dom";
 import { Sun, Moon } from "../sun-moon";
 import { preferedAndThemeToggle, toggleDarkModeMainText } from "./themeChanger";
+import { SignUp, LogIn } from "../../components/sign-up-log-in";
+// import cognitoData from "../../../cognitoData";
 
 type NavbarProps = {
   isDarkMode?: boolean;
@@ -112,12 +114,7 @@ export default function Navbar({ isDarkMode, setIsDarkMode }: NavbarProps) {
               </NavLink>
             </li>
             <li>
-              <NavLink
-                to="/dashboard"
-                className={({ isActive }) => (isActive ? `btn-active` : ``)}
-              >
-                Dashboard
-              </NavLink>
+              <a href="/dashboard">Dashboard</a>
             </li>
           </ul>
         </details>
@@ -136,16 +133,9 @@ export default function Navbar({ isDarkMode, setIsDarkMode }: NavbarProps) {
           About
         </NavLink>
         {/* no page for this yet */}
-        <NavLink
-          to="/dashboard"
-          className={({ isActive }) =>
-            isActive
-              ? `btn-active nav-tabs-lg hidden md:block`
-              : `nav-tabs-lg hidden md:block`
-          }
-        >
-          Dashboard
-        </NavLink>
+        <a href="/dashboard" className="nav-tabs-lg hidden md:block">
+          DashBoard
+        </a>
       </div>
       {/* right side div */}
       <div className="flex items-center">
@@ -164,11 +154,11 @@ export default function Navbar({ isDarkMode, setIsDarkMode }: NavbarProps) {
           <Moon />
         </label>
         {/* header button logins / buttons not set */}
-        <button className="btn btn-accent hidden sm:flex">Sign in</button>
+        <SignUp className="btn btn-accent hidden sm:flex" />
         <p className="text-neutral-content divider divider-horizontal hidden sm:flex">
           or
         </p>
-        <button className="btn btn-accent hidden sm:flex">Log in</button>
+        <LogIn className="btn btn-accent hidden sm:flex" />
         {/* thee dots login for small screens / buttons not set */}
         <details className="dropdown dropdown-end flex sm:hidden">
           <summary className="m-1 btn btn-ghost px-2">
@@ -188,10 +178,10 @@ export default function Navbar({ isDarkMode, setIsDarkMode }: NavbarProps) {
           </summary>
           <ul className="p-2 shadow menu dropdown-content z-[1] bg-base-100 rounded-box w-52">
             <li>
-              <a>Sign In</a>
+              <SignUp />
             </li>
             <li>
-              <a>Log In</a>
+              <LogIn />
             </li>
           </ul>
         </details>

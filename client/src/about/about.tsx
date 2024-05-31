@@ -1,11 +1,10 @@
 import React from "react";
-// import { Link, NavLink } from "react-router-dom";
-import Navbar from "../../components/navbar/navbar";
+// import Navbar from "../../components/navbar/navbar";
 
 export default function About() {
   return (
-    <div>
-      <Navbar />
+    <div className="">
+      {/* <Navbar /> */}
       {/* will add more later. This will do just for now */}
       <div className="bg-info text-info-content container mx-auto rounded-md">
         Welcome to the chatvious website. This is a real time chat app website

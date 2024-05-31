@@ -5,6 +5,7 @@ import React, { lazy, Suspense } from "react";
 import App from "./app";
 const About = lazy(() => import("./about/about"));
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import Navbar from "../components/navbar/navbar";
 
 const router = createBrowserRouter([
   {
@@ -14,9 +15,14 @@ const router = createBrowserRouter([
   {
     path: "/about",
     element: (
-      <Suspense fallback={<div>Loading...</div>}>
-        <About />
-      </Suspense>
+      <>
+        <Navbar />
+        <Suspense
+          fallback={<div className="container mx-auto">Loading...</div>}
+        >
+          <About />
+        </Suspense>
+      </>
     ),
   },
 ]);

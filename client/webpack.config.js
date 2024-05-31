@@ -18,7 +18,6 @@ const config = {
   devServer: {
     static: "../dist/public",
     open: true,
-    // host: "localhost",
     port: 3000,
     historyApiFallback: true,
   },

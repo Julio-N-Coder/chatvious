@@ -1,11 +1,12 @@
 import React, { ReactNode, ReactElement, useState } from "react";
 import Navbar from "../components/navbar/navbar";
+import { SignUp, LogIn } from "../components/sign-up-log-in";
 
 export default function App() {
   const [isDarkMode, setIsDarkMode] = useState(false);
 
   return (
-    <div className="flex flex-col h-screen roboto antialiased">
+    <div className="flex flex-col h-screen antialiased">
       <Navbar setIsDarkMode={setIsDarkMode} isDarkMode={isDarkMode} />
       {/* Main */}
       <div className="grow flex flex-col justify-center items-center gap-y-4">
@@ -19,13 +20,10 @@ export default function App() {
           >
             Chatvious
           </h1>
-          {/* <h1 className={`font-bold text-9xl ${isDarkMode && "text-white"}`}>
-            Chatvious
-          </h1> */}
         </div>
         <div className="space-x-6">
-          <button className="btn btn-accent">Sign in</button>
-          <button className="btn btn-accent">Log in</button>
+          <SignUp className="btn btn-accent" />
+          <LogIn className="btn btn-accent" />
         </div>
       </div>
     </div>
