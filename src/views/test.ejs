@@ -7,7 +7,8 @@
     <title>Document</title>
   </head>
   <body>
-    <div class="bg-blue-300">Testing page</div>
-    <!-- prettier-ignore -->
+    <div class="<%= true ? "bg-blue-300": "bg-red-300" %>"><%= title %></div>
+    <script defer src="ejs/runtime.js"></script>
+    <script defer src="ejs/main.js"></script>
   </body>
 </html>

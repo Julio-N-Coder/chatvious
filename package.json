@@ -5,8 +5,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "tsc && cp -r ./src/views ./dist && cp -r ./src/components ./dist && webpack --mode=development",
-    "build:prod": "tsc && cp -r ./src/views ./dist && cp -r ./src/components ./dist && webpack --mode=production --node-env=production",
+    "build": "tsc --p tsconfig.server.json && cp -r ./src/views ./dist && cp -r ./src/components ./dist && webpack --mode=development",
+    "build:prod": "tsc --p tsconfig.server.json && cp -r ./src/views ./dist && cp -r ./src/components ./dist && webpack --mode=production --node-env=production",
     "watch": "webpack --watch",
     "fullBuild": "npm --prefix ./client run build && npm run build",
     "fullBuild:prod": "npm --prefix ./client run build:prod && npm run build:prod",
