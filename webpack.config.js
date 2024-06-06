@@ -6,7 +6,10 @@ const isProduction = process.env.NODE_ENV == "production";
 const stylesHandler = MiniCssExtractPlugin.loader;
 
 const config = {
-  entry: "./src/public/ts/script.ts",
+  entry: {
+    index: "./src/public/ts/script.ts",
+    // navBar: "./src/public/ts/navBar.ts",
+  },
   output: {
     // filename: "[name].js",
     path: path.resolve("dist", "public", "ejs"),

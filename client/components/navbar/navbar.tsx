@@ -84,7 +84,7 @@ export default function Navbar({ isDarkMode, setIsDarkMode }: NavbarProps) {
   // console.log(themeChecked, "Is Theme checked?");
 
   return (
-    <div className="px-2 md:px-4 lg:px-10 py-5 flex justify-between navbar bg-neutral gap-2">
+    <nav className="px-2 md:px-4 lg:px-10 py-5 flex justify-between navbar bg-neutral gap-2">
       {/* left side div */}
       <div className="xsm:space-x-2">
         {/* 3 line nav icon */}
@@ -186,6 +186,6 @@ export default function Navbar({ isDarkMode, setIsDarkMode }: NavbarProps) {
           </ul>
         </details>
       </div>
-    </div>
+    </nav>
   );
 }

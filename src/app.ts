@@ -18,6 +18,11 @@ app.get("/test", (req, res) => {
 // getting tokens works. Need to get them from url in browser and store them. then try to remove url queries if can.
 app.get("/callback", callback);
 
+app.get("/about", (req, res) => {
+  console.log("Sending About Page");
+  res.sendFile(path.resolve("dist", "public", "index.html"));
+});
+
 app.get("/dashboard", (req, res) => {
   console.log("Rendering Dashboard");
   res.render("dashboard");
@@ -27,5 +32,3 @@ app.listen(3000, () => {
   console.log("Listening on port 3000");
   console.log("URL: http://localhost:3000/");
 });
-
-// console.log("Test");

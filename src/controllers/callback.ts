@@ -25,6 +25,7 @@ async function callback(req: Request, res: Response): Promise<void> {
       },
       body: body.toString(),
     });
+
     if (!tokens.ok) {
       console.log(tokens);
       res.send("Error While trying to log in");
@@ -38,7 +39,6 @@ async function callback(req: Request, res: Response): Promise<void> {
       expires_in,
     }: TokenResponse = await tokens.json();
 
-    // change to dashboard when basic page is set up
     // Try to remove tokens from url in client
     return res.redirect(
       `/dashboard?access_token=${access_token}&id_token=${id_token}&refresh_token=${refresh_token}&token_type=${token_type}&expires_in=${expires_in}`
