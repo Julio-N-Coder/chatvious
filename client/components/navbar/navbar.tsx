@@ -36,13 +36,13 @@ export default function Navbar({ isDarkMode, setIsDarkMode }: NavbarProps) {
     const darkModeMediaQuery = window.matchMedia(
       "(prefers-color-scheme: dark)"
     );
-    const IsOSDefaultDarkMode = darkModeMediaQuery.matches;
+    const isOSDefaultDarkMode = darkModeMediaQuery.matches;
 
-    setIsDefaultDarkMode(IsOSDefaultDarkMode);
+    setIsDefaultDarkMode(isOSDefaultDarkMode);
 
     // checks OS default to rotate theme switch or not
     // and change main text color
-    if (IsOSDefaultDarkMode) {
+    if (isOSDefaultDarkMode) {
       setFirstRotate(true);
       if (setIsDarkMode != undefined) {
         setIsDarkMode(true);
@@ -53,7 +53,7 @@ export default function Navbar({ isDarkMode, setIsDarkMode }: NavbarProps) {
     // then check theme or not depending on preference
     const preference = localStorage.getItem("theme");
     if (preference) {
-      if (IsOSDefaultDarkMode) {
+      if (isOSDefaultDarkMode) {
         if (preference === "light") {
           setPreferedTheme("light");
           setThemeChecked(true);

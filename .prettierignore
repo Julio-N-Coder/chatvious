@@ -1,1 +1,2 @@
-src/components/navBar.ejs
+# How to ignore files
+<!--prettier-ignore-->

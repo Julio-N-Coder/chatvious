@@ -1,5 +1,4 @@
 import "../css/styles.css";
-import { testa } from "./navBar";
-
+import { themeSwitch, isOSDefaultDarkMode } from "./navBar/navBar";
+console.log(themeSwitch, isOSDefaultDarkMode);
 console.log("testing");
-testa();
