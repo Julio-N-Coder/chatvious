@@ -14,8 +14,8 @@ export default function updateTheme(
     } else {
       localStorage.setItem("theme", "dark");
       preferedTheme = "dark";
-      // else OS Default is Light mode
     }
+    // else OS Default is Light mode
   } else {
     const isCurrentlyLightMode = themeSwitch.checked;
 

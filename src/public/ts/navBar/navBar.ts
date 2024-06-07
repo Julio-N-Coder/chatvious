@@ -1,6 +1,5 @@
 const darkModeMediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
 let isOSDefaultDarkMode = darkModeMediaQuery.matches;
-console.log(isOSDefaultDarkMode);
 let preferedTheme = localStorage.getItem("theme");
 let isCurrentlyDarkMode = false;
 
@@ -8,11 +7,14 @@ let isCurrentlyDarkMode = false;
 const themeSwitch = document.getElementById("themeSwitch") as HTMLInputElement;
 
 // checks OS default to rotate theme switch or not
+// also changes theme switch value for dark/light mode
 if (isOSDefaultDarkMode) {
+  themeSwitch.value = "light";
   isCurrentlyDarkMode = true;
   console.log("is dark mode?");
   // rotate themeSwitch if OS default is light mode
 } else {
+  themeSwitch.value = "dark";
   themeSwitch.className = themeSwitch.className.slice(
     0,
     themeSwitch.className.indexOf("rotate-180")
@@ -24,18 +26,14 @@ if (isOSDefaultDarkMode) {
 if (preferedTheme) {
   if (isOSDefaultDarkMode) {
     if (preferedTheme === "light") {
-      // preferedTheme = "light";
-      // themeSwitch.checked = true;
       isCurrentlyDarkMode = false;
     } else {
       isCurrentlyDarkMode = true;
     }
   } else {
     if (preferedTheme === "dark") {
-      // preferedTheme = "dark";
-      // themeSwitch.checked = true;
+      isCurrentlyDarkMode = true;
     } else {
-      // preferedTheme = "light";
       isCurrentlyDarkMode = false;
     }
   }
