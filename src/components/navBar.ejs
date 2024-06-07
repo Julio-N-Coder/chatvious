@@ -6,7 +6,6 @@
     <%# 3 line nav icon %>
     <details class="dropdown md:hidden">
       <summary class="xsm:m-1 btn btn-ghost btn-square m-0">
-        <%# Svg is causing problems. For some reason, it's very big %>
         <svg
           xmlns="http://www.w3.org/2000/svg"
           fill="none"
@@ -32,23 +31,29 @@
         </li>
       </ul>
     </details>
-    <a href="/" class="text-3xl xsm:text-4xl text-neutral-content">
+    <a href="/" class="text-3xl xsm:text-4xl text-neutral-content sm:ml-2">
       Chatvious
     </a>
     <%# big tabs pages for big screens %>
-    <a href="/about" class="nav-tabs-lg hidden md:block"> About </a>
-    <%# no page for this yet %>
-    <a href="/dashboard" class="nav-tabs-lg hidden md:block"> DashBoard </a>
+    <a href="/about" class="nav-tabs-lg hidden md:block sm:ml-2"> About </a>
+    <a href="/dashboard" class="nav-tabs-lg hidden md:block sm:ml-2">
+      DashBoard
+    </a>
   </div>
   <%# right side div %>
   <div class="flex items-center">
     <%# light/dark mode toggle %>
     <label class="flex cursor-pointer gap-2 sm:mr-6">
       <%- include('sun-moon/sun-icon'); %>
-      <input type="checkbox" value="dark" class="" id="themeSwitch" />
+      <input
+        type="checkbox"
+        value="dark"
+        class="toggle theme-controller rotate-180"
+        id="themeSwitch"
+      />
       <%- include('sun-moon/moon-icon'); %>
     </label>
-    <%# header button logins / buttons not set %>
+    <%# header button logins %>
     <!--prettier-ignore-->
     <%- include("sign-up-log-in/sign-up", {className: "btn btn-accent hidden sm:flex"}) %>
     <p class="text-neutral-content divider divider-horizontal hidden sm:flex">
@@ -56,7 +61,7 @@
     </p>
     <!--prettier-ignore-->
     <%- include("sign-up-log-in/log-in", {className: "btn btn-accent hidden sm:flex"}) %>
-     <%# thee dots login for small screens / buttons not set %>
+     <%# thee dots login for small screens %>
     <details class="dropdown dropdown-end flex sm:hidden">
       <summary class="m-1 btn btn-ghost px-2">
         <svg

@@ -132,7 +132,6 @@ export default function Navbar({ isDarkMode, setIsDarkMode }: NavbarProps) {
         >
           About
         </NavLink>
-        {/* no page for this yet */}
         <a href="/dashboard" className="nav-tabs-lg hidden md:block">
           DashBoard
         </a>
@@ -153,13 +152,13 @@ export default function Navbar({ isDarkMode, setIsDarkMode }: NavbarProps) {
           />
           <Moon />
         </label>
-        {/* header button logins / buttons not set */}
+        {/* header button logins */}
         <SignUp className="btn btn-accent hidden sm:flex" />
         <p className="text-neutral-content divider divider-horizontal hidden sm:flex">
           or
         </p>
         <LogIn className="btn btn-accent hidden sm:flex" />
-        {/* thee dots login for small screens / buttons not set */}
+        {/* thee dots login for small screens / buttons */}
         <details className="dropdown dropdown-end flex sm:hidden">
           <summary className="m-1 btn btn-ghost px-2">
             <svg
