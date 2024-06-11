@@ -15,7 +15,6 @@ app.get("/test", (req, res) => {
 });
 
 // test URL http://localhost:3000/callback?code=a1b2c3d4-5678-90ab-cdef-EXAMPLE11111&state=abcdefg
-// getting tokens works. Need to get them from url in browser and store them. then try to remove url queries if can.
 app.get("/callback", callback);
 
 app.get("/about", (req, res) => {
@@ -23,6 +22,7 @@ app.get("/about", (req, res) => {
   res.sendFile(path.resolve("dist", "public", "index.html"));
 });
 
+// add auth middle ware to validate tokens.
 app.get("/dashboard", (req, res) => {
   console.log("Rendering Dashboard");
   res.render("dashboard");

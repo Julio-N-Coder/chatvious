@@ -10,7 +10,6 @@ const themeSwitch = document.getElementById("themeSwitch") as HTMLInputElement;
 // also changes theme switch value for dark/light mode
 if (isOSDefaultDarkMode) {
   themeSwitch.value = "light";
-  isCurrentlyDarkMode = true;
   // rotate themeSwitch if OS default is light mode
 } else {
   themeSwitch.value = "dark";
@@ -20,17 +19,18 @@ if (isOSDefaultDarkMode) {
   );
 }
 
-// check for preference with and check against default theme
-// then check theme or not depending on preference
+// check for os theme, then check preference to turn on switch or not.
 if (preferedTheme) {
   if (isOSDefaultDarkMode) {
     if (preferedTheme === "light") {
+      themeSwitch.checked = true;
       isCurrentlyDarkMode = false;
     } else {
       isCurrentlyDarkMode = true;
     }
   } else {
     if (preferedTheme === "dark") {
+      themeSwitch.checked = true;
       isCurrentlyDarkMode = true;
     } else {
       isCurrentlyDarkMode = false;

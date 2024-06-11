@@ -20,8 +20,7 @@ export default function tokenChecker() {
     }
 
     // Changes url to not have giant tokens in url
-    history.pushState({}, "", "http://localhost:3000/dashboard");
+    history.replaceState({}, "", "http://localhost:3000/dashboard");
     console.log("history cleared");
   }
-  console.log(urlParams);
 }
