@@ -11,7 +11,6 @@ const themeSwitch = document.getElementById("themeSwitch") as HTMLInputElement;
 if (isOSDefaultDarkMode) {
   themeSwitch.value = "light";
   isCurrentlyDarkMode = true;
-  console.log("is dark mode?");
   // rotate themeSwitch if OS default is light mode
 } else {
   themeSwitch.value = "dark";

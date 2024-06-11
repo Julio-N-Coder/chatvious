@@ -7,7 +7,7 @@ const stylesHandler = MiniCssExtractPlugin.loader;
 
 const config = {
   entry: {
-    index: "./src/public/ts/script.ts",
+    index: "./src/public/ts/dashboard/script.ts",
     // navBar: "./src/public/ts/navBar.ts",
   },
   output: {

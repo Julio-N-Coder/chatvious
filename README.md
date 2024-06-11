@@ -6,39 +6,56 @@ This project is a real-time chat app that I am making mainly to show off on my p
 This will be updated when more stuff is added
 
 **chatvious**/  
-├── READMD.md  
-├── **client**  
-│   ├── **components**  
-│   ├── package-lock.json  
-│   ├── package.json  
-│   ├── postcss.config.js  
-│   ├── **src**  
-│   │   ├── app.tsx  
-│   │   ├── **fonts**  
-│   │   ├── index.html  
-│   │   ├── index.tsx  
-│   │   └── styles.css  
-│   ├── tailwind.config.js  
-│   ├── tsconfig.json  
-│   └── webpack.config.js  
-├── package-lock.json  
-├── package.json  
-├── postcss.config.js  
-├── **src**  
-│   ├── app.ts  
-│   ├── **components**  
-│   ├── **controllers**  
-│   ├── **lib**  
-│   ├── **models**  
-│   ├── **public**  
-│   │   ├── **css**  
-│   │   │   └── styles.css  
-│   │   └── **js**  
-│   ├── **routes**  
-│   └── **views**  
-│       └── test.ejs  
-├── tailwind.config.js  
-└── tsconfig.json
+├── README.md
+├── client
+│   ├── components
+│   │   ├── navbar
+│   │   ├── sign-up-log-in.tsx
+│   │   └── sun-moon.tsx
+│   ├── lib
+│   ├── package-lock.json
+│   ├── package.json
+│   ├── postcss.config.js
+│   ├── src
+│   │   ├── about
+│   │   ├── app.tsx
+│   │   ├── fonts
+│   │   ├── index.html
+│   │   ├── index.tsx
+│   │   └── styles.css
+│   ├── tailwind.config.js
+│   ├── tsconfig.json
+│   ├── types
+│   └── webpack.config.js
+├── package-lock.json
+├── package.json
+├── postcss.config.js
+├── src
+│   ├── app.ts
+│   ├── cognitoData.ts
+│   ├── components
+│   │   ├── navBar.ejs
+│   │   ├── sign-up-log-in
+│   │   └── sun-moon
+│   ├── controllers
+│   │   └── callback.ts
+│   ├── lib
+│   │   └── handyUtils.ts
+│   ├── models
+│   ├── public
+│   │   ├── css
+│   │   ├── fonts
+│   │   └── ts
+│   ├── routes
+│   ├── types
+│   │   └── Cognito-types.ts
+│   └── views
+│       ├── dashboard.ejs
+│       └── test.ejs
+├── tailwind.config.js
+├── tsconfig.json
+├── tsconfig.server.json
+└── webpack.config.js
 
 For the `main/root` page of the project, which is what people are going to see first, all that code is basically going to be in the `client` directory. The rest of the pages are going to be in the `root level src` directory and they are going to be rendered with ejs templates. You can't see this there but when you build the project, there is going to be a root level `dist` directory that contains the actuall code that is going to run. In the `root level src` I have an `app.ts` file which is the `main entry point` of the nodejs server. In the root level src, I also have the mvc layout to use in the server side for code organization.
 
@@ -47,9 +64,9 @@ I have a couple of different commands to build and run the project and will add/
 
 For the **client directory**, to build the project use `npm run build` or `npm run build:prod` for a production build. To run the project in a development server with hot module replacement use `npm run serve`
 
-For the **src directory**, to build the project use `npm run build` or `npm run build:prod` for a production build. To run the code use `npm run dev` or use `npm start` to run in production.
+For the **src directory**, to build the project use `npm run build` or `npm run build:prod` for a production build. To run the code use `npm run dev` for a development server or use `npm start` to run in production.
 
-Some extra commands for the **src directory** are the `npm run buildDev` which builds and runs the code. The `npm run fullBuild` command builds the code in both the **client directory** and the **src directory**. It also can run the `fullBuild:prod` command for production. The `npm run fullDev` command runs the **fullDev** command and runs the Code. You can also run `npm run fullStart` which is similar to **fullDev** but for production. I know that this is a bit convoluted but they are their if you need them.
+Some extra commands for the **src directory** are the `npm run fullBuild` command builds the code in both the **client directory** and the **src directory**. It also can run the `fullBuild:prod` command for production. You can also run `npm run fullStart` which fully builds and runs the code but for production. I know that this is a bit convoluted but they are their if you need them.
 
 ### Future plans
-In the future I plan to add many more things like how I need to **add webpack to bundle public accesets of my ejs templates** and some testing. First I need a functioning website and with the website I plan to use technologies like aws's Amazon cognito for front page authentictation and also authorization, dynamodb for the database, socket.io for realtime chatting and redis with the socket.io redis adapter to communicate with other servers/instances. I plan for all of this to be hosted on aws ecs and I will seperate the project into their own ecs tasks/service's where needed like the socket.io server. I plan to use docker to containerize the appliation. I will also add CI/CD to my project once the the website is ready to be hosted.
+In the future I plan to add many more things like testing. First I need a functioning website and with the website I plan to use technologies like aws's Amazon cognito for front page authentictation and also authorization, dynamodb for the database, socket.io for realtime chatting and redis with the socket.io redis adapter to communicate with other servers/instances. I plan for all of this to be hosted on aws ecs and I will seperate the project into their own ecs tasks/service's where needed like the socket.io server. I plan to use docker to containerize the appliation. I will also add CI/CD to my project once the the website is ready to be hosted.
