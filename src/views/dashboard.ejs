@@ -11,9 +11,25 @@
   <body>
     <div class="roboto antialiased h-screen bg-base-300">
       <%- include('../components/navBar'); %>
-      <div class="container mx-auto rounded-b px-2">
-        <div class="bg-base-100">Owned Rooms</div>
-        <div class="bg-base-100">Joined Rooms</div>
+      <div
+        class="container mx-auto rounded-b px-2 pb-2 pt-4 flex justify-evenly gap-2"
+      >
+        <%# Owned rooms card %>
+        <div class="card bg-base-100 p-2 grow gap-4">
+          <div class="flex">
+            <h2 class="grow card-title">Owned Rooms</h2>
+            <button class="btn btn-accent">Create Room</button>
+          </div>
+          <%- include('../components/rooms') %>
+        </div>
+        <%# Joined rooms card %>
+        <div class="card bg-base-100 p-2 grow gap-4">
+          <div class="flex">
+            <h2 class="grow card-title">Joined Rooms</h2>
+            <button class="btn btn-accent">Join Room</button>
+          </div>
+          <%- include('../components/rooms') %>
+        </div>
       </div>
     </div>
   </body>
