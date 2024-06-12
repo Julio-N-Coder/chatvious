@@ -31,6 +31,7 @@ app.get("/about", (req, res) => {
 // add auth middle ware to validate tokens.
 app.get("/dashboard", (req, res) => {
   console.log("Rendering Dashboard");
+  // add check for prod to render use actual signout domain
   res.render("dashboard");
 });
 

@@ -53,15 +53,11 @@
       />
       <%- include('sun-moon/moon-icon'); %>
     </label>
-    <%# header button logins %>
-    <!--prettier-ignore-->
-    <%- include("sign-up-log-in/sign-up", {className: "btn btn-accent hidden sm:flex"}) %>
-    <p class="text-neutral-content divider divider-horizontal hidden sm:flex">
-      or
-    </p>
-    <!--prettier-ignore-->
-    <%- include("sign-up-log-in/log-in", {className: "btn btn-accent hidden sm:flex"}) %>
-     <%# thee dots login for small screens %>
+    <!-- dont' forget logout at bottom -->
+    <button class="btn btn-accent hidden sm:flex" id="sign-out-button">
+      Sign Out
+    </button>
+    <%# thee dots login for small screens %>
     <details class="dropdown dropdown-end flex sm:hidden">
       <summary class="m-1 btn btn-ghost px-2">
         <svg
@@ -81,8 +77,10 @@
       <ul
         class="p-2 shadow menu dropdown-content z-[1] bg-base-100 rounded-box w-52"
       >
-        <li><%- include("sign-up-log-in/sign-up", {className: ""}) %></li>
-        <li><%- include("sign-up-log-in/log-in", {className: ""}) %></li>
+        <li>
+          <%# add logout url %>
+          <a>log Out</a>
+        </li>
       </ul>
     </details>
   </div>

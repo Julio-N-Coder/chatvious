@@ -4,6 +4,7 @@ export default {
   USER_POOL_ID: "us-west-1_iJn1nk3N1",
   CLIENT_ID: "jet3kkqp4jnkm1v3ta7htu75g",
   CALLBACK_URL: "http://localhost:3000/callback",
+  SIGN_OUT_URL: "http://localhost:3000",
 
   JWKS_URL:
     "https://cognito-idp.us-west-1.amazonaws.com/us-west-1_iJn1nk3N1/.well-known/jwks.json",

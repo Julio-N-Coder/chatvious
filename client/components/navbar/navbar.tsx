@@ -77,12 +77,6 @@ export default function Navbar({ isDarkMode, setIsDarkMode }: NavbarProps) {
     }
   }, []);
 
-  // console.log(preferedTheme, 0, "prefered/current");
-  // console.log(themeSwitchRef.current?.value, 0, "mode which will switch to");
-  // console.log(localStorage.getItem("theme"), 0);
-  // console.log(firstRotate, "checking if rotated");
-  // console.log(themeChecked, "Is Theme checked?");
-
   return (
     <nav className="px-2 md:px-4 lg:px-10 py-5 flex justify-between navbar bg-neutral gap-2">
       {/* left side div */}

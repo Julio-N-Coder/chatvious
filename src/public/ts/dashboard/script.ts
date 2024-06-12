@@ -5,11 +5,13 @@ import {
   preferedTheme,
 } from "../navBar/navBar";
 import updateTheme from "../navBar/updateTheme";
-import tokenChecker from "./token-checker";
+import { tokenChecker, signOut } from "./token-checker";
 
-// adding theme Switch Event listener
+// adding Event listeners
 themeSwitch.addEventListener("change", () => {
   updateTheme(isOSDefaultDarkMode, themeSwitch, preferedTheme);
 });
+
+document.querySelector("#sign-out-button")?.addEventListener("click", signOut);
 
 tokenChecker();
