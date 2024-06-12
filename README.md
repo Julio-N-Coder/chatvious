@@ -2,61 +2,6 @@
 ## Description
 This project is a real-time chat app that I am making mainly to show off on my portfolio but also for anyone who would like to use the project. Right now, the project is has nothing to show and is just initialized but I will update this when there are new updates to this project.
 
-### Project layout
-This will be updated when more stuff is added
-
-**chatvious**/  
-├── README.md
-├── client
-│   ├── components
-│   │   ├── navbar
-│   │   ├── sign-up-log-in.tsx
-│   │   └── sun-moon.tsx
-│   ├── lib
-│   ├── package-lock.json
-│   ├── package.json
-│   ├── postcss.config.js
-│   ├── src
-│   │   ├── about
-│   │   ├── app.tsx
-│   │   ├── fonts
-│   │   ├── index.html
-│   │   ├── index.tsx
-│   │   └── styles.css
-│   ├── tailwind.config.js
-│   ├── tsconfig.json
-│   ├── types
-│   └── webpack.config.js
-├── package-lock.json
-├── package.json
-├── postcss.config.js
-├── src
-│   ├── app.ts
-│   ├── cognitoData.ts
-│   ├── components
-│   │   ├── navBar.ejs
-│   │   ├── sign-up-log-in
-│   │   └── sun-moon
-│   ├── controllers
-│   │   └── callback.ts
-│   ├── lib
-│   │   └── handyUtils.ts
-│   ├── models
-│   ├── public
-│   │   ├── css
-│   │   ├── fonts
-│   │   └── ts
-│   ├── routes
-│   ├── types
-│   │   └── Cognito-types.ts
-│   └── views
-│       ├── dashboard.ejs
-│       └── test.ejs
-├── tailwind.config.js
-├── tsconfig.json
-├── tsconfig.server.json
-└── webpack.config.js
-
 For the `main/root` page of the project, which is what people are going to see first, all that code is basically going to be in the `client` directory. The rest of the pages are going to be in the `root level src` directory and they are going to be rendered with ejs templates. You can't see this there but when you build the project, there is going to be a root level `dist` directory that contains the actuall code that is going to run. In the `root level src` I have an `app.ts` file which is the `main entry point` of the nodejs server. In the root level src, I also have the mvc layout to use in the server side for code organization.
 
 ### How to use the project

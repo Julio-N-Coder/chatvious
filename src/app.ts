@@ -2,11 +2,17 @@ import "dotenv/config";
 import express from "express";
 import path from "path";
 import { callback } from "./controllers/callback.js";
+import { isProduction } from "./lib/handyUtils.js";
 // import ejs from "ejs";
 const app = express();
 
 app.set("view engine", "ejs");
-app.set("views", path.resolve("dist", "views"));
+
+if (isProduction()) {
+  app.set("views", path.resolve("dist", "views"));
+} else {
+  app.set("views", path.resolve("src", "views"));
+}
 
 app.use(express.static(path.resolve("dist", "public")));
 

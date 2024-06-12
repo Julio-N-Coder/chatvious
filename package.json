@@ -9,14 +9,14 @@
     "build:prod": "tsc --p tsconfig.server.json && cp -r ./src/views ./dist && cp -r ./src/components ./dist && webpack --mode=production --node-env=production",
     "fullBuild": "npm --prefix ./client run build && npm run build",
     "fullBuild:prod": "npm --prefix ./client run build:prod && npm run build:prod",
-    "dev": "concurrently 'tsc --watch --p tsconfig.server.json' 'webpack --watch' 'nodemon -e js,ejs dist/app.js'",
+    "dev": "concurrently 'tsc --watch --p tsconfig.server.json' 'webpack --watch' 'nodemon'",
     "start": "NODE_ENV=production node dist/app.js",
     "fullStart": "npm run fullBuild:prod && npm start"
   },
   "nodemonConfig": {
     "ignore": ["**/node_modules", "dist/views"],
     "ext": "js,ejs",
-    "exec": "cp -r ./src/views ./dist && cp -r ./src/components ./dist && node dist/app.js"
+    "exec": "node dist/app.js"
   },
   "keywords": [],
   "author": "",

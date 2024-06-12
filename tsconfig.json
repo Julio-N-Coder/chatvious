@@ -1,5 +1,5 @@
 {
-  "include": ["src/**/*.ts"],
+  "include": ["src/public/ts/**/*.ts"],
   "exclude": ["node_modules", "dist", "client"],
   "compilerOptions": {
     /* Visit https://aka.ms/tsconfig to read more about this file */
