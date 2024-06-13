@@ -3,7 +3,8 @@ import express from "express";
 import path from "path";
 import { callback } from "./controllers/callback.js";
 import { isProduction } from "./lib/handyUtils.js";
-// import ejs from "ejs";
+import cookieParser from "cookie-parser";
+import pageAuth from "./controllers/middleware/pageAuth.js";
 const app = express();
 
 app.set("view engine", "ejs");
@@ -15,6 +16,7 @@ if (isProduction()) {
 }
 
 app.use(express.static(path.resolve("dist", "public")));
+app.use(cookieParser());
 
 app.get("/test", (req, res) => {
   res.render("test", { title: "Some text from node" });
@@ -28,10 +30,10 @@ app.get("/about", (req, res) => {
   res.sendFile(path.resolve("dist", "public", "index.html"));
 });
 
-// add auth middle ware to validate tokens.
-app.get("/dashboard", (req, res) => {
+// add auth middle ware to validate tokens. tokens are in cookies "req.cookies.cookieName"
+app.get("/dashboard", pageAuth, (req, res) => {
   console.log("Rendering Dashboard");
-  // add check for prod to render use actual signout domain
+  // add check for prod to render actual signout domain
   res.render("dashboard");
 });
 
