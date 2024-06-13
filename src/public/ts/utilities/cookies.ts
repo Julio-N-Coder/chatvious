@@ -1,10 +1,10 @@
 function setCookie(
   cookieName: string,
   cookieValue: string,
-  daysToExpire: number
+  secondsToExpire: number
 ) {
   const d = new Date();
-  d.setTime(d.getTime() + daysToExpire * 24 * 60 * 60 * 1000);
+  d.setTime(d.getTime() + secondsToExpire * 1000);
   let expires = "expires=" + d.toUTCString();
   document.cookie = cookieName + "=" + cookieValue + ";" + expires + ";path=/";
 }

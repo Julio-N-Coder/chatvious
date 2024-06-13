@@ -30,7 +30,6 @@ app.get("/about", (req, res) => {
   res.sendFile(path.resolve("dist", "public", "index.html"));
 });
 
-// add auth middle ware to validate tokens. tokens are in cookies "req.cookies.cookieName"
 app.get("/dashboard", pageAuth, (req, res) => {
   console.log("Rendering Dashboard");
   // add check for prod to render actual signout domain

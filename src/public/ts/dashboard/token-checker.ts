@@ -1,45 +1,9 @@
-import { setCookie } from "../utilities/cookies";
-
-// http://localhost:3000/dashboard?access_token=randomToken&id_token=randomIDToken&refresh_token=randomRefreshToken&token_type=Bearer&expires_in=randomExperation`
-function tokenChecker() {
-  const urlParams = new URLSearchParams(window.location.search);
-
-  if (
-    urlParams.get("refresh_token") ||
-    (urlParams.get("id_token") && urlParams.get("access_token"))
-  ) {
-    const access_token = urlParams.get("access_token");
-    const id_token = urlParams.get("id_token");
-    const refresh_token = urlParams.get("refresh_token");
-
-    if (typeof refresh_token === "string") {
-      localStorage.setItem("refresh_token", refresh_token);
-    }
-
-    if (typeof id_token === "string" && typeof access_token === "string") {
-      localStorage.setItem("id_token", id_token);
-      localStorage.setItem("access_token", access_token);
-
-      // decode access token
-      const decoded = atob(access_token.split(".")[1]);
-      const access_token_data = JSON.parse(decoded);
-      const expiration = access_token_data.exp;
-      const issuedAt = access_token_data.iat;
-
-      // turn seconds into days (unix format to days)
-      const expiresIn = (expiration - issuedAt) / 86400;
-
-      setCookie("access_token", access_token, expiresIn);
-    }
-
-    // Changes url to not have giant tokens in url
-    history.replaceState({}, "", "http://localhost:3000/dashboard");
-  }
-}
+import { setCookie, getCookie } from "../utilities/cookies";
+import { TokenRefresh } from "../types";
 
 // handle sign out error to show ui a problem.
 async function signOut() {
-  const refresh_token = localStorage.getItem("refresh_token");
+  const refresh_token = getCookie("refresh_token");
 
   try {
     const response = await fetch(
@@ -55,11 +19,12 @@ async function signOut() {
     );
 
     if (response.ok === true) {
-      localStorage.removeItem("access_token");
-      localStorage.removeItem("id_token");
-      localStorage.removeItem("refresh_token");
       document.cookie =
         "access_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+      document.cookie =
+        "id_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+      document.cookie =
+        "refresh_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
 
       window.location.href = "http://localhost:3000/";
     }
@@ -69,4 +34,43 @@ async function signOut() {
   }
 }
 
-export { tokenChecker, signOut };
+// once in a while, check if tokens are expired and refresh it
+let tokenCheckerIntervalMinutes = 5;
+setInterval(async () => {
+  const access_token = getCookie("access_token");
+
+  if (access_token) {
+    const decoded = atob(access_token.split(".")[1]);
+    const access_token_data = JSON.parse(decoded);
+    const expiration = access_token_data.exp;
+    const currentDate = Math.floor(new Date().getTime() / 1000);
+    const expiresIn = expiration - currentDate;
+
+    if (!(expiresIn <= 600)) {
+      return;
+    }
+    const refresh_token = getCookie("refresh_token");
+
+    try {
+      const tokenResponse = await fetch(
+        "https://chatvious.auth.us-west-1.amazoncognito.com/oauth2/token",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+          },
+          body: `grant_type=refresh_token&client_id=jet3kkqp4jnkm1v3ta7htu75g&refresh_token=${refresh_token}`,
+        }
+      );
+      const tokenData: TokenRefresh = await tokenResponse.json();
+
+      setCookie("access_token", tokenData.access_token, tokenData.expires_in);
+      setCookie("id_token", tokenData.id_token, tokenData.expires_in);
+    } catch (error) {
+      console.log(error);
+    }
+  }
+  // }, tokenCheckerIntervalMinutes * 60000);
+}, 10000);
+
+export { signOut };

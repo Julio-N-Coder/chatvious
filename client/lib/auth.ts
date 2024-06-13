@@ -1,5 +1,21 @@
+function getCookie(cookieName: string) {
+  let name = cookieName + "=";
+  let decodedCookie = decodeURIComponent(document.cookie);
+  let cookieArray = decodedCookie.split(";");
+  for (let i = 0; i < cookieArray.length; i++) {
+    let c = cookieArray[i];
+    while (c.charAt(0) == " ") {
+      c = c.substring(1);
+    }
+    if (c.indexOf(name) == 0) {
+      return c.substring(name.length, c.length);
+    }
+  }
+  return "";
+}
+
 async function signOut() {
-  const refresh_token = localStorage.getItem("refresh_token");
+  const refresh_token = getCookie("refresh_token");
 
   try {
     const response = await fetch(
@@ -15,11 +31,12 @@ async function signOut() {
     );
 
     if (response.ok === true) {
-      localStorage.removeItem("access_token");
-      localStorage.removeItem("id_token");
-      localStorage.removeItem("refresh_token");
       document.cookie =
         "access_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+      document.cookie =
+        "id_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+      document.cookie =
+        "refresh_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
 
       window.location.href = "http://localhost:3000/";
     }
@@ -32,7 +49,8 @@ async function signOut() {
 function checkAuthStatus(
   setIsLoggedIn: (value: React.SetStateAction<boolean>) => void
 ) {
-  let CookieName = "access_token=";
+  let accessCookie = "access_token=";
+  let refreshCookie = "refresh_token=";
   let decodedCookie = decodeURIComponent(document.cookie);
   let cookieArray = decodedCookie.split(";");
   for (let i = 0; i < cookieArray.length; i++) {
@@ -41,12 +59,17 @@ function checkAuthStatus(
       c = c.substring(1);
     }
     if (
-      c.indexOf(CookieName) == 0 &&
-      c.substring(CookieName.length, c.length)
+      c.indexOf(accessCookie) == 0 &&
+      c.substring(accessCookie.length, c.length)
+    ) {
+      setIsLoggedIn(true);
+    } else if (
+      c.indexOf(refreshCookie) == 0 &&
+      c.substring(refreshCookie.length, c.length)
     ) {
       setIsLoggedIn(true);
     }
   }
 }
 
-export { signOut, checkAuthStatus };
+export { signOut, checkAuthStatus, getCookie };

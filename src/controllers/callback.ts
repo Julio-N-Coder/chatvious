@@ -38,11 +38,26 @@ async function callback(req: Request, res: Response): Promise<void> {
       token_type,
       expires_in,
     }: TokenResponse = await tokens.json();
+    const refresh_token_expiration_days = 365;
 
-    // Try to remove tokens from url in client
-    return res.redirect(
-      `/dashboard?access_token=${access_token}&id_token=${id_token}&refresh_token=${refresh_token}&token_type=${token_type}&expires_in=${expires_in}`
-    );
+    // Add check to make tokens secure true in production
+    res.cookie("access_token", access_token, {
+      httpOnly: false,
+      secure: false,
+      expires: new Date(Date.now() + expires_in * 1000),
+    });
+    res.cookie("id_token", id_token, {
+      httpOnly: false,
+      secure: false,
+      expires: new Date(Date.now() + expires_in * 1000),
+    });
+    res.cookie("refresh_token", refresh_token, {
+      httpOnly: false,
+      secure: false,
+      expires: new Date(Date.now() + refresh_token_expiration_days * 86400000),
+    });
+
+    return res.redirect(`/dashboard`);
   }
   res.status(400).send("Bad response");
 }

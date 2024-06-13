@@ -6,6 +6,11 @@ type TokenResponse = {
   expires_in: number;
 };
 
-type TokenRefresh = {};
+type TokenRefresh = {
+  access_token: string;
+  id_token: string;
+  token_type: string;
+  expires_in: number;
+};
 
-export { TokenResponse };
+export { TokenResponse, TokenRefresh };

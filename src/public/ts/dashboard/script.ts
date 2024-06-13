@@ -5,7 +5,7 @@ import {
   preferedTheme,
 } from "../navBar/navBar";
 import updateTheme from "../navBar/updateTheme";
-import { tokenChecker, signOut } from "./token-checker";
+import { signOut } from "./token-checker";
 
 // adding Event listeners
 themeSwitch.addEventListener("change", () => {
@@ -14,4 +14,4 @@ themeSwitch.addEventListener("change", () => {
 
 document.querySelector("#sign-out-button")?.addEventListener("click", signOut);
 
-tokenChecker();
+// tokenChecker();
