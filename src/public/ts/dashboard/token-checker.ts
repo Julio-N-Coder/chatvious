@@ -1,4 +1,4 @@
-import { setCookie, getCookie } from "../utilities/cookies";
+import { setCookie } from "../utilities/cookies";
 
 // http://localhost:3000/dashboard?access_token=randomToken&id_token=randomIDToken&refresh_token=randomRefreshToken&token_type=Bearer&expires_in=randomExperation`
 function tokenChecker() {

@@ -1,9 +1,15 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Navbar from "../components/navbar/navbar";
 import { SignUp, LogIn } from "../components/sign-up-log-in";
+import { signOut, checkAuthStatus } from "../lib/auth";
 
 export default function App() {
   const [isDarkMode, setIsDarkMode] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  useEffect(() => {
+    checkAuthStatus(setIsLoggedIn);
+  }, []);
 
   return (
     <div className="flex flex-col h-screen antialiased">
@@ -22,8 +28,16 @@ export default function App() {
           </h1>
         </div>
         <div className="space-x-6">
-          <SignUp className="btn btn-accent" />
-          <LogIn className="btn btn-accent" />
+          {isLoggedIn ? (
+            <button className="btn btn-accent" onClick={signOut}>
+              Log Out
+            </button>
+          ) : (
+            <>
+              <SignUp className="btn btn-accent" />
+              <LogIn className="btn btn-accent" />
+            </>
+          )}
         </div>
       </div>
     </div>

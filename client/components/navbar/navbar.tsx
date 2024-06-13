@@ -3,7 +3,7 @@ import { Link, NavLink, useLocation } from "react-router-dom";
 import { Sun, Moon } from "../sun-moon";
 import { preferedAndThemeToggle, toggleDarkModeMainText } from "./themeChanger";
 import { SignUp, LogIn } from "../../components/sign-up-log-in";
-// import cognitoData from "../../../cognitoData";
+import { signOut, checkAuthStatus } from "../../lib/auth";
 
 type NavbarProps = {
   isDarkMode?: boolean;
@@ -18,6 +18,7 @@ export default function Navbar({ isDarkMode, setIsDarkMode }: NavbarProps) {
   const [firstRotate, setFirstRotate] = useState(false);
   const [themeChecked, setThemeChecked] = useState(false);
   const themeSwitchRef = useRef<HTMLInputElement>(null);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const location = useLocation();
 
   function updateTheme() {
@@ -75,6 +76,8 @@ export default function Navbar({ isDarkMode, setIsDarkMode }: NavbarProps) {
         }
       }
     }
+
+    checkAuthStatus(setIsLoggedIn);
   }, []);
 
   return (
@@ -147,11 +150,19 @@ export default function Navbar({ isDarkMode, setIsDarkMode }: NavbarProps) {
           <Moon />
         </label>
         {/* header button logins */}
-        <SignUp className="btn btn-accent hidden sm:flex" />
-        <p className="text-neutral-content divider divider-horizontal hidden sm:flex">
-          or
-        </p>
-        <LogIn className="btn btn-accent hidden sm:flex" />
+        {isLoggedIn ? (
+          <button onClick={signOut} className="btn btn-accent hidden sm:flex">
+            Log Out
+          </button>
+        ) : (
+          <>
+            <SignUp className="btn btn-accent hidden sm:flex" />
+            <p className="text-neutral-content divider divider-horizontal hidden sm:flex">
+              or
+            </p>
+            <LogIn className="btn btn-accent hidden sm:flex" />
+          </>
+        )}
         {/* thee dots login for small screens / buttons */}
         <details className="dropdown dropdown-end flex sm:hidden">
           <summary className="m-1 btn btn-ghost px-2">
@@ -170,12 +181,18 @@ export default function Navbar({ isDarkMode, setIsDarkMode }: NavbarProps) {
             </svg>
           </summary>
           <ul className="p-2 shadow menu dropdown-content z-[1] bg-base-100 rounded-box w-52">
-            <li>
-              <SignUp />
-            </li>
-            <li>
-              <LogIn />
-            </li>
+            {isLoggedIn ? (
+              <p onClick={signOut}>Log Out</p>
+            ) : (
+              <>
+                <li>
+                  <SignUp />
+                </li>
+                <li>
+                  <LogIn />
+                </li>
+              </>
+            )}
           </ul>
         </details>
       </div>
