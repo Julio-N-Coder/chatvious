@@ -16,11 +16,8 @@ if (isProduction()) {
 }
 
 app.use(express.static(path.resolve("dist", "public")));
+app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
-
-app.get("/test", (req, res) => {
-  res.render("test", { title: "Some text from node" });
-});
 
 // test URL http://localhost:3000/callback?code=a1b2c3d4-5678-90ab-cdef-EXAMPLE11111&state=abcdefg
 app.get("/callback", callback);
@@ -30,10 +27,16 @@ app.get("/about", (req, res) => {
   res.sendFile(path.resolve("dist", "public", "index.html"));
 });
 
+// add middleware to fetch room data to render to ui. add data to req object.
 app.get("/dashboard", pageAuth, (req, res) => {
   console.log("Rendering Dashboard");
   // add check for prod to render actual signout domain
   res.render("dashboard");
+});
+
+app.get("/createRoom", (req, res) => {
+  console.log("Making Create Room");
+  res.send("createRoom");
 });
 
 app.listen(3000, () => {

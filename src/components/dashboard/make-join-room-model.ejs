@@ -1,3 +1,6 @@
+<!--prettier-ignore-->
+<%# Send form data to server by an action to createRoom %>
+
 <% if(type === "create") { %>
 <dialog id="makeRoomModel" class="modal modal-bottom sm:modal-middle">
   <% } else { %>
@@ -19,6 +22,7 @@
               >Room Name</label
             >
             <input
+              name="room-name"
               id="input-room-name"
               type="text"
               placeholder="Type here"

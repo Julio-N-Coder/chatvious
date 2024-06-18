@@ -12,6 +12,7 @@ themeSwitch.addEventListener("change", () => {
   updateTheme(isOSDefaultDarkMode, themeSwitch, preferedTheme);
 });
 
-document.querySelector("#sign-out-button")?.addEventListener("click", signOut);
-
-// tokenChecker();
+const signOutButtons = document.getElementsByClassName("sign-out-button");
+for (let i = 0; i < signOutButtons.length; i++) {
+  signOutButtons[i].addEventListener("click", signOut);
+}

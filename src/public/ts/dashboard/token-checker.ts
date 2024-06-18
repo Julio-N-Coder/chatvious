@@ -64,6 +64,7 @@ setInterval(async () => {
       );
       const tokenData: TokenRefresh = await tokenResponse.json();
 
+      // alert("Tokens Refreshed");
       setCookie("access_token", tokenData.access_token, tokenData.expires_in);
       setCookie("id_token", tokenData.id_token, tokenData.expires_in);
     } catch (error) {

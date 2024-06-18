@@ -53,9 +53,9 @@
       />
       <%- include('sun-moon/moon-icon'); %>
     </label>
-    <!-- dont' forget logout at bottom -->
-    <button class="btn btn-accent hidden sm:flex" id="sign-out-button">
-      Sign Out
+    <%# sign out button for big screens %>
+    <button class="btn btn-accent hidden sm:flex sign-out-button">
+      Log Out
     </button>
     <%# thee dots login for small screens %>
     <details class="dropdown dropdown-end flex sm:hidden">
@@ -79,7 +79,7 @@
       >
         <li>
           <%# add logout url %>
-          <a>log Out</a>
+          <div class="sign-out-button">Log Out</div>
         </li>
       </ul>
     </details>

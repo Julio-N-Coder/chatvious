@@ -2,3 +2,4 @@ node_modules
 Notes.md
 dist
 .env
+.aws-sam

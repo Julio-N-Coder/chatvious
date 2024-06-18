@@ -3,6 +3,9 @@ import { TokenResponse } from "../types/Cognito-types.js";
 import cognitoData from "../cognitoData.js";
 import { isProduction } from "../lib/handyUtils.js";
 
+// In Callback, check is sub(basically id) value in id token to see if user already has data in database.
+// If not, store their information and continue.
+
 async function callback(req: Request, res: Response): Promise<void> {
   // Authorization code is checked and sent to the token endpoint
   if (req.query.code && typeof req.query.code === "string") {
@@ -39,6 +42,8 @@ async function callback(req: Request, res: Response): Promise<void> {
       expires_in,
     }: TokenResponse = await tokens.json();
     const refresh_token_expiration_days = 365;
+
+    // do database look up here
 
     // Add check to make tokens secure true in production
     res.cookie("access_token", access_token, {

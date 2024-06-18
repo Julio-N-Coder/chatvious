@@ -43,6 +43,9 @@ const config = {
   },
   optimization: {
     runtimeChunk: "single",
+    splitChunks: {
+      chunks: "all",
+    },
   },
 };
 

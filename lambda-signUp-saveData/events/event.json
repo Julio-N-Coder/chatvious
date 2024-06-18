@@ -1,0 +1,30 @@
+{
+  "version": "1",
+  "triggerSource": "PostConfirmation_ConfirmSignUp",
+  "region": "us-east-1",
+  "userPoolId": "us-east-1_abcdefgh",
+  "userName": "testuser",
+  "callerContext": {
+    "awsSdkVersion": "2.1234.0",
+    "clientId": "abcd1234"
+  },
+  "request": {
+    "userAttributes": {
+      "email": "testuser@example.com",
+      "username": "Test User",
+      "sub": "1234567890"
+    },
+    "confirmationCode": "123456",
+    "clientMetadata": {
+      "referrer": "https://example.com"
+    }
+  },
+  "response": {
+    "autoConfirmUser": true,
+    "autoVerifyEmail": true,
+    "autoVerifyPhone": false,
+    "smsMessage": "Your confirmation code is {####}",
+    "emailMessage": "Your confirmation code is {####}",
+    "emailSubject": "Confirm your account"
+  }
+}
