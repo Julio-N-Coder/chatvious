@@ -10,9 +10,11 @@
   },
   "request": {
     "userAttributes": {
+      "sub": "12345678-abcd-1234-efgh-123456789012",
       "email": "testuser@example.com",
-      "username": "Test User",
-      "sub": "1234567890"
+      "email_verified": "true",
+      "phone_number_verified": "false",
+      "phone_number": "+12345678901"
     },
     "confirmationCode": "123456",
     "clientMetadata": {

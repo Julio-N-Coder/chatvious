@@ -10,7 +10,12 @@ type PostConfirmationEvent = {
   };
   request: {
     userAttributes: {
-      [key: string]: string;
+      // [key: string]: string;
+      sub: string,
+      email: string,
+      email_verified: string,
+      phone_number_verified: string,
+      phone_number: string
     };
     confirmationCode?: string;
     clientMetadata?: {

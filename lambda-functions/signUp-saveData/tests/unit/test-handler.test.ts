@@ -1,9 +1,9 @@
-import { saveUserData } from '../../handlers/saveUserData';
-import testPostConfirmationEvent from '../../../events/event.json';
+import { saveUserData } from '../../handler/saveUserData';
+import testPostConfirmationEvent from '../../../events/saveUserDataEvent.json';
 import { expect, describe, test } from '@jest/globals';
 
 // This includes all tests for saveUserData()
-describe('Test for hello-from-lambda', function () {
+describe('Test for saveUserData', () => {
     // This test invokes saveUserData() and compare the result
     test('Verifies successful response', async () => {
         // Invoke saveUserData()

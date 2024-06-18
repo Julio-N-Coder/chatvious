@@ -1,11 +1,8 @@
 {
-  "name": "hello_world",
+  "name": "signup-savedata",
   "version": "1.0.0",
-  "description": "hello world sample for NodeJS",
-  "main": "app.js",
-  "repository": "https://github.com/awslabs/aws-sam-cli/tree/develop/samcli/local/init/templates/cookiecutter-aws-sam-hello-nodejs",
-  "author": "SAM CLI",
-  "license": "MIT",
+  "description": "A lambda function to save data initial user data to dynamodb",
+  "main": "saveUserData.js",
   "type": "module",
   "scripts": {
     "unit": "jest",
@@ -14,11 +11,12 @@
     "test": "npm run compile && npm run unit"
   },
   "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.598.0",
+    "@aws-sdk/lib-dynamodb": "^3.598.0",
     "esbuild": "^0.14.54"
   },
   "devDependencies": {
     "@jest/globals": "^29.7.0",
-    "@types/jest": "^29.5.12",
     "@types/node": "^20.14.4",
     "@typescript-eslint/eslint-plugin": "^5.62.0",
     "@typescript-eslint/parser": "^5.62.0",
