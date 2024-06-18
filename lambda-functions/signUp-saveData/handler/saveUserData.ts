@@ -6,25 +6,26 @@ import { DynamoDBDocumentClient, PutCommand } from "@aws-sdk/lib-dynamodb";
 
 export const saveUserData = async (event: PostConfirmationEvent) => {
   if (event.triggerSource === "PostConfirmation_ConfirmSignUp") {
-    // save the user data to DynamoDB
-    // return an error message if the user data could not be saved
     const client = new DynamoDBClient({});
     const docClient = DynamoDBDocumentClient.from(client);
-    
+
     const userDataCommand = new PutCommand({
       TableName: "chatvious-users",
       Item: {
-        "sub-id": event.request.userAttributes.sub,
+        "id-sub": event.request.userAttributes.sub,
         username: event.userName,
         email: event.request.userAttributes.email,
-      }
+      },
     });
-    
+
     // check for an error and return an error if there is an problem
     const res = await docClient.send(userDataCommand);
-    console.log("res: ", res);
+    if (res.$metadata.httpStatusCode !== 200) {
+      throw new Error("Failed to save user data");
+    }
+
     return event;
   }
-  
+
   return event;
 };
