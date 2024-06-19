@@ -5,8 +5,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "tsc --p tsconfig.server.json && cp -r ./src/views ./dist && cp -r ./src/components ./dist && webpack --mode=development",
-    "build:prod": "tsc --p tsconfig.server.json && cp -r ./src/views ./dist && cp -r ./src/components ./dist && webpack --mode=production --node-env=production",
+    "build": "tsc --p tsconfig.server.json && cp -r ./src/views ./dist && webpack --mode=development",
+    "build:prod": "tsc --p tsconfig.server.json && cp -r ./src/views ./dist && webpack --mode=production --node-env=production",
     "fullBuild": "npm --prefix ./client run build && npm run build",
     "fullBuild:prod": "npm --prefix ./client run build:prod && npm run build:prod",
     "dev": "concurrently 'tsc --watch --p tsconfig.server.json' 'webpack --watch' 'nodemon'",
@@ -25,6 +25,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.600.0",
+    "@aws-sdk/lib-dynamodb": "^3.600.0",
     "aws-jwt-verify": "^4.0.1",
     "cookie-parser": "^1.4.6",
     "dotenv": "^16.4.5",

@@ -10,7 +10,7 @@
   </head>
   <body>
     <div class="roboto antialiased h-screen bg-base-300">
-      <%- include('../components/navBar'); %>
+      <%- include('./components/navBar'); %>
       <div
         class="container mx-auto rounded-b px-2 pb-2 pt-4 flex justify-evenly gap-2"
       >
@@ -22,7 +22,7 @@
               Create Room
             </button>
           </div>
-          <%- include('../components/dashboard/rooms-display') %>
+          <%- include('./components/dashboard/rooms-display') %>
         </div>
         <%# Joined rooms card %>
         <div class="card bg-base-100 p-2 grow gap-4">
@@ -32,12 +32,12 @@
               Join Room
             </button>
           </div>
-          <%- include('../components/dashboard/rooms-display') %>
+          <%- include('./components/dashboard/rooms-display') %>
         </div>
       </div>
     </div>
     <!--prettier-ignore-->
-    <%- include("../components/dashboard/make-join-room-model", { type: "create" }) %>
-    <%- include("../components/dashboard/make-join-room-model", { type: "join" }) %>
+    <%- include("./components/dashboard/make-join-room-model", { type: "create" }) %>
+    <%- include("./components/dashboard/make-join-room-model", { type: "join" }) %>
   </body>
 </html>

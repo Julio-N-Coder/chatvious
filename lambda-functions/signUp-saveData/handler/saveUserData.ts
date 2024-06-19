@@ -2,8 +2,6 @@ import { PostConfirmationEvent } from "../types.js";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocumentClient, PutCommand } from "@aws-sdk/lib-dynamodb";
 
-// comamnd to invoke locally "sam local invoke saveUserDataFunction -e events/saveUserDataEvent.json"
-
 export const saveUserData = async (event: PostConfirmationEvent) => {
   if (event.triggerSource === "PostConfirmation_ConfirmSignUp") {
     const client = new DynamoDBClient({});

@@ -5,6 +5,7 @@ import { callback } from "./controllers/callback.js";
 import { isProduction } from "./lib/handyUtils.js";
 import cookieParser from "cookie-parser";
 import pageAuth from "./controllers/middleware/pageAuth.js";
+import createRoom from "./controllers/createRoom.js";
 const app = express();
 
 app.set("view engine", "ejs");
@@ -17,6 +18,7 @@ if (isProduction()) {
 
 app.use(express.static(path.resolve("dist", "public")));
 app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
 app.use(cookieParser());
 
 // test URL http://localhost:3000/callback?code=a1b2c3d4-5678-90ab-cdef-EXAMPLE11111&state=abcdefg
@@ -34,10 +36,7 @@ app.get("/dashboard", pageAuth, (req, res) => {
   res.render("dashboard");
 });
 
-app.get("/createRoom", (req, res) => {
-  console.log("Making Create Room");
-  res.send("createRoom");
-});
+app.post("/createRoom", createRoom);
 
 app.listen(3000, () => {
   console.log("Listening on port 3000");
