@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import { CognitoJwtVerifier } from "aws-jwt-verify";
+import { decomposeUnverifiedJwt } from "aws-jwt-verify/jwt";
 import cognitoData from "../../cognitoData.js";
 import { TokenRefresh } from "../../types/Cognito-types.js";
 
@@ -17,6 +18,7 @@ async function pageAuth(req: Request, res: Response, next: NextFunction) {
       });
 
       const payload = await verifier.verify(access_token);
+      req.user = { id: payload.sub };
       return next();
     } catch (err) {
       return res.redirect(
@@ -55,6 +57,14 @@ async function pageAuth(req: Request, res: Response, next: NextFunction) {
         secure: false,
         expires: new Date(Date.now() + tokenData.expires_in * 1000),
       });
+
+      const { payload } = decomposeUnverifiedJwt(tokenData.id_token);
+
+      if (typeof payload.sub === "string") {
+        req.user = { id: payload.sub };
+      } else {
+        res.status(500).send("Internal Server Error");
+      }
 
       return next();
     } catch (err) {

@@ -6,6 +6,7 @@ import { isProduction } from "./lib/handyUtils.js";
 import cookieParser from "cookie-parser";
 import pageAuth from "./controllers/middleware/pageAuth.js";
 import createRoom from "./controllers/createRoom.js";
+import dashboard from "./controllers/dashboard.js";
 const app = express();
 
 app.set("view engine", "ejs");
@@ -29,12 +30,7 @@ app.get("/about", (req, res) => {
   res.sendFile(path.resolve("dist", "public", "index.html"));
 });
 
-// add middleware to fetch room data to render to ui. add data to req object.
-app.get("/dashboard", pageAuth, (req, res) => {
-  console.log("Rendering Dashboard");
-  // add check for prod to render actual signout domain
-  res.render("dashboard");
-});
+app.get("/dashboard", pageAuth, dashboard);
 
 app.post("/createRoom", createRoom);
 

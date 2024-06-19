@@ -4,9 +4,11 @@ import {
   DynamoDBDocumentClient,
   PutCommand,
   UpdateCommand,
+  GetCommand,
 } from "@aws-sdk/lib-dynamodb";
 import { CognitoJwtVerifier } from "aws-jwt-verify";
 import cognitoData from "../cognitoData.js";
+import { JwtExpiredError } from "aws-jwt-verify/error";
 
 const client = new DynamoDBClient({});
 const docClient = DynamoDBDocumentClient.from(client);
@@ -76,11 +78,35 @@ async function makeRoom(req: Request) {
 
     return { statusCode: 201, error: "" };
   } catch (err) {
-    console.log(err);
+    if (err instanceof JwtExpiredError) {
+      return { errorMessage: err.message, statusCode: 401 };
+    }
     return { error: err, statusCode: 500 };
   }
 }
 
-function fetchRooms() {}
+async function fetchRooms(req: Request) {
+  const userID = req.user?.id as string;
+
+  const getUserInfo = new GetCommand({
+    TableName: "chatvious-users",
+    Key: { "id-sub": userID },
+    ConsistentRead: true,
+  });
+
+  const getUserResponse = await docClient.send(getUserInfo);
+  const statusCode = getUserResponse.$metadata.httpStatusCode as number;
+
+  if (statusCode !== 200) {
+    return { error: "Failed to Get User Info", statusCode };
+  }
+
+  const ownedRooms: { roomName: string; RoomID: string }[] | [] =
+    getUserResponse.Item?.ownedRooms;
+  const joinedRooms: { roomName: string; RoomID: string }[] | [] =
+    getUserResponse.Item?.joinedRooms;
+
+  return { ownedRooms, joinedRooms, statusCode: 200 };
+}
 
 export { makeRoom, fetchRooms };
