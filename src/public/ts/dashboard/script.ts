@@ -44,8 +44,9 @@ createForm.addEventListener("submit", async (e) => {
     if (makeRoomResponse.ok === true) {
       window.location.href = `/dashboard`;
     }
+    // make sure to handle error
 
-    console.log(await makeRoomResponse.json());
+    // console.log(await makeRoomResponse.json());
   } catch (error) {
     // display to ui that fetch went wrong
     console.log(error);

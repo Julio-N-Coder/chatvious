@@ -13,6 +13,8 @@ export const saveUserData = async (event: PostConfirmationEvent) => {
         "id-sub": event.request.userAttributes.sub,
         username: event.userName,
         email: event.request.userAttributes.email,
+        ownedRooms: [],
+        joinedRooms: [],
       },
     });
 
