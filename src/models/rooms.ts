@@ -35,8 +35,7 @@ async function makeRoom(req: Request) {
     const roomData = {
       RoomID: crypto.randomUUID(),
       roomName: req.body.roomName,
-      ownerID: "12345678-abcd-1234-efgh-123456789012",
-      // ownerID,
+      ownerID,
       authedUsers: [],
     };
 
@@ -45,11 +44,10 @@ async function makeRoom(req: Request) {
       Item: roomData,
     });
 
-    // newRoom value need to be wrapped in an array
+    // newRoom value needs to be wrapped in an array
     const updateCommand = new UpdateCommand({
       TableName: "chatvious-users",
-      Key: { "id-sub": "12345678-abcd-1234-efgh-123456789012" },
-      // Key: { "id-sub": ownerID },
+      Key: { "id-sub": ownerID },
       UpdateExpression: "SET ownedRooms = list_append(ownedRooms, :newRoom)",
       ExpressionAttributeValues: {
         ":newRoom": [{ roomName: roomData.roomName, RoomID: roomData.RoomID }],

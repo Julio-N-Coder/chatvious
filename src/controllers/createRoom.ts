@@ -9,6 +9,18 @@ async function createRoom(req: Request, res: Response) {
     return;
   }
 
+  if (req.body.roomName.length < 3) {
+    res.status(400).json({ error: "Room Name must be at least 3 characters" });
+    return;
+  }
+
+  if (req.body.roomName.length > 25) {
+    res
+      .status(400)
+      .json({ error: "Room Name must be less than 25 characters" });
+    return;
+  }
+
   const makeRoomResponse = await makeRoom(req);
   if (makeRoomResponse.errorMessage) {
     res

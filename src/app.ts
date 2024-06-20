@@ -34,6 +34,10 @@ app.get("/dashboard", pageAuth, dashboard);
 
 app.post("/createRoom", createRoom);
 
+app.post("/joinRoom", (req, res) => {
+  res.json("Join Room");
+});
+
 app.listen(3000, () => {
   console.log("Listening on port 3000");
   console.log("URL: http://localhost:3000/");

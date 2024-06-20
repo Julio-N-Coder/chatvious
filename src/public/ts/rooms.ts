@@ -1,18 +1,15 @@
 import { makeRoomResponse } from "./types";
 
-// pass event type to createRoom parameter
-async function createRoom(e: Event) {
+async function createRoom(
+  e: SubmitEvent,
+  createSubmitButton: HTMLButtonElement,
+  submitRoomLoader: HTMLElement,
+  createmodelError: HTMLElement
+) {
   e.preventDefault();
   const roomName = (
     document.getElementById("input-room-name") as HTMLInputElement
   ).value;
-  const createSubmitButton = document.getElementById(
-    "createSubmitButton"
-  ) as HTMLButtonElement;
-  const submitRoomLoader = document.getElementById(
-    "submitRoomLoader"
-  ) as HTMLElement;
-  const modalError = document.getElementById("modelError") as HTMLElement;
 
   function toggleSubmitButtonState() {
     createSubmitButton.disabled = !createSubmitButton.disabled;
@@ -20,6 +17,25 @@ async function createRoom(e: Event) {
     createSubmitButton.classList.remove("px-1");
   }
   toggleSubmitButtonState();
+
+  if (!roomName) {
+    createmodelError.classList.remove("hidden");
+    createmodelError.innerText = "Room Name is required";
+    toggleSubmitButtonState();
+    return;
+  }
+  if (roomName.length < 3) {
+    createmodelError.classList.remove("hidden");
+    createmodelError.innerText = "Room Name must be at least 3 characters";
+    toggleSubmitButtonState();
+    return;
+  }
+  if (roomName.length > 25) {
+    createmodelError.classList.remove("hidden");
+    createmodelError.innerText = "Room Name must be less than 25 characters";
+    toggleSubmitButtonState();
+    return;
+  }
 
   try {
     const makeRoomResponse = await fetch("/createRoom", {
@@ -38,16 +54,50 @@ async function createRoom(e: Event) {
       await makeRoomResponse.json();
 
     if ("error" in makeRoomResponseJson) {
-      modalError.classList.remove("hidden");
-      modalError.innerText = makeRoomResponseJson.error;
+      createmodelError.classList.remove("hidden");
+      createmodelError.innerText = makeRoomResponseJson.error;
       toggleSubmitButtonState();
     }
   } catch (error) {
-    modalError.classList.remove("hidden");
-    modalError.innerText = "Something went wrong while making your room.";
+    createmodelError.classList.remove("hidden");
+    createmodelError.innerText = "Something went wrong while making your room.";
 
     toggleSubmitButtonState();
   }
 }
 
-export { createRoom };
+async function joinRoom(
+  e: SubmitEvent,
+  joinSubmitButton: HTMLButtonElement,
+  submitRoomLoader: HTMLElement,
+  joinmodelError: HTMLElement
+) {
+  e.preventDefault();
+  const RoomID = (document.getElementById("input-room-id") as HTMLInputElement)
+    .value;
+
+  function toggleSubmitButtonState() {
+    joinSubmitButton.disabled = !joinSubmitButton.disabled;
+    submitRoomLoader.classList.toggle("hidden");
+    joinSubmitButton.classList.remove("px-1");
+  }
+  toggleSubmitButtonState();
+
+  const joinRoomResponse = await fetch("/joinRoom", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ RoomID }),
+  });
+
+  if (joinRoomResponse.ok === true) {
+    toggleSubmitButtonState();
+    console.log(await joinRoomResponse.json());
+    // window.location.href = `/dashboard`;
+  }
+
+  // window.location.href = `/dashboard`;
+}
+
+export { createRoom, joinRoom };
