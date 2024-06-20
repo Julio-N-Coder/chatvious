@@ -5,7 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="stylesheet" href="ejs/styles.css" />
     <script defer src="ejs/runtime.js"></script>
-    <script defer src="ejs/index.js"></script>
+    <script defer src="ejs/navBar.js"></script>
+    <script defer src="ejs/dashboard.js"></script>
     <title>DashBoard</title>
   </head>
   <body>
@@ -44,5 +45,6 @@
     <!--prettier-ignore-->
     <%- include("./components/dashboard/make-join-room-model", { type: "create" }) %>
     <%- include("./components/dashboard/make-join-room-model", { type: "join" }) %>
+    <script defer src="ejs/src_public_ts_rooms_ts.js"></script>
   </body>
 </html>

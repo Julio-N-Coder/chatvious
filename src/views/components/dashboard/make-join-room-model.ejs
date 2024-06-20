@@ -1,5 +1,4 @@
 <!--prettier-ignore-->
-<%# Send form data to server by an action to createRoom %>
 
 <dialog id="<%= type === "create" ? "createRoomModel" : "joinRoomModel" %>" class="modal modal-bottom sm:modal-middle">
     <div class="modal-box">
@@ -49,7 +48,6 @@
       <div 
         id="<%= type === "create" ? "createmodelError" : "joinmodelError" %>"
         class="hidden bg-error text-error-content font-bold px-2 rounded-md mt-4 max-w-[75%]"></div>
-        <!-- <div id="modelError" class="hidden bg-error text-error-content font-bold px-2 rounded-md mt-4 max-w-[75%]"></div> -->
       </div>
   </dialog>
 </dialog>

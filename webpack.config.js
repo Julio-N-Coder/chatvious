@@ -7,18 +7,19 @@ const stylesHandler = MiniCssExtractPlugin.loader;
 
 const config = {
   entry: {
-    index: "./src/public/ts/dashboard/script.ts",
-    // navBar: "./src/public/ts/navBar.ts",
+    navBar: "./src/public/ts/navBar/navBar.ts",
+    dashboard: "./src/public/ts/dashboard/script.ts",
+    chatRoom: "./src/public/ts/chatRoom/chatRoom.ts",
   },
   output: {
-    // filename: "[name].js",
+    filename: "[name].js",
     path: path.resolve("dist", "public", "ejs"),
     clean: true,
   },
   devtool: "inline-source-map",
   plugins: [
     new MiniCssExtractPlugin({
-      filename: "styles.css", // not dynamic if css file name changes.
+      filename: "styles.css",
     }),
   ],
   module: {

@@ -1,3 +1,6 @@
+import updateTheme from "./updateTheme";
+import { signOut } from "../dashboard/token-checker";
+
 const darkModeMediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
 let isOSDefaultDarkMode = darkModeMediaQuery.matches;
 let preferedTheme = localStorage.getItem("theme");
@@ -5,6 +8,15 @@ let isCurrentlyDarkMode = false;
 
 // Initializing dom elements needed
 const themeSwitch = document.getElementById("themeSwitch") as HTMLInputElement;
+
+themeSwitch.addEventListener("change", () => {
+  updateTheme(isOSDefaultDarkMode, themeSwitch, preferedTheme);
+});
+
+const signOutButtons = document.getElementsByClassName("sign-out-button");
+for (let i = 0; i < signOutButtons.length; i++) {
+  signOutButtons[i].addEventListener("click", signOut);
+}
 
 // checks OS default to rotate theme switch or not
 // also changes theme switch value for dark/light mode
@@ -37,5 +49,3 @@ if (preferedTheme) {
     }
   }
 }
-
-export { themeSwitch, isOSDefaultDarkMode, preferedTheme };

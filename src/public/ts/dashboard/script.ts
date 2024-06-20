@@ -1,12 +1,4 @@
 import "../../css/styles.css";
-import {
-  themeSwitch,
-  isOSDefaultDarkMode,
-  preferedTheme,
-} from "../navBar/navBar";
-import updateTheme from "../navBar/updateTheme";
-import { signOut } from "./token-checker";
-import { createRoom, joinRoom } from "../rooms";
 
 const createForm = document.getElementById("create-form") as HTMLFormElement;
 const joinForm = document.getElementById("join-form") as HTMLFormElement;
@@ -41,16 +33,6 @@ const submitRoomLoader = document.getElementById(
   "submitRoomLoader"
 ) as HTMLElement;
 
-// adding Event listeners
-themeSwitch.addEventListener("change", () => {
-  updateTheme(isOSDefaultDarkMode, themeSwitch, preferedTheme);
-});
-
-const signOutButtons = document.getElementsByClassName("sign-out-button");
-for (let i = 0; i < signOutButtons.length; i++) {
-  signOutButtons[i].addEventListener("click", signOut);
-}
-
 // cleanup modals after closing
 createCloseModel.addEventListener("click", () => {
   createSubmitButton.disabled = false;
@@ -69,9 +51,11 @@ joinCloseModel.addEventListener("click", () => {
 });
 
 createForm.addEventListener("submit", async (e) => {
+  const { createRoom } = await import("../rooms");
   await createRoom(e, createSubmitButton, submitRoomLoader, createmodelError);
 });
 
 joinForm.addEventListener("submit", async (e) => {
+  const { joinRoom } = await import("../rooms");
   await joinRoom(e, joinSubmitButton, submitRoomLoader, joinmodelError);
 });

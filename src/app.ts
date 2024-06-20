@@ -1,13 +1,20 @@
 import "dotenv/config";
 import express from "express";
 import path from "path";
+import { createServer } from "http";
+import { Server } from "socket.io";
+import socket_io_server from "./socketServer.js";
 import { callback } from "./controllers/callback.js";
 import { isProduction } from "./lib/handyUtils.js";
 import cookieParser from "cookie-parser";
 import pageAuth from "./controllers/middleware/pageAuth.js";
 import createRoom from "./controllers/createRoom.js";
 import dashboard from "./controllers/dashboard.js";
+
 const app = express();
+const server = createServer(app);
+const io = new Server(server);
+socket_io_server(io);
 
 app.set("view engine", "ejs");
 
@@ -38,7 +45,12 @@ app.post("/joinRoom", (req, res) => {
   res.json("Join Room");
 });
 
-app.listen(3000, () => {
+app.get("/chat-room/:RoomID", (req, res) => {
+  console.log("rendering chatroom page");
+  res.render("chatRoom");
+});
+
+server.listen(3000, () => {
   console.log("Listening on port 3000");
   console.log("URL: http://localhost:3000/");
 });

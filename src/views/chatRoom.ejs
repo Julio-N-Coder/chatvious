@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="/ejs/styles.css" />
+    <script defer src="/ejs/runtime.js"></script>
+    <script defer src="/ejs/navBar.js"></script>
+    <script defer src="/ejs/chatRoom.js"></script>
+    <script
+      defer
+      src="/ejs/vendors-node_modules_socket_io-client_build_esm_index_js.js"
+    ></script>
+    <title>Room Page</title>
+  </head>
+  <body>
+    <div class="roboto antialiased h-screen bg-base-300">
+      <%- include('./components/navBar'); %>
+      <input id="input" />
+      <button id="button">Send</button>
+      <div id="message" class="bg-blue-500 h-6"></div>
+    </div>
+  </body>
+</html>
