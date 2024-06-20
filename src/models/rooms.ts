@@ -10,13 +10,17 @@ import { CognitoJwtVerifier } from "aws-jwt-verify";
 import cognitoData from "../cognitoData.js";
 import { JwtExpiredError } from "aws-jwt-verify/error";
 
+declare module "express" {
+  interface Request {
+    user?: {
+      id: string;
+    };
+  }
+}
+
 const client = new DynamoDBClient({});
 const docClient = DynamoDBDocumentClient.from(client);
 
-// try to make room
-// if there is a problem, send status problem, else send status 201
-
-// make a unique id for room id
 async function makeRoom(req: Request) {
   const verifier = CognitoJwtVerifier.create({
     userPoolId: cognitoData.USER_POOL_ID,

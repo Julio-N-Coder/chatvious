@@ -1,22 +1,15 @@
 <!--prettier-ignore-->
 <%# Send form data to server by an action to createRoom %>
 
-<%# Add Another Input for room id %>
-
-<% if(type === "create") { %>
-<dialog id="makeRoomModel" class="modal modal-bottom sm:modal-middle">
-  <% } else { %>
-  <dialog id="joinRoomModel" class="modal modal-bottom sm:modal-middle">
-    <% } %>
+<dialog id="<%= type === "create" ? "makeRoomModel" : "joinRoomModel" %>" class="modal modal-bottom sm:modal-middle">
     <div class="modal-box">
-      <% if(type === "create") { %>
-      <h3 class="font-bold text-lg">Create a Room!</h3>
-      <form id="create-form" method="dialog">
-      <% } else { %>
-        <h3 class="font-bold text-lg">Join a Room!</h3>
-        <form id="join-form" method="dialog">
-      <% } %>
-        <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">
+      <h3 class="font-bold text-lg"><%= type === "create" ? "Create a Room!" : "Join a Room!" %></h3>
+      <form id="<%= type === "create" ? "create-form" : "join-form" %>" method="dialog">
+        <button
+          class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
+          type="button"
+          id="<%= type === "create" ? "createCloseModel" : "joinCloseModel" %>"
+        >
           ✕
         </button>
         <div class="mt-4 space-y-4">
@@ -47,9 +40,11 @@
             type="submit"
           >
             Submit
+            <span id="submitRoomLoader" class="hidden -translate-x-2 translate-y-1 loading loading-dots loading-sm"></span>
           </button>
         </div>
       </form>
+      <div id="modelError" class="hidden bg-error text-error-content font-bold px-2 rounded-md mt-4 max-w-[75%]">test</div>
     </div>
   </dialog>
 </dialog>

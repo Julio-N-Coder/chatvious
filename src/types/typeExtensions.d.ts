@@ -1,11 +1,10 @@
-import * as express from "express";
+import { Request } from "express";
 
-declare global {
-  namespace Express {
-    interface Request {
-      user?: {
-        id: string;
-      };
-    }
+// Extend the existing Request type in Express
+declare module "express" {
+  interface Request {
+    user?: {
+      id: string;
+    };
   }
 }

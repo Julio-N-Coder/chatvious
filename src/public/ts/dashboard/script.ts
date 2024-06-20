@@ -1,4 +1,3 @@
-import { create } from "domain";
 import "../../css/styles.css";
 import {
   themeSwitch,
@@ -7,12 +6,22 @@ import {
 } from "../navBar/navBar";
 import updateTheme from "../navBar/updateTheme";
 import { signOut } from "./token-checker";
-
-// const createFormInput = document.getElementById("input-room-name");
-// const joinFormInput = document.getElementById("input-room-name");
+import { createRoom } from "../rooms";
 
 const createForm = document.getElementById("create-form") as HTMLFormElement;
 const joinForm = document.getElementById("join-form") as HTMLFormElement;
+const makeRoomModel = document.getElementById(
+  "makeRoomModel"
+) as HTMLDialogElement;
+const joinRoomModel = document.getElementById(
+  "joinRoomModel"
+) as HTMLDialogElement;
+const createCloseModel = document.getElementById(
+  "createCloseModel"
+) as HTMLButtonElement;
+const joinCloseModel = document.getElementById(
+  "joinCloseModel"
+) as HTMLButtonElement;
 
 // adding Event listeners
 themeSwitch.addEventListener("change", () => {
@@ -24,44 +33,33 @@ for (let i = 0; i < signOutButtons.length; i++) {
   signOutButtons[i].addEventListener("click", signOut);
 }
 
-createForm.addEventListener("submit", async (e) => {
-  e.preventDefault();
-  const createSubmitButton = document.getElementById("createSubmitButton");
-  const roomName = (
-    document.getElementById("input-room-name") as HTMLInputElement
-  ).value;
-  createSubmitButton?.setAttribute("disabled", "true");
-
-  try {
-    const makeRoomResponse = await fetch("/createRoom", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ roomName }),
-    });
-
-    if (makeRoomResponse.ok === true) {
-      window.location.href = `/dashboard`;
-    }
-    // make sure to handle error
-
-    // console.log(await makeRoomResponse.json());
-  } catch (error) {
-    // display to ui that fetch went wrong
-    console.log(error);
-  }
-
-  // window.location.href = `/dashboard`;
+createCloseModel.addEventListener("click", () => {
+  makeRoomModel.close();
 });
+
+joinCloseModel.addEventListener("click", () => {
+  joinRoomModel.close();
+});
+
+createForm.addEventListener("submit", createRoom);
 
 joinForm.addEventListener("submit", (e) => {
   e.preventDefault();
-  const createSubmitButton = document.getElementById("createSubmitButton");
-  const roomName = (
-    document.getElementById("input-room-name") as HTMLInputElement
-  ).value;
-  createSubmitButton?.setAttribute("disabled", "true");
+  const RoomID = (document.getElementById("input-room-id") as HTMLInputElement)
+    .value;
+  const joinSubmitButton = document.getElementById(
+    "joinSubmitButton"
+  ) as HTMLButtonElement;
+  const submitRoomLoader = document.getElementById(
+    "submitRoomLoader"
+  ) as HTMLElement;
+
+  function toggleSubmitButtonState() {
+    joinSubmitButton.disabled = !joinSubmitButton.disabled;
+    submitRoomLoader.classList.toggle("hidden");
+    joinSubmitButton.classList.remove("px-1");
+  }
+  toggleSubmitButtonState();
 
   // window.location.href = `/dashboard`;
 });

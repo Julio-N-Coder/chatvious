@@ -5,4 +5,6 @@ type TokenRefresh = {
   expires_in: number;
 };
 
-export { TokenRefresh };
+type makeRoomResponse = { error: string } | { message: string };
+
+export { TokenRefresh, makeRoomResponse };
