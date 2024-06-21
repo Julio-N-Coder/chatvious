@@ -71,7 +71,6 @@ setInterval(async () => {
       console.log(error);
     }
   }
-  // }, tokenCheckerIntervalMinutes * 60000);
-}, 10000);
+}, tokenCheckerIntervalMinutes * 60000);
 
 export { signOut };

@@ -1,11 +1,23 @@
-import { makeRoomResponse } from "./types";
+import { makeRoomResponse } from "../../types";
 
-async function createRoom(
-  e: SubmitEvent,
-  createSubmitButton: HTMLButtonElement,
-  submitRoomLoader: HTMLElement,
-  createmodelError: HTMLElement
-) {
+const createForm = document.getElementById("create-form") as HTMLFormElement;
+const createRoomModel = document.getElementById(
+  "createRoomModel"
+) as HTMLDialogElement;
+const createCloseModel = document.getElementById(
+  "createCloseModel"
+) as HTMLButtonElement;
+const createmodelError = document.getElementById(
+  "createmodelError"
+) as HTMLElement;
+const createSubmitButton = document.getElementById(
+  "createSubmitButton"
+) as HTMLButtonElement;
+const submitRoomLoader = document.getElementById(
+  "submitRoomLoader"
+) as HTMLElement;
+
+async function createRoom(e: SubmitEvent) {
   e.preventDefault();
   const roomName = (
     document.getElementById("create-input-room") as HTMLInputElement
@@ -66,39 +78,12 @@ async function createRoom(
   }
 }
 
-async function joinRoom(
-  e: SubmitEvent,
-  joinSubmitButton: HTMLButtonElement,
-  submitRoomLoader: HTMLElement,
-  joinmodelError: HTMLElement
-) {
-  e.preventDefault();
-  const RoomID = (
-    document.getElementById("join-room-input") as HTMLInputElement
-  ).value;
+createForm.addEventListener("submit", createRoom);
 
-  function toggleSubmitButtonState() {
-    joinSubmitButton.disabled = !joinSubmitButton.disabled;
-    submitRoomLoader.classList.toggle("hidden");
-    joinSubmitButton.classList.remove("px-1");
-  }
-  toggleSubmitButtonState();
-
-  const joinRoomResponse = await fetch("rooms/joinRoom", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ RoomID }),
-  });
-
-  if (joinRoomResponse.ok === true) {
-    toggleSubmitButtonState();
-    console.log(await joinRoomResponse.json());
-    // window.location.href = `/dashboard`;
-  }
-
-  // window.location.href = `/dashboard`;
-}
-
-export { createRoom, joinRoom };
+createCloseModel.addEventListener("click", () => {
+  createSubmitButton.disabled = false;
+  submitRoomLoader.classList.add("hidden");
+  createSubmitButton.classList.remove("px-1");
+  createmodelError.classList.add("hidden");
+  createRoomModel.close();
+});

@@ -9,6 +9,9 @@ const config = {
   entry: {
     navBar: "./src/public/ts/navBar/navBar.ts",
     dashboard: "./src/public/ts/dashboard/script.ts",
+    clientCreateRoom:
+      "./src/public/ts/dashboard/clientRooms/clientCreateRoom.ts",
+    clientJoinRoom: "./src/public/ts/dashboard/clientRooms/clientJoinRoom.ts",
     chatRoom: "./src/public/ts/chatRoom/chatRoom.ts",
   },
   output: {

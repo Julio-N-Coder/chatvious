@@ -8,7 +8,7 @@ import {
 } from "@aws-sdk/lib-dynamodb";
 import { CognitoJwtVerifier } from "aws-jwt-verify";
 import cognitoData from "../cognitoData.js";
-import { JwtExpiredError } from "aws-jwt-verify/error";
+import { JwtBaseError } from "aws-jwt-verify/error";
 import { roomInfoType } from "../types/types.js";
 
 declare module "express" {
@@ -83,8 +83,8 @@ async function makeRoom(req: Request) {
 
     return { statusCode: 201, error: "" };
   } catch (err) {
-    if (err instanceof JwtExpiredError) {
-      return { errorMessage: err.message, statusCode: 401 };
+    if (err instanceof JwtBaseError) {
+      return { errorMessage: "Not Authorized", statusCode: 401 };
     }
     return { error: err, statusCode: 500 };
   }

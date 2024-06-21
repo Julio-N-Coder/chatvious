@@ -2,8 +2,8 @@ import { Request, Response } from "express";
 import { fetchRoom } from "../../models/rooms.js";
 
 export default async function roomInfo(req: Request, res: Response) {
-  console.log(req.params, "the url path");
   const { RoomID } = req.params;
+  // in fetchRoom, add check to see if user is owner. id should be on req.user.id
   const roomInfoResponse = await fetchRoom(RoomID);
 
   if (roomInfoResponse.error) {
