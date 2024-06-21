@@ -8,7 +8,7 @@ async function createRoom(
 ) {
   e.preventDefault();
   const roomName = (
-    document.getElementById("input-room-name") as HTMLInputElement
+    document.getElementById("create-input-room") as HTMLInputElement
   ).value;
 
   function toggleSubmitButtonState() {
@@ -38,7 +38,7 @@ async function createRoom(
   }
 
   try {
-    const makeRoomResponse = await fetch("/createRoom", {
+    const makeRoomResponse = await fetch("rooms/createRoom", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -73,8 +73,9 @@ async function joinRoom(
   joinmodelError: HTMLElement
 ) {
   e.preventDefault();
-  const RoomID = (document.getElementById("input-room-id") as HTMLInputElement)
-    .value;
+  const RoomID = (
+    document.getElementById("join-room-input") as HTMLInputElement
+  ).value;
 
   function toggleSubmitButtonState() {
     joinSubmitButton.disabled = !joinSubmitButton.disabled;
@@ -83,7 +84,7 @@ async function joinRoom(
   }
   toggleSubmitButtonState();
 
-  const joinRoomResponse = await fetch("/joinRoom", {
+  const joinRoomResponse = await fetch("rooms/joinRoom", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

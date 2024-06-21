@@ -9,6 +9,7 @@ import {
 import { CognitoJwtVerifier } from "aws-jwt-verify";
 import cognitoData from "../cognitoData.js";
 import { JwtExpiredError } from "aws-jwt-verify/error";
+import { roomInfoType } from "../types/types.js";
 
 declare module "express" {
   interface Request {
@@ -31,12 +32,14 @@ async function makeRoom(req: Request) {
   try {
     const payload = await verifier.verify(req.cookies.access_token);
     const ownerID = payload.sub;
+    const ownerName = payload.username;
 
     const roomData = {
       RoomID: crypto.randomUUID(),
       roomName: req.body.roomName,
-      ownerID,
+      owner: { ownerID, ownerName },
       authedUsers: [],
+      createdAt: new Date().toISOString(),
     };
 
     const putCommand = new PutCommand({
@@ -87,7 +90,7 @@ async function makeRoom(req: Request) {
   }
 }
 
-async function fetchRooms(req: Request) {
+async function fetchRoomsOnUser(req: Request) {
   const userID = req.user?.id as string;
 
   const getUserInfo = new GetCommand({
@@ -111,4 +114,25 @@ async function fetchRooms(req: Request) {
   return { ownedRooms, joinedRooms, statusCode: 200 };
 }
 
-export { makeRoom, fetchRooms };
+async function fetchRoom(RoomID: string) {
+  const roomInfoCommand = new GetCommand({
+    TableName: "chatvious-rooms",
+    Key: { RoomID },
+    ConsistentRead: true,
+  });
+
+  const roomInfoResponse = await docClient.send(roomInfoCommand);
+
+  const roomInfo = roomInfoResponse.Item as roomInfoType | undefined;
+
+  if (roomInfoResponse.$metadata.httpStatusCode !== 200) {
+    return { error: "Failed to Get Room Info", statusCode: 500 };
+  }
+  if (roomInfo == undefined) {
+    return { error: "Bad Request", statusCode: 400 };
+  }
+
+  return { roomInfo, statusCode: 200 };
+}
+
+export { makeRoom, fetchRoomsOnUser, fetchRoom };

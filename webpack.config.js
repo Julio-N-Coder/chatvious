@@ -40,7 +40,7 @@ const config = {
     ],
   },
   resolve: {
-    extensions: [".tsx", ".ts", ".jsx", ".js", "..."],
+    extensions: [".ts", ".jsx", ".js", "..."],
   },
   optimization: {
     runtimeChunk: "single",

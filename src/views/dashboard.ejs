@@ -12,11 +12,9 @@
   <body>
     <div class="roboto antialiased h-screen bg-base-300">
       <%- include('./components/navBar'); %>
-      <div
-        class="container mx-auto rounded-b px-2 pb-2 pt-4 flex justify-evenly gap-2"
-      >
+      <div class="container mx-auto rounded-b px-2 pb-2 pt-4 flex gap-2">
         <%# Owned rooms card %>
-        <div class="card bg-base-100 p-2 grow gap-4">
+        <div class="bg-base-100 rounded-2xl p-2 grow space-y-4">
           <div class="flex">
             <h2 class="grow card-title">Owned Rooms</h2>
             <button
@@ -30,7 +28,7 @@
           %>
         </div>
         <%# Joined rooms card %>
-        <div class="card bg-base-100 p-2 grow gap-4">
+        <div class="bg-base-100 rounded-2xl p-2 grow space-y-4">
           <div class="flex">
             <h2 class="grow card-title">Joined Rooms</h2>
             <button class="btn btn-accent" onclick="joinRoomModel.showModal()">

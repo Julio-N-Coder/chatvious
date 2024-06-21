@@ -8,8 +8,8 @@ import { callback } from "./controllers/callback.js";
 import { isProduction } from "./lib/handyUtils.js";
 import cookieParser from "cookie-parser";
 import pageAuth from "./controllers/middleware/pageAuth.js";
-import createRoom from "./controllers/createRoom.js";
 import dashboard from "./controllers/dashboard.js";
+import roomsRouter from "./routes/rooms.js";
 
 const app = express();
 const server = createServer(app);
@@ -28,8 +28,8 @@ app.use(express.static(path.resolve("dist", "public")));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(cookieParser());
+app.use("/rooms", roomsRouter);
 
-// test URL http://localhost:3000/callback?code=a1b2c3d4-5678-90ab-cdef-EXAMPLE11111&state=abcdefg
 app.get("/callback", callback);
 
 app.get("/about", (req, res) => {
@@ -38,12 +38,6 @@ app.get("/about", (req, res) => {
 });
 
 app.get("/dashboard", pageAuth, dashboard);
-
-app.post("/createRoom", createRoom);
-
-app.post("/joinRoom", (req, res) => {
-  res.json("Join Room");
-});
 
 app.get("/chat-room/:RoomID", (req, res) => {
   console.log("rendering chatroom page");

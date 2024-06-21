@@ -1,9 +1,8 @@
 import { Request, Response } from "express";
-import { makeRoom } from "../models/rooms.js";
+import { makeRoom } from "../../models/rooms.js";
 
 async function createRoom(req: Request, res: Response) {
   console.log("Making Create Room");
-
   if (req.body.roomName === "") {
     res.status(400).json({ error: "Room Name is required" });
     return;

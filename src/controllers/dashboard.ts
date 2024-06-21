@@ -1,10 +1,10 @@
 import { Request, Response } from "express";
-import { fetchRooms } from "../models/rooms.js";
+import { fetchRoomsOnUser } from "../models/rooms.js";
 
 export default async function dashboard(req: Request, res: Response) {
   console.log("Rendering Dashboard");
 
-  const rooms = await fetchRooms(req);
+  const rooms = await fetchRoomsOnUser(req);
 
   if (rooms.error) {
     res.status(rooms.statusCode).json({ error: "Internal Server Error" });

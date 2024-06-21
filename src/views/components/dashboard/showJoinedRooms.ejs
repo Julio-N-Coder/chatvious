@@ -3,21 +3,27 @@
     Room Name</span
   >
   <div class="space-x-2">
-    <button class="btn btn-sm text-lg font-bold">Room Info</button>
-    <a href="chat-room/fakeRomeID" class="btn btn-sm text-lg font-bold"
+    <a href="rooms/fakeRoomInfoID" class="btn btn-sm text-lg font-bold"
+      >Room Info</a
+    >
+    <a href="/chat-room/fakeRoomID" class="btn btn-sm text-lg font-bold"
       >Join Room</a
     >
   </div>
 </div>
-<!--prettier-ignore-->
+<!--prettier-ignore -->
 <%# Above is just for a template for now %>
 <% if (joinedRooms.length > 0) { %> <% joinedRooms.map((joinedRoom) => { %>
-<div class="bg-neutral rounded p-2 flex justify-between">
+<div class="bg-neutral rounded p-2 flex justify-between m-0">
   <span class="text-lg font-bold self-center text-neutral-content">
     <%= joinedRoom.roomName %></span
   >
   <div class="space-x-2">
-    <button class="btn btn-sm text-lg font-bold">Room Info</button>
+    <a
+      href="/rooms/<%= joinedRoom.RoomID %>"
+      class="btn btn-sm text-lg font-bold"
+      >Room Info</a
+    >
     <a
       href="chat-room/<%= joinedRoom.RoomID %>"
       class="btn btn-sm text-lg font-bold"
@@ -26,4 +32,6 @@
   </div>
 </div>
 <div></div>
-<% })} %>
+<% })} else { %>
+<h2 class="text-2xl font-bold text-center p-3">You haven't Joined any rooms</h2>
+<% } %>
