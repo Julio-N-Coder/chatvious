@@ -6,8 +6,8 @@ export default async function dashboard(req: Request, res: Response) {
 
   const rooms = await fetchRoomsOnUser(req);
 
-  if (rooms.error) {
-    res.status(rooms.statusCode).json({ error: "Internal Server Error" });
+  if ("error" in rooms) {
+    res.status(rooms.statusCode).json({ error: rooms.error });
     return;
   }
 

@@ -3,10 +3,14 @@ import { fetchRoom } from "../../models/rooms.js";
 
 export default async function roomInfo(req: Request, res: Response) {
   const { RoomID } = req.params;
-  // in fetchRoom, add check to see if user is owner. id should be on req.user.id
+  if (req.user == undefined) {
+    res.status(401).json({ error: "Unauthorized" });
+    return;
+  }
+  const userID = req.user.id;
   const roomInfoResponse = await fetchRoom(RoomID);
 
-  if (roomInfoResponse.error) {
+  if ("error" in roomInfoResponse) {
     res
       .status(roomInfoResponse.statusCode)
       .json({ error: roomInfoResponse.error });
@@ -15,7 +19,12 @@ export default async function roomInfo(req: Request, res: Response) {
 
   const { roomInfo } = roomInfoResponse;
 
-  // make ejs page to and render this info. include the navbar as well
+  if (roomInfo.owner.ownerID === userID) {
+    console.log("rendering roomInfo page", "Onwer");
+    res.render("roomInfo", { roomInfo, isOwner: true });
+    return;
+  }
+
   console.log("rendering roomInfo page");
-  res.status(200).json(roomInfo);
+  res.render("roomInfo", { roomInfo });
 }

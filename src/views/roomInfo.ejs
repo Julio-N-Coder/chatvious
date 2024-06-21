@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="/ejs/styles.css" />
+    <script defer src="/ejs/runtime.js"></script>
+    <script defer src="/ejs/navBar.js"></script>
+    <title>Document</title>
+  </head>
+  <body class="min-h-screen bg-base-300">
+    <div class="roboto antialiased">
+      <%- include("./components/navBar") %>
+      <h1 class="font-bold text-7xl text-center mt-4">
+        <%= roomInfo.roomName %>
+      </h1>
+    </div>
+  </body>
+</html>

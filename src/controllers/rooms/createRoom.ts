@@ -21,17 +21,14 @@ async function createRoom(req: Request, res: Response) {
   }
 
   const makeRoomResponse = await makeRoom(req);
-  if (makeRoomResponse.errorMessage) {
+  if ("error" in makeRoomResponse) {
     res
       .status(makeRoomResponse.statusCode)
-      .json({ error: makeRoomResponse.errorMessage });
-    return;
-  } else if (makeRoomResponse.error) {
-    res.status(500).json({ error: "Internal Server Error" });
+      .json({ error: makeRoomResponse.error });
     return;
   }
 
-  return res.status(201).json({ message: "Data Created successfully" });
+  return res.status(201).json({ message: makeRoomResponse.message });
 }
 
 export default createRoom;

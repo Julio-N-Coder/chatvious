@@ -9,7 +9,13 @@ import {
 import { CognitoJwtVerifier } from "aws-jwt-verify";
 import cognitoData from "../cognitoData.js";
 import { JwtBaseError } from "aws-jwt-verify/error";
-import { roomInfoType } from "../types/types.js";
+import {
+  RoomsOnUser,
+  MakeRoomReturnType,
+  RoomInfoType,
+  FetchRoomsOnUserReturn,
+  FetchRoomReturn,
+} from "../types/types.js";
 
 declare module "express" {
   interface Request {
@@ -22,7 +28,7 @@ declare module "express" {
 const client = new DynamoDBClient({});
 const docClient = DynamoDBDocumentClient.from(client);
 
-async function makeRoom(req: Request) {
+async function makeRoom(req: Request): MakeRoomReturnType {
   const verifier = CognitoJwtVerifier.create({
     userPoolId: cognitoData.USER_POOL_ID,
     tokenUse: "access",
@@ -58,40 +64,41 @@ async function makeRoom(req: Request) {
     });
 
     const makeRoomResponse = await docClient.send(putCommand);
-    const makeRoomStatusCode = makeRoomResponse.$metadata.httpStatusCode;
+    const makeRoomStatusCode = makeRoomResponse.$metadata
+      .httpStatusCode as number;
     if (makeRoomStatusCode !== 200) {
-      if (typeof makeRoomStatusCode === "number") {
-        return {
-          errorMessage: "Failed to make room",
-          statusCode: makeRoomStatusCode,
-        };
-      }
-      return { error: makeRoomResponse, statusCode: 500 };
+      return {
+        error: "Failed to make room",
+        statusCode: makeRoomStatusCode,
+      };
     }
 
     const updateUsersResponse = await docClient.send(updateCommand);
-    const updateStatusCode = updateUsersResponse.$metadata.httpStatusCode;
+    const updateStatusCode = updateUsersResponse.$metadata
+      .httpStatusCode as number;
     if (updateStatusCode !== 200) {
-      if (typeof updateStatusCode === "number") {
-        return {
-          errorMessage: "Failed to update user",
-          statusCode: updateStatusCode,
-        };
-      }
-      return { error: updateUsersResponse, statusCode: 500 };
+      return {
+        error: "Failed to update user",
+        statusCode: updateStatusCode,
+      };
     }
 
-    return { statusCode: 201, error: "" };
+    return { message: "Room Created", statusCode: 201 };
   } catch (err) {
     if (err instanceof JwtBaseError) {
-      return { errorMessage: "Not Authorized", statusCode: 401 };
+      return { error: "Not Authorized", statusCode: 401 };
     }
-    return { error: err, statusCode: 500 };
+    return { error: "Internal Server Error", statusCode: 500 };
   }
 }
 
-async function fetchRoomsOnUser(req: Request) {
-  const userID = req.user?.id as string;
+async function fetchRoomsOnUser(req: Request): FetchRoomsOnUserReturn {
+  let userID = "";
+  if (req.user) {
+    userID = req.user.id;
+  } else {
+    return { error: "Not Authorized", statusCode: 401 };
+  }
 
   const getUserInfo = new GetCommand({
     TableName: "chatvious-users",
@@ -106,15 +113,13 @@ async function fetchRoomsOnUser(req: Request) {
     return { error: "Failed to Get User Info", statusCode };
   }
 
-  const ownedRooms: { roomName: string; RoomID: string }[] | [] =
-    getUserResponse.Item?.ownedRooms;
-  const joinedRooms: { roomName: string; RoomID: string }[] | [] =
-    getUserResponse.Item?.joinedRooms;
+  const ownedRooms: RoomsOnUser = getUserResponse.Item?.ownedRooms;
+  const joinedRooms: RoomsOnUser = getUserResponse.Item?.joinedRooms;
 
   return { ownedRooms, joinedRooms, statusCode: 200 };
 }
 
-async function fetchRoom(RoomID: string) {
+async function fetchRoom(RoomID: string): FetchRoomReturn {
   const roomInfoCommand = new GetCommand({
     TableName: "chatvious-rooms",
     Key: { RoomID },
@@ -123,11 +128,11 @@ async function fetchRoom(RoomID: string) {
 
   const roomInfoResponse = await docClient.send(roomInfoCommand);
 
-  const roomInfo = roomInfoResponse.Item as roomInfoType | undefined;
-
   if (roomInfoResponse.$metadata.httpStatusCode !== 200) {
     return { error: "Failed to Get Room Info", statusCode: 500 };
   }
+
+  const roomInfo = roomInfoResponse.Item as RoomInfoType | undefined;
   if (roomInfo == undefined) {
     return { error: "Bad Request", statusCode: 400 };
   }
