@@ -26,5 +26,5 @@ export default async function roomInfo(req: Request, res: Response) {
   }
 
   console.log("rendering roomInfo page");
-  res.render("roomInfo", { roomInfo });
+  res.render("roomInfo", { roomInfo, isOwner: false });
 }

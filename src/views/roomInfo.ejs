@@ -11,9 +11,51 @@
   <body class="min-h-screen bg-base-300">
     <div class="roboto antialiased">
       <%- include("./components/navBar") %>
-      <h1 class="font-bold text-7xl text-center mt-4">
-        <%= roomInfo.roomName %>
-      </h1>
+      <div
+        class="container mx-auto mt-4 border-2 border-base-content rounded-2xl shadow-lg shadow-base-content/30"
+      >
+        <h1
+          class="font-bold text-7xl text-center border-base-content border-b-2"
+        >
+          <%= roomInfo.roomName %>
+        </h1>
+        <div class="m-2 space-y-2">
+          <%# onwerName and createdAt %>
+          <div class="text-2xl flex justify-evenly">
+            <div>
+              <div class="m-2 flex gap-2">
+                <span>Room Owner:</span>
+                <span><%= roomInfo.owner.ownerName %></span>
+              </div>
+            </div>
+            <div>
+              <div class="m-2 flex gap-2">
+                <span>Created At:</span>
+                <span><%= roomInfo.createdAt.split("T")[0] %></span>
+              </div>
+            </div>
+          </div>
+          <%# joined users %>
+          <div class="border-base-content border-2 rounded-xl text-xl">
+            <div class="m-2">
+              <div class="text-center text-3xl">Members</div>
+              <div class="divide-y">
+                <% if (roomInfo.authedUsers.length > 0) { %> <%
+                roomInfo.authedUsers.map((member) => { %>
+                <div class="text-2xl py-2">
+                  <span class="align-middle"><%= member.username %></span>
+                  <% if (isOwner) { %> <%# Not implemented yet %>
+                  <button class="btn btn-accent btn-sm">Kick</button>
+                  <% } %>
+                </div>
+                <% }) %> <% } else { %>
+                <div class="text-center text-2xl">You have no Members yet</div>
+                <% } %>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </body>
 </html>
