@@ -1,17 +1,20 @@
 import { Request, Response } from "express";
-import { fetchRoomsOnUser } from "../models/rooms.js";
+import { fetchUserInfo } from "../models/rooms.js";
 
 export default async function dashboard(req: Request, res: Response) {
   console.log("Rendering Dashboard");
 
-  const rooms = await fetchRoomsOnUser(req);
+  // get user name for dashboard as well
+  const userInfoResponse = await fetchUserInfo(req);
 
-  if ("error" in rooms) {
-    res.status(rooms.statusCode).json({ error: rooms.error });
+  if ("error" in userInfoResponse) {
+    res
+      .status(userInfoResponse.statusCode)
+      .json({ error: userInfoResponse.error });
     return;
   }
 
-  const { ownedRooms, joinedRooms } = rooms;
-  res.render("dashboard", { ownedRooms, joinedRooms });
+  const { ownedRooms, joinedRooms, username } = userInfoResponse.userInfo;
+  res.render("dashboard", { ownedRooms, joinedRooms, username });
   return;
 }

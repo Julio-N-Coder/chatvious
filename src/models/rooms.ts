@@ -10,10 +10,10 @@ import { CognitoJwtVerifier } from "aws-jwt-verify";
 import cognitoData from "../cognitoData.js";
 import { JwtBaseError } from "aws-jwt-verify/error";
 import {
-  RoomsOnUser,
   MakeRoomReturnType,
   RoomInfoType,
-  FetchRoomsOnUserReturn,
+  UserInfo,
+  FetchUserInfoReturn,
   FetchRoomReturn,
 } from "../types/types.js";
 
@@ -35,8 +35,13 @@ async function makeRoom(req: Request): MakeRoomReturnType {
     clientId: cognitoData.CLIENT_ID,
   });
 
+  const access_token = req.cookies.access_token as string | undefined;
+  if (!access_token) {
+    return { error: "Unauthorized", statusCode: 401 };
+  }
+
   try {
-    const payload = await verifier.verify(req.cookies.access_token);
+    const payload = await verifier.verify(access_token);
     const ownerID = payload.sub;
     const ownerName = payload.username;
 
@@ -92,7 +97,8 @@ async function makeRoom(req: Request): MakeRoomReturnType {
   }
 }
 
-async function fetchRoomsOnUser(req: Request): FetchRoomsOnUserReturn {
+// change it to return the user info and rename to fetchUserInfo
+async function fetchUserInfo(req: Request): FetchUserInfoReturn {
   let userID = "";
   if (req.user) {
     userID = req.user.id;
@@ -113,10 +119,9 @@ async function fetchRoomsOnUser(req: Request): FetchRoomsOnUserReturn {
     return { error: "Failed to Get User Info", statusCode };
   }
 
-  const ownedRooms: RoomsOnUser = getUserResponse.Item?.ownedRooms;
-  const joinedRooms: RoomsOnUser = getUserResponse.Item?.joinedRooms;
+  const userInfo = getUserResponse.Item as UserInfo;
 
-  return { ownedRooms, joinedRooms, statusCode: 200 };
+  return { userInfo, statusCode: 200 };
 }
 
 async function fetchRoom(RoomID: string): FetchRoomReturn {
@@ -140,4 +145,4 @@ async function fetchRoom(RoomID: string): FetchRoomReturn {
   return { roomInfo, statusCode: 200 };
 }
 
-export { makeRoom, fetchRoomsOnUser, fetchRoom };
+export { makeRoom, fetchUserInfo, fetchRoom };

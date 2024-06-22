@@ -2,7 +2,7 @@ import { Request, Response, NextFunction } from "express";
 import { CognitoJwtVerifier } from "aws-jwt-verify";
 import { decomposeUnverifiedJwt } from "aws-jwt-verify/jwt";
 import cognitoData from "../../cognitoData.js";
-import { TokenRefresh } from "../../types/Cognito-types.js";
+import { TokenRefresh } from "../../types/types.js";
 
 async function pageAuth(req: Request, res: Response, next: NextFunction) {
   const access_token = req.cookies.access_token;

@@ -1,4 +1,17 @@
-type RoomsOnUser = { roomName: string; RoomID: string }[] | [];
+type AuthCodeTokenResponse = {
+  access_token: string;
+  id_token: string;
+  refresh_token: string;
+  token_type: string;
+  expires_in: number;
+};
+
+type TokenRefresh = {
+  access_token: string;
+  id_token: string;
+  token_type: string;
+  expires_in: number;
+};
 
 type MakeRoomReturnError = {
   error: string;
@@ -12,16 +25,27 @@ type MakeRoomReturnSuccess = {
 
 type MakeRoomReturnType = Promise<MakeRoomReturnError | MakeRoomReturnSuccess>;
 
-type FetchRoomsOnUserError = {
+type RoomsOnUser = { roomName: string; RoomID: string }[] | [];
+
+type UserInfo = {
+  "id-sub": string;
+  username: string;
+  email: string;
+  ownedRooms: RoomsOnUser;
+  joinedRooms: RoomsOnUser;
+};
+
+type FetchUserInfoError = {
   error: string;
   statusCode: number;
 };
 
-type FetchRoomsOnUserSuccess = {
-  ownedRooms: RoomsOnUser;
-  joinedRooms: RoomsOnUser;
+type FetchUserInfoSuccess = {
+  userInfo: UserInfo;
   statusCode: number;
 };
+
+type FetchUserInfoReturn = Promise<FetchUserInfoError | FetchUserInfoSuccess>;
 
 type RoomInfoType = {
   RoomID: string;
@@ -30,10 +54,6 @@ type RoomInfoType = {
   createdAt: string;
   authedUsers: { userID: string; username: string }[] | [];
 };
-
-type FetchRoomsOnUserReturn = Promise<
-  FetchRoomsOnUserError | FetchRoomsOnUserSuccess
->;
 
 type FetchRoomErrorReturn = {
   error: string;
@@ -48,9 +68,12 @@ type FetchRoomSuccessReturn = {
 type FetchRoomReturn = Promise<FetchRoomErrorReturn | FetchRoomSuccessReturn>;
 
 export {
+  AuthCodeTokenResponse,
+  TokenRefresh,
   RoomsOnUser,
   MakeRoomReturnType,
   RoomInfoType,
-  FetchRoomsOnUserReturn,
+  UserInfo,
+  FetchUserInfoReturn,
   FetchRoomReturn,
 };

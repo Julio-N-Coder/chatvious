@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { TokenResponse } from "../types/Cognito-types.js";
+import { AuthCodeTokenResponse } from "../types/types.js";
 import cognitoData from "../cognitoData.js";
 import { isProduction } from "../lib/handyUtils.js";
 
@@ -37,7 +37,7 @@ async function callback(req: Request, res: Response): Promise<void> {
       refresh_token,
       token_type,
       expires_in,
-    }: TokenResponse = await tokens.json();
+    }: AuthCodeTokenResponse = await tokens.json();
     const refresh_token_expiration_days = 365;
 
     // Add check to make tokens secure true in production
