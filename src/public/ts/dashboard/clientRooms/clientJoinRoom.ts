@@ -1,3 +1,5 @@
+import { joinRoomResponse } from "../../types";
+
 const joinForm = document.getElementById("join-form") as HTMLFormElement;
 const joinRoomModel = document.getElementById(
   "joinRoomModel"
@@ -10,7 +12,7 @@ const joinSubmitButton = document.getElementById(
   "joinSubmitButton"
 ) as HTMLButtonElement;
 const submitRoomLoader = document.getElementById(
-  "submitRoomLoader"
+  "joinSubmitRoomLoader"
 ) as HTMLElement;
 
 async function joinRoom(e: SubmitEvent) {
@@ -26,21 +28,51 @@ async function joinRoom(e: SubmitEvent) {
   }
   toggleSubmitButtonState();
 
-  const joinRoomResponse = await fetch("rooms/joinRoom", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ RoomID }),
-  });
-
-  if (joinRoomResponse.ok === true) {
+  if (!RoomID) {
+    joinmodelError.classList.remove("hidden");
+    joinmodelError.innerText = "Room ID is required";
     toggleSubmitButtonState();
-    console.log(await joinRoomResponse.json());
-    // window.location.href = `/dashboard`;
+    return;
+  }
+  if (RoomID.length < 20) {
+    joinmodelError.classList.remove("hidden");
+    joinmodelError.innerText = "Room ID must be at least 20 characters";
+    toggleSubmitButtonState();
+    return;
+  }
+  if (RoomID.length > 50) {
+    joinmodelError.classList.remove("hidden");
+    joinmodelError.innerText = "Room ID must be less than 50 characters";
+    toggleSubmitButtonState();
+    return;
   }
 
-  // window.location.href = `/dashboard`;
+  try {
+    const joinRoomResponse = await fetch("rooms/joinRoom", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ RoomID }),
+    });
+
+    if (joinRoomResponse.ok === true) {
+      window.location.href = `/dashboard`;
+    }
+    const joinRoomResponseJson: joinRoomResponse =
+      await joinRoomResponse.json();
+
+    if ("error" in joinRoomResponseJson) {
+      joinmodelError.classList.remove("hidden");
+      joinmodelError.innerText = joinRoomResponseJson.error;
+      toggleSubmitButtonState();
+    }
+  } catch (error) {
+    joinmodelError.classList.remove("hidden");
+    joinmodelError.innerText = "Something went wrong while making your room.";
+
+    toggleSubmitButtonState();
+  }
 }
 
 joinForm.addEventListener("submit", joinRoom);

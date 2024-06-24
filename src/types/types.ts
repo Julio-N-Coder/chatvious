@@ -67,6 +67,20 @@ type FetchRoomSuccessReturn = {
 
 type FetchRoomReturn = Promise<FetchRoomErrorReturn | FetchRoomSuccessReturn>;
 
+type sendRoomRequestError = {
+  error: string;
+  statusCode: number;
+};
+
+type sendRoomRequestSuccess = {
+  message: string;
+  statusCode: number;
+};
+
+type sendRoomRequestReturn = Promise<
+  sendRoomRequestSuccess | sendRoomRequestError
+>;
+
 export {
   AuthCodeTokenResponse,
   TokenRefresh,
@@ -76,4 +90,5 @@ export {
   UserInfo,
   FetchUserInfoReturn,
   FetchRoomReturn,
+  sendRoomRequestReturn,
 };

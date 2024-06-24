@@ -7,7 +7,6 @@ const roomsRouter = express.Router();
 
 roomsRouter.post("/createRoom", createRoom);
 
-// not finished
 roomsRouter.post("/joinRoom", joinRoom);
 
 roomsRouter.get("/:RoomID", pageAuth, roomInfo);

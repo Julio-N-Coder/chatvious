@@ -12,18 +12,8 @@ import { JwtBaseError } from "aws-jwt-verify/error";
 import {
   MakeRoomReturnType,
   RoomInfoType,
-  UserInfo,
-  FetchUserInfoReturn,
   FetchRoomReturn,
 } from "../types/types.js";
-
-declare module "express" {
-  interface Request {
-    user?: {
-      id: string;
-    };
-  }
-}
 
 const client = new DynamoDBClient({});
 const docClient = DynamoDBDocumentClient.from(client);
@@ -97,33 +87,6 @@ async function makeRoom(req: Request): MakeRoomReturnType {
   }
 }
 
-// change it to return the user info and rename to fetchUserInfo
-async function fetchUserInfo(req: Request): FetchUserInfoReturn {
-  let userID = "";
-  if (req.user) {
-    userID = req.user.id;
-  } else {
-    return { error: "Not Authorized", statusCode: 401 };
-  }
-
-  const getUserInfo = new GetCommand({
-    TableName: "chatvious-users",
-    Key: { "id-sub": userID },
-    ConsistentRead: true,
-  });
-
-  const getUserResponse = await docClient.send(getUserInfo);
-  const statusCode = getUserResponse.$metadata.httpStatusCode as number;
-
-  if (statusCode !== 200) {
-    return { error: "Failed to Get User Info", statusCode };
-  }
-
-  const userInfo = getUserResponse.Item as UserInfo;
-
-  return { userInfo, statusCode: 200 };
-}
-
 async function fetchRoom(RoomID: string): FetchRoomReturn {
   const roomInfoCommand = new GetCommand({
     TableName: "chatvious-rooms",
@@ -145,4 +108,4 @@ async function fetchRoom(RoomID: string): FetchRoomReturn {
   return { roomInfo, statusCode: 200 };
 }
 
-export { makeRoom, fetchUserInfo, fetchRoom };
+export { makeRoom, fetchRoom };

@@ -14,7 +14,7 @@ const createSubmitButton = document.getElementById(
   "createSubmitButton"
 ) as HTMLButtonElement;
 const submitRoomLoader = document.getElementById(
-  "submitRoomLoader"
+  "createSubmitRoomLoader"
 ) as HTMLElement;
 
 async function createRoom(e: SubmitEvent) {

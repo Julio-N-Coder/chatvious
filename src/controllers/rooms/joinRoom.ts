@@ -3,19 +3,20 @@ import { CognitoJwtVerifier } from "aws-jwt-verify";
 import { CognitoAccessTokenPayload } from "aws-jwt-verify/jwt-model";
 import cognitoData from "../../cognitoData.js";
 import { fetchRoom } from "../../models/rooms.js";
+import { sendRoomRequest } from "../../models/users.js";
 
 export default async function joinRoom(req: Request, res: Response) {
   if (!req.body.RoomID) {
-    res.status(400).json("RoomID is required");
+    res.status(400).json({ error: "RoomID is required" });
     return;
   } else if (typeof req.body.RoomID !== "string") {
-    res.status(400).json("RoomID must be a string");
+    res.status(400).json({ error: "RoomID must be a string" });
     return;
   }
 
   const access_token = req.cookies.access_token as string | undefined;
   if (!access_token) {
-    res.status(401).json("Unauthorized");
+    res.status(401).json({ error: "Unauthorized" });
     return;
   }
 
@@ -29,28 +30,51 @@ export default async function joinRoom(req: Request, res: Response) {
   try {
     access_token_payload = await verifier.verify(access_token);
   } catch (error) {
-    res.status(401).json("Unauthorized");
+    res.status(401).json({ error: "Unauthorized" });
     return;
   }
-  const id = access_token_payload.sub;
+  const { sub: userID, username } = access_token_payload;
   const RoomID = req.body.RoomID as string;
 
   const fetchRoomResponse = await fetchRoom(RoomID);
   if ("error" in fetchRoomResponse) {
-    res.status(fetchRoomResponse.statusCode).json(fetchRoomResponse.error);
+    if (fetchRoomResponse.error === "Bad Request") {
+      res
+        .status(fetchRoomResponse.statusCode)
+        .json({ error: "Invalid RoomID" });
+      return;
+    }
+
+    res
+      .status(fetchRoomResponse.statusCode)
+      .json({ error: fetchRoomResponse.error });
     return;
   }
   const { roomInfo } = fetchRoomResponse;
+  const { owner, roomName } = roomInfo;
 
-  if (roomInfo.owner.ownerID === id) {
-    res.status(400).json("You are the owner of this room");
+  if (owner.ownerID === userID) {
+    res.status(400).json({ error: "You are the owner of this room" });
     return;
-  } else if (roomInfo.authedUsers.find((member) => member.userID === id)) {
-    res.status(400).json("You are already a member of this room");
+  } else if (roomInfo.authedUsers.find((member) => member.userID === userID)) {
+    res.status(400).json({ error: "You are already a member of this room" });
     return;
   }
-  // need to send notification to owner to join (not set up yet)
-  // another route will take care of adding user when owner allows it.
+  const notificationResponse = await sendRoomRequest(
+    owner.ownerID,
+    username,
+    userID,
+    roomName
+  );
 
-  res.json("Not finished");
+  if ("error" in notificationResponse) {
+    res
+      .status(notificationResponse.statusCode)
+      .json({ error: notificationResponse.error });
+    return;
+  }
+
+  res
+    .status(notificationResponse.statusCode)
+    .json({ message: notificationResponse.message });
 }

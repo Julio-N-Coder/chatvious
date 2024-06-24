@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { fetchUserInfo } from "../models/rooms.js";
+import { fetchUserInfo } from "../models/users.js";
 
 export default async function dashboard(req: Request, res: Response) {
   console.log("Rendering Dashboard");

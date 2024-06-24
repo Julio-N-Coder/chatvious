@@ -7,4 +7,6 @@ type TokenRefresh = {
 
 type makeRoomResponse = { error: string } | { message: string };
 
-export { TokenRefresh, makeRoomResponse };
+type joinRoomResponse = { error: string } | { message: string };
+
+export { TokenRefresh, makeRoomResponse, joinRoomResponse };
