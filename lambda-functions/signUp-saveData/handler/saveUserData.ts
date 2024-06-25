@@ -2,6 +2,11 @@ import { PostConfirmationEvent } from "../types.js";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocumentClient, PutCommand } from "@aws-sdk/lib-dynamodb";
 
+const colors = ["blue", "green", "orange", "yellow", "sky", "purple", "pink"];
+const getRandomColor = () => {
+  return colors[Math.floor(Math.random() * colors.length)];
+};
+
 export const saveUserData = async (event: PostConfirmationEvent) => {
   if (event.triggerSource === "PostConfirmation_ConfirmSignUp") {
     const client = new DynamoDBClient({});
@@ -15,6 +20,7 @@ export const saveUserData = async (event: PostConfirmationEvent) => {
         email: event.request.userAttributes.email,
         ownedRooms: [],
         joinedRooms: [],
+        profileColor: getRandomColor(),
       },
     });
 

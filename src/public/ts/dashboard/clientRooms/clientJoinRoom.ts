@@ -1,4 +1,4 @@
-import { joinRoomResponse } from "../../types";
+import { JoinRoomResponse } from "../../types";
 
 const joinForm = document.getElementById("join-form") as HTMLFormElement;
 const joinRoomModel = document.getElementById(
@@ -59,7 +59,7 @@ async function joinRoom(e: SubmitEvent) {
     if (joinRoomResponse.ok === true) {
       window.location.href = `/dashboard`;
     }
-    const joinRoomResponseJson: joinRoomResponse =
+    const joinRoomResponseJson: JoinRoomResponse =
       await joinRoomResponse.json();
 
     if ("error" in joinRoomResponseJson) {

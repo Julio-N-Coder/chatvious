@@ -5,8 +5,8 @@ type TokenRefresh = {
   expires_in: number;
 };
 
-type makeRoomResponse = { error: string } | { message: string };
+type MakeRoomResponse = { error: string } | { message: string };
 
-type joinRoomResponse = { error: string } | { message: string };
+type JoinRoomResponse = { error: string } | { message: string };
 
-export { TokenRefresh, makeRoomResponse, joinRoomResponse };
+export { TokenRefresh, MakeRoomResponse, JoinRoomResponse };

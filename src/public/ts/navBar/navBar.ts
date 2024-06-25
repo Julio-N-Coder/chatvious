@@ -8,6 +8,7 @@ let isCurrentlyDarkMode = false;
 
 // Initializing dom elements needed
 const themeSwitch = document.getElementById("themeSwitch") as HTMLInputElement;
+const profile = document.getElementById("profile") as HTMLDivElement;
 
 themeSwitch.addEventListener("change", () => {
   updateTheme(isOSDefaultDarkMode, themeSwitch, preferedTheme);

@@ -2,7 +2,7 @@ import { Request } from "express";
 import {
   UserInfo,
   FetchUserInfoReturn,
-  sendRoomRequestReturn,
+  SendRoomRequestReturn,
 } from "../types/types.js";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import {
@@ -11,14 +11,6 @@ import {
   PutCommand,
   QueryCommand,
 } from "@aws-sdk/lib-dynamodb";
-
-declare module "express" {
-  interface Request {
-    user?: {
-      id: string;
-    };
-  }
-}
 
 const client = new DynamoDBClient({});
 const docClient = DynamoDBDocumentClient.from(client);
@@ -53,8 +45,9 @@ async function sendRoomRequest(
   ownerID: string,
   fromUserName: string,
   fromUserID: string,
-  roomName: string
-): sendRoomRequestReturn {
+  roomName: string,
+  roomID: string
+): SendRoomRequestReturn {
   const allJoinRequestCommand = new QueryCommand({
     TableName: "chatvious-joinRoomRequest",
     KeyConditionExpression: "ownerID = :ownerID",
@@ -88,6 +81,7 @@ async function sendRoomRequest(
       fromUserName,
       fromUserID,
       roomName,
+      roomID,
     },
   });
 

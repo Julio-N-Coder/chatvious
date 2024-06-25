@@ -33,6 +33,7 @@ type UserInfo = {
   email: string;
   ownedRooms: RoomsOnUser;
   joinedRooms: RoomsOnUser;
+  profileColor: string;
 };
 
 type FetchUserInfoError = {
@@ -67,19 +68,30 @@ type FetchRoomSuccessReturn = {
 
 type FetchRoomReturn = Promise<FetchRoomErrorReturn | FetchRoomSuccessReturn>;
 
-type sendRoomRequestError = {
+type SendRoomRequestError = {
   error: string;
   statusCode: number;
 };
 
-type sendRoomRequestSuccess = {
+type SendRoomRequestSuccess = {
   message: string;
   statusCode: number;
 };
 
-type sendRoomRequestReturn = Promise<
-  sendRoomRequestSuccess | sendRoomRequestError
+type SendRoomRequestReturn = Promise<
+  SendRoomRequestSuccess | SendRoomRequestError
 >;
+
+type JoinRequest = {
+  ownerID: string;
+  createdAt: string;
+  fromUserName: string;
+  fromUserID: string;
+  roomName: string;
+  roomID: string;
+};
+
+type JoinRequets = JoinRequest[];
 
 export {
   AuthCodeTokenResponse,
@@ -90,5 +102,6 @@ export {
   UserInfo,
   FetchUserInfoReturn,
   FetchRoomReturn,
-  sendRoomRequestReturn,
+  SendRoomRequestReturn,
+  JoinRequets,
 };

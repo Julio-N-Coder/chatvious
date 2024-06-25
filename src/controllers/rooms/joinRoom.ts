@@ -64,7 +64,8 @@ export default async function joinRoom(req: Request, res: Response) {
     owner.ownerID,
     username,
     userID,
-    roomName
+    roomName,
+    RoomID
   );
 
   if ("error" in notificationResponse) {
