@@ -1,0 +1,31 @@
+<div
+  id="profile"
+  class="dropdown dropdown-end relative border w-10 h-10 rounded-full text-white text-center place-content-center text-2xl bg-<%= profileColor %>-500"
+>
+  <%# don't forget to make hidden functionality to hide pinger in client %> <%
+  if (forNav) { %>
+  <div
+    id="notification"
+    class="rounded-full bg-red-600 w-2 h-2 absolute hidden"
+  >
+    <div class="w-2 h-2 rounded-full bg-red-600 animate-ping"></div>
+  </div>
+  <div tabindex="0" role="button"><%= username[0].toUpperCase() %></div>
+  <div
+    class="dropdown-content w-64 bg-base-200 text-base-content rounded-md text-lg divide-base-content divide-y"
+  >
+    <div class="py-1 hover:bg-base-100">Profile Info</div>
+    <%# Join Request notification functionality not set up yet so it request are
+    always empty %> <% if (anyJoinRequest) { %> <%
+    first5JoinRequest.map((joinRequest) => { %>
+    <div class="py-1 hover:bg-base-100">
+      <a href="http://localhost:3000/rooms/<%= joinRequest.roomID %>">
+        Join request from <%= joinRequest.fromUserName %>
+      </a>
+    </div>
+    <% }) %> <% } %>
+  </div>
+  <% } else { %> <%# need to get profile color as well %>
+  <span><%= username[0].toUpperCase() %></span>
+  <% } %>
+</div>

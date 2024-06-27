@@ -1,6 +1,10 @@
 import { Request, Response } from "express";
-import { fetchRoom } from "../../models/rooms.js";
-import { JoinRequets } from "../../types/types.js";
+import {
+  fetchRoom,
+  fetchRoomOwner,
+  fetchRoomMembers,
+} from "../../models/rooms.js";
+import { JoinRequets, RoomsOnUser } from "../../types/types.js";
 
 declare module "express" {
   interface Request {
@@ -8,6 +12,8 @@ declare module "express" {
       id: string;
       anyJoinRequest?: boolean;
       first5JoinRequest?: JoinRequets;
+      ownedRooms?: RoomsOnUser;
+      joinedRooms?: RoomsOnUser;
       username?: string;
       profileColor?: string;
     };
@@ -30,16 +36,36 @@ export default async function roomInfo(req: Request, res: Response) {
     return;
   }
 
+  const roomOwnerResponse = await fetchRoomOwner(RoomID);
+  if ("error" in roomOwnerResponse) {
+    res
+      .status(roomOwnerResponse.statusCode)
+      .json({ error: roomOwnerResponse.error });
+    return;
+  }
+
+  // fetch RoomMembers to display
+  const roomMembersResponse = await fetchRoomMembers(RoomID);
+  if ("error" in roomMembersResponse) {
+    res.status(roomMembersResponse.statusCode).json({
+      error: "Failed to Render Page. I am sorry for the inconvenience.",
+    });
+    return;
+  }
+
   const { roomInfo } = roomInfoResponse;
+  const { roomOwner } = roomOwnerResponse;
+  const { roomMembers } = roomMembersResponse;
   const { anyJoinRequest, first5JoinRequest, profileColor, username } =
     req.user;
-  console.log(profileColor);
 
   // if they are owner, also get joinRoomRequest to display
-  if (roomInfo.owner.ownerID === userID) {
+  if (roomOwner.ownerID === userID) {
     console.log("rendering roomInfo page", "Onwer");
     res.render("roomInfo", {
       roomInfo,
+      roomOwner,
+      roomMembers,
       isOwner: true,
       anyJoinRequest,
       first5JoinRequest,
@@ -52,6 +78,8 @@ export default async function roomInfo(req: Request, res: Response) {
   console.log("rendering roomInfo page");
   res.render("roomInfo", {
     roomInfo,
+    roomOwner,
+    roomMembers,
     isOwner: false,
     anyJoinRequest,
     first5JoinRequest,

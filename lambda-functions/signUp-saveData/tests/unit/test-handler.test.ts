@@ -22,9 +22,10 @@ describe("Test for saveUserData", () => {
     const id = testPostConfirmationEvent.request.userAttributes.sub;
 
     const command = new GetCommand({
-      TableName: "chatvious-users",
+      TableName: "chatvious",
       Key: {
-        "id-sub": id,
+        PartitionKey: `USER#${id}`,
+        SortKey: "PROFILE",
       },
       ConsistentRead: true,
     });
@@ -35,9 +36,10 @@ describe("Test for saveUserData", () => {
 
     // Cleanup: delete the user after the test
     const deleteCommand = new DeleteCommand({
-      TableName: "chatvious-users",
+      TableName: "chatvious",
       Key: {
-        "id-sub": id,
+        PartitionKey: `USER#${id}`,
+        SortKey: "PROFILE",
       },
     });
 

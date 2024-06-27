@@ -1,7 +1,6 @@
 import { Request, Response, NextFunction } from "express";
-import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { DynamoDBDocumentClient, GetCommand } from "@aws-sdk/lib-dynamodb";
-import { UserInfo, JoinRequets } from "../../types/types.js";
+import { UserInfo, RoomsOnUser, JoinRequets } from "../../types/types.js";
+import { fetchUserInfo } from "../../models/users.js";
 
 declare module "express" {
   interface Request {
@@ -10,13 +9,12 @@ declare module "express" {
       anyJoinRequest?: boolean;
       first5JoinRequest?: JoinRequets;
       username?: string;
+      ownedRooms?: RoomsOnUser;
+      joinedRooms?: RoomsOnUser;
       profileColor?: string;
     };
   }
 }
-
-const client = new DynamoDBClient({});
-const docClient = DynamoDBDocumentClient.from(client);
 
 export default async function navUserInfo(
   req: Request,
@@ -31,28 +29,20 @@ export default async function navUserInfo(
     return;
   }
 
-  const userInfoCommand = new GetCommand({
-    TableName: "chatvious-users",
-    Key: {
-      "id-sub": userID,
-    },
-    ProjectionExpression: "username, profileColor",
-    ConsistentRead: true,
-  });
+  const userInfoResponse = await fetchUserInfo(req);
 
-  const userInfoResponse = await docClient.send(userInfoCommand);
-  const statusCode = userInfoResponse.$metadata.httpStatusCode as number;
-
-  if (statusCode !== 200) {
+  if ("error" in userInfoResponse) {
     res.status(500).send({
       message:
         "We're sorry for the inconviencence, there seems to be a problem with our servers",
     });
     return;
   }
-  const userInfo = userInfoResponse.Item as UserInfo;
+  const userInfo: UserInfo = userInfoResponse.userInfo;
 
   (req.user.username = userInfo.username),
     (req.user.profileColor = userInfo.profileColor),
-    next();
+    (req.user.ownedRooms = userInfo.ownedRooms),
+    (req.user.joinedRooms = userInfo.joinedRooms);
+  next();
 }

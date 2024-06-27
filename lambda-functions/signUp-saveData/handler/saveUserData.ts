@@ -13,9 +13,11 @@ export const saveUserData = async (event: PostConfirmationEvent) => {
     const docClient = DynamoDBDocumentClient.from(client);
 
     const userDataCommand = new PutCommand({
-      TableName: "chatvious-users",
+      TableName: "chatvious",
       Item: {
-        "id-sub": event.request.userAttributes.sub,
+        PartitionKey: `USER#${event.request.userAttributes.sub}`,
+        SortKey: "PROFILE",
+        userID: event.request.userAttributes.sub,
         username: event.userName,
         email: event.request.userAttributes.email,
         ownedRooms: [],
@@ -24,7 +26,6 @@ export const saveUserData = async (event: PostConfirmationEvent) => {
       },
     });
 
-    // check for an error and return an error if there is an problem
     const res = await docClient.send(userDataCommand);
     if (res.$metadata.httpStatusCode !== 200) {
       throw new Error("Failed to save user data");

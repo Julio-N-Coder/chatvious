@@ -53,29 +53,8 @@
       />
       <%- include('sun-moon/moon-icon'); %>
     </label>
-    <%# profile %>
-    <div
-      id="profile"
-      class="dropdown dropdown-end relative border w-10 h-10 rounded-full text-white text-center place-content-center text-2xl bg-<%= profileColor %>-500"
-    >
-      <%# don't forget to make hidden functionality to hide pinger in client %>
-      <div id="notification" class="rounded-full bg-red-600 w-2 h-2 absolute">
-        <div class="w-2 h-2 rounded-full bg-red-600 animate-ping"></div>
-      </div>
-      <div tabindex="0" role="button"><%= username[0].toUpperCase() %></div>
-      <div
-        class="dropdown-content w-64 bg-base-200 text-base-content rounded-md text-lg divide-base-content divide-y"
-      >
-        <div class="py-1 hover:bg-base-100">Profile Info</div>
-        <% if (anyJoinRequest) { %> <% first5JoinRequest.map((joinRequest) => {
-        %>
-        <div class="py-1 hover:bg-base-100">
-          Join request from <%= joinRequest.fromUserName %>
-        </div>
-        <% }) %> <% } %>
-      </div>
-    </div>
-    <%# sign out button for big screens %>
+    <%- include("./profileIcon", { profileColor, username, anyJoinRequest,
+    first5JoinRequest, forNav: true }) %> <%# sign out button for big screens %>
     <button class="btn btn-accent hidden sm:flex sign-out-button">
       Log Out
     </button>

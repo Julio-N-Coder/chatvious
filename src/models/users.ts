@@ -3,6 +3,8 @@ import {
   UserInfo,
   FetchUserInfoReturn,
   SendRoomRequestReturn,
+  UserInfoDBResponse,
+  RoomsOnUser,
 } from "../types/types.js";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import {
@@ -24,8 +26,8 @@ async function fetchUserInfo(req: Request): FetchUserInfoReturn {
   }
 
   const getUserInfo = new GetCommand({
-    TableName: "chatvious-users",
-    Key: { "id-sub": userID },
+    TableName: "chatvious",
+    Key: { PartitionKey: `USER#${userID}`, SortKey: "PROFILE" },
     ConsistentRead: true,
   });
 
@@ -34,9 +36,19 @@ async function fetchUserInfo(req: Request): FetchUserInfoReturn {
 
   if (statusCode !== 200) {
     return { error: "Failed to Get User Info", statusCode };
+  } else if (!getUserResponse.Item) {
+    return { error: "User not found", statusCode: 404 };
   }
 
-  const userInfo = getUserResponse.Item as UserInfo;
+  const userInfoDBResponse = getUserResponse.Item as UserInfoDBResponse;
+  const userInfo: UserInfo = {
+    id: userID,
+    username: userInfoDBResponse.username,
+    email: userInfoDBResponse.email,
+    profileColor: userInfoDBResponse.profileColor,
+    ownedRooms: userInfoDBResponse.ownedRooms,
+    joinedRooms: userInfoDBResponse.joinedRooms,
+  };
 
   return { userInfo, statusCode: 200 };
 }
@@ -98,4 +110,27 @@ async function sendRoomRequest(
   };
 }
 
-export { fetchUserInfo, sendRoomRequest };
+// not implemented yet
+async function fetchFirst5JoinRequests(
+  userID: string,
+  ownedRooms: RoomsOnUser,
+  joinedRooms: RoomsOnUser
+) {
+  const joinRequestsCommand = new QueryCommand({
+    TableName: "chatvious",
+    KeyConditionExpression: "ownerID = :userID",
+    ExpressionAttributeValues: {
+      ":userID": userID,
+    },
+    Limit: 5,
+  });
+
+  const joinRequestsResponse = await docClient.send(joinRequestsCommand);
+  const statusCode = joinRequestsResponse.$metadata.httpStatusCode as number;
+
+  if (statusCode !== 200) {
+    return;
+  }
+}
+
+export { fetchUserInfo };

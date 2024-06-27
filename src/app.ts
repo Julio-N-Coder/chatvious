@@ -9,7 +9,7 @@ import { isProduction } from "./lib/handyUtils.js";
 import cookieParser from "cookie-parser";
 import pageAuth from "./controllers/middleware/pageAuth.js";
 import dashboard from "./controllers/dashboard.js";
-import get5JoinRequest from "./controllers/middleware/joinRequest.js";
+import navUserInfo from "./controllers/middleware/userInfo.js";
 import roomsRouter from "./routes/rooms.js";
 
 const app = express();
@@ -38,7 +38,7 @@ app.get("/about", (req, res) => {
   res.sendFile(path.resolve("dist", "public", "index.html"));
 });
 
-app.get("/dashboard", pageAuth, get5JoinRequest, dashboard);
+app.get("/dashboard", pageAuth, navUserInfo, dashboard);
 
 app.get("/chat-room/:RoomID", (req, res) => {
   console.log("rendering chatroom page");

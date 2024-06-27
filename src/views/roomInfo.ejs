@@ -26,7 +26,7 @@
             <div>
               <div class="m-2 flex gap-2">
                 <span>Room Owner:</span>
-                <span><%= roomInfo.owner.ownerName %></span>
+                <span><%= roomOwner.ownerName %></span>
               </div>
             </div>
             <div>
@@ -41,12 +41,14 @@
             <div class="m-2">
               <div class="text-center text-3xl">Members</div>
               <div class="divide-y">
-                <% if (roomInfo.authedUsers.length > 0) { %> <%
+                <% if (roomMembers.length > 0) { %> <%
                 roomInfo.authedUsers.map((member) => { %>
                 <div class="text-2xl py-2">
-                  <span class="align-middle"><%= member.username %></span>
+                  <%- include("./components/profileIcon", {username:
+                  member.userName, forNav: false}) %>
+                  <span class="align-middle"><%= member.userName %></span>
                   <% if (isOwner) { %> <%# Not implemented yet %>
-                  <button class="btn btn-accent btn-sm">Kick</button>
+                  <button class="ml-3 btn btn-accent btn-sm">Kick</button>
                   <% } %>
                 </div>
                 <% }) %> <% } else { %>
