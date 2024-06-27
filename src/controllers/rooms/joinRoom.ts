@@ -123,7 +123,5 @@ export default async function joinRoom(req: Request, res: Response) {
   }
 
   console.log("Sent Join Request");
-  res
-    .status(joinRequestResponse.statusCode)
-    .json({ message: joinRequestResponse.message });
+  res.status(joinRequest.statusCode).json({ message: joinRequest.message });
 }

@@ -7,6 +7,10 @@ export default {
     {
       pattern: /bg-(blue|green|orange|yellow|sky|purple|pink)-500/,
     },
+    "bg-error",
+    "text-error-content",
+    "bg-success",
+    "text-success-content",
   ],
   theme: {
     extend: {},

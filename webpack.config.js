@@ -13,6 +13,7 @@ const config = {
       "./src/public/ts/dashboard/clientRooms/clientCreateRoom.ts",
     clientJoinRoom: "./src/public/ts/dashboard/clientRooms/clientJoinRoom.ts",
     chatRoom: "./src/public/ts/chatRoom/chatRoom.ts",
+    roomInfoJoinRequest: "./src/public/ts/roomInfoPage/roomInfoJoinRequest.ts",
   },
   output: {
     filename: "[name].js",
