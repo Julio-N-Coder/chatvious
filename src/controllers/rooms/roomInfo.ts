@@ -3,6 +3,7 @@ import {
   fetchRoom,
   fetchRoomOwner,
   fetchRoomMembers,
+  fetchJoinRequests,
 } from "../../models/rooms.js";
 import { RoomsOnUser } from "../../types/types.js";
 
@@ -10,7 +11,6 @@ declare module "express" {
   interface Request {
     user?: {
       id: string;
-      anyJoinRequest?: boolean;
       // first5JoinRequest?: JoinRequets;
       ownedRooms?: RoomsOnUser;
       joinedRooms?: RoomsOnUser;
@@ -53,21 +53,40 @@ export default async function roomInfo(req: Request, res: Response) {
     return;
   }
 
+  const { roomMembers } = roomMembersResponse;
+  // I need to check whether they are admin.
+  let isAdmin = false;
+  roomMembers.find((member) => {
+    if (member.userID === userID) {
+      if (member.isAdmin) {
+        isAdmin = true;
+      }
+    }
+  });
+
   const { roomInfo } = roomInfoResponse;
   const { roomOwner } = roomOwnerResponse;
-  const { roomMembers } = roomMembersResponse;
-  const { anyJoinRequest, profileColor, username } = req.user;
-
+  const { profileColor, username } = req.user;
   // if they are owner, also get joinRoomRequest to display
-  if (roomOwner.ownerID === userID) {
+  if (roomOwner.ownerID === userID || isAdmin) {
+    // fetch join request to display.
+    const joinRequestResponse = await fetchJoinRequests(RoomID);
+    if ("error" in joinRequestResponse) {
+      res
+        .status(joinRequestResponse.statusCode)
+        .json({ error: joinRequestResponse.error });
+      return;
+    }
+    const { joinRequests } = joinRequestResponse;
+
     console.log("rendering roomInfo page", "Onwer");
     res.render("roomInfo", {
       roomInfo,
       roomOwner,
       roomMembers,
-      isOwner: true,
-      anyJoinRequest,
-      // first5JoinRequest,
+      isOwnerOrAdmin: true,
+      joinRequests,
+      first5JoinRequest: [],
       profileColor,
       username,
     });
@@ -79,9 +98,8 @@ export default async function roomInfo(req: Request, res: Response) {
     roomInfo,
     roomOwner,
     roomMembers,
-    isOwner: false,
-    anyJoinRequest,
-    // first5JoinRequest,
+    isOwnerOrAdmin: false,
+    first5JoinRequest: [],
     profileColor,
     username,
   });

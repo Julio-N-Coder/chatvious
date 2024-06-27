@@ -1,4 +1,3 @@
-import { Request } from "express";
 import {
   UserInfo,
   FetchUserInfoReturn,
@@ -15,14 +14,7 @@ import {
 const client = new DynamoDBClient({});
 const docClient = DynamoDBDocumentClient.from(client);
 
-async function fetchUserInfo(req: Request): FetchUserInfoReturn {
-  let userID = "";
-  if (req.user) {
-    userID = req.user.id;
-  } else {
-    return { error: "Not Authorized", statusCode: 401 };
-  }
-
+async function fetchUserInfo(userID: string): FetchUserInfoReturn {
   const getUserInfo = new GetCommand({
     TableName: "chatvious",
     Key: { PartitionKey: `USER#${userID}`, SortKey: "PROFILE" },

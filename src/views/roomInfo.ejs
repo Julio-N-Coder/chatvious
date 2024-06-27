@@ -11,7 +11,7 @@
   <body class="min-h-screen bg-base-300">
     <div class="roboto antialiased">
       <%- include("./components/navBar", {profileColor, username,
-      anyJoinRequest, first5JoinRequest}) %>
+      anyJoinRequest: false, first5JoinRequest}) %>
       <div
         class="container mx-auto mt-4 border-2 border-base-content rounded-2xl shadow-lg shadow-base-content/30"
       >
@@ -36,6 +36,29 @@
               </div>
             </div>
           </div>
+          <div class="text-2xl text-center">
+            Room ID: <%= roomInfo.RoomID %>
+          </div>
+          <%# Join Request %>
+          <div class="border-base-content border-2 rounded-xl text-xl p-1">
+            <div class="text-3xl text-center">Join Requests</div>
+            <div class="max-h-72 overflow-y-auto flex flex-wrap justify-evenly">
+              <% if (isOwnerOrAdmin) {%> <% joinRequests.map((joinRequest) => {
+              %>
+              <div
+                class="flex items-center border-2 border-base-content rounded-xl gap-1 p-2"
+              >
+                <%- include("./components/profileIcon", {forNav: false,
+                username: joinRequest.fromUserName}) %>
+                <div class=""><%= joinRequest.fromUserName %></div>
+                <div class="ml-4">
+                  <button class="btn btn-accent btn-sm">Accept Request</button>
+                  <button class="btn btn-accent btn-sm">Request Request</button>
+                </div>
+              </div>
+              <% }) %> <% } %>
+            </div>
+          </div>
           <%# joined users %>
           <div class="border-base-content border-2 rounded-xl text-xl">
             <div class="m-2">
@@ -47,7 +70,7 @@
                   <%- include("./components/profileIcon", {username:
                   member.userName, forNav: false}) %>
                   <span class="align-middle"><%= member.userName %></span>
-                  <% if (isOwner) { %> <%# Not implemented yet %>
+                  <% if (isOwnerOrAdmin) { %> <%# Not implemented yet %>
                   <button class="ml-3 btn btn-accent btn-sm">Kick</button>
                   <% } %>
                 </div>

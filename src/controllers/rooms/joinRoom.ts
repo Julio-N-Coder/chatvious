@@ -7,8 +7,9 @@ import {
   fetchRoomMembers,
   fetchRoomOwner,
   fetchJoinRequests,
+  sendJoinRequest,
 } from "../../models/rooms.js";
-import { sendJoinRequest } from "../../models/rooms.js";
+import { fetchUserInfo } from "../../models/users.js";
 
 export default async function joinRoom(req: Request, res: Response) {
   if (!req.body.RoomID) {
@@ -97,13 +98,31 @@ export default async function joinRoom(req: Request, res: Response) {
     res.status(400).json({ error: "You have already sent a join request" });
     return;
   }
+
+  // fetch user info for profile colour
+  const userInfoResponse = await fetchUserInfo(userID);
+  if ("error" in userInfoResponse) {
+    res
+      .status(userInfoResponse.statusCode)
+      .json({ error: userInfoResponse.error });
+    return;
+  }
+  const { profileColor } = userInfoResponse.userInfo;
+
   // send a join request to the room.
-  const joinRequest = await sendJoinRequest(username, userID, roomName, RoomID);
+  const joinRequest = await sendJoinRequest(
+    username,
+    userID,
+    roomName,
+    RoomID,
+    profileColor
+  );
   if ("error" in joinRequest) {
     res.status(joinRequest.statusCode).json({ error: joinRequest.error });
     return;
   }
 
+  console.log("Sent Join Request");
   res
     .status(joinRequestResponse.statusCode)
     .json({ message: joinRequestResponse.message });

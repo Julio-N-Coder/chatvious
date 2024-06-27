@@ -10,8 +10,6 @@ roomsRouter.post("/createRoom", createRoom);
 
 roomsRouter.post("/joinRoom", joinRoom);
 
-// if they are owner, also get joinRoomRequest to display all request
-// also display to room id for users to request to join the room by it.
 // also just check on the server whether a user is part of the room and display a button to request to join.
 roomsRouter.get("/:RoomID", pageAuth, navUserInfo, roomInfo);
 

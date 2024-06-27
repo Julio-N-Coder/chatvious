@@ -12,7 +12,7 @@
   <body class="min-h-screen bg-base-300">
     <div class="roboto antialiased">
       <%- include('./components/navBar', { profileColor, username,
-      anyJoinRequest,first5JoinRequest }); %>
+      anyJoinRequest: false, first5JoinRequest }); %>
       <div class="container mx-auto rounded-b px-2 pb-2 pt-4 flex gap-2">
         <%# Owned rooms card %>
         <div class="bg-base-100 rounded-2xl p-2 grow space-y-4">

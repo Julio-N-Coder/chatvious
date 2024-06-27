@@ -6,7 +6,6 @@ declare module "express" {
   interface Request {
     user?: {
       id: string;
-      anyJoinRequest?: boolean;
       // first5JoinRequest?: JoinRequests;
       username?: string;
       ownedRooms?: RoomsOnUser;
@@ -29,7 +28,7 @@ export default async function navUserInfo(
     return;
   }
 
-  const userInfoResponse = await fetchUserInfo(req);
+  const userInfoResponse = await fetchUserInfo(userID);
 
   if ("error" in userInfoResponse) {
     res.status(500).send({

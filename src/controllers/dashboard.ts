@@ -6,7 +6,6 @@ declare module "express" {
   interface Request {
     user?: {
       id: string;
-      anyJoinRequest?: boolean;
       // first5JoinRequest?: JoinRequets;
       username?: string;
       ownedRooms?: RoomsOnUser;
@@ -31,7 +30,6 @@ export default async function dashboard(req: Request, res: Response) {
     joinedRooms,
     username,
     profileColor,
-    anyJoinRequest: false,
     first5JoinRequest: [],
   });
   return;

@@ -152,6 +152,7 @@ type JoinRequests = {
   fromUserName: string;
   roomName: string;
   sentJoinRequestAt: string;
+  profileColor: string;
 }[];
 
 type JoinRequestsDB = JoinRequests &

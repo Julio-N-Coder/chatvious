@@ -1,6 +1,6 @@
 <div
   id="profile"
-  class="dropdown dropdown-end relative border w-10 h-10 rounded-full text-white text-center place-content-center text-2xl bg-<%= profileColor %>-500"
+  class="dropdown dropdown-end relative border border-black w-10 h-10 rounded-full text-white text-center place-content-center text-2xl bg-<%= profileColor %>-500"
 >
   <%# don't forget to make hidden functionality to hide pinger in client %> <%
   if (forNav) { %>
@@ -16,8 +16,8 @@
   >
     <div class="py-1 hover:bg-base-100">Profile Info</div>
     <%# Join Request notification functionality not set up yet so it request are
-    always empty %> <% if (anyJoinRequest) { %> <%
-    first5JoinRequest.map((joinRequest) => { %>
+    always empty. rename anyJoinRequest for nav %> <% if (anyJoinRequest) { %>
+    <% first5JoinRequest.map((joinRequest) => { %>
     <div class="py-1 hover:bg-base-100">
       <a href="http://localhost:3000/rooms/<%= joinRequest.roomID %>">
         Join request from <%= joinRequest.fromUserName %>

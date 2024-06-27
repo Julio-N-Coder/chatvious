@@ -8,7 +8,6 @@ declare module "express" {
   interface Request {
     user?: {
       id: string;
-      anyJoinRequest?: boolean;
       // first5JoinRequest?: JoinRequets;
       username?: string;
       ownedRooms?: RoomsOnUser;

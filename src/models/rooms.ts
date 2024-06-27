@@ -232,6 +232,7 @@ async function fetchJoinRequests(RoomID: string): FetchJoinRequestsReturn {
     fromUserName: request.fromUserName,
     roomName: request.roomName,
     sentJoinRequestAt: request.sentJoinRequestAt,
+    profileColor: request.profileColor,
   }));
 
   if (joinRequestResponse.Count === 0) {
@@ -249,7 +250,8 @@ async function sendJoinRequest(
   fromUserName: string,
   fromUserID: string,
   roomName: string,
-  RoomID: string
+  RoomID: string,
+  profileColor: string
 ): SendJoinRequestReturn {
   const sentJoinRequestAt = new Date().toISOString();
   const joinRequestCommand = new PutCommand({
@@ -262,6 +264,7 @@ async function sendJoinRequest(
       fromUserName,
       roomName,
       sentJoinRequestAt,
+      profileColor,
     },
   });
 
