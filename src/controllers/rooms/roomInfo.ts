@@ -4,14 +4,14 @@ import {
   fetchRoomOwner,
   fetchRoomMembers,
 } from "../../models/rooms.js";
-import { JoinRequets, RoomsOnUser } from "../../types/types.js";
+import { RoomsOnUser } from "../../types/types.js";
 
 declare module "express" {
   interface Request {
     user?: {
       id: string;
       anyJoinRequest?: boolean;
-      first5JoinRequest?: JoinRequets;
+      // first5JoinRequest?: JoinRequets;
       ownedRooms?: RoomsOnUser;
       joinedRooms?: RoomsOnUser;
       username?: string;
@@ -56,8 +56,7 @@ export default async function roomInfo(req: Request, res: Response) {
   const { roomInfo } = roomInfoResponse;
   const { roomOwner } = roomOwnerResponse;
   const { roomMembers } = roomMembersResponse;
-  const { anyJoinRequest, first5JoinRequest, profileColor, username } =
-    req.user;
+  const { anyJoinRequest, profileColor, username } = req.user;
 
   // if they are owner, also get joinRoomRequest to display
   if (roomOwner.ownerID === userID) {
@@ -68,7 +67,7 @@ export default async function roomInfo(req: Request, res: Response) {
       roomMembers,
       isOwner: true,
       anyJoinRequest,
-      first5JoinRequest,
+      // first5JoinRequest,
       profileColor,
       username,
     });
@@ -82,7 +81,7 @@ export default async function roomInfo(req: Request, res: Response) {
     roomMembers,
     isOwner: false,
     anyJoinRequest,
-    first5JoinRequest,
+    // first5JoinRequest,
     profileColor,
     username,
   });

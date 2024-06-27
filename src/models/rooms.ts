@@ -20,6 +20,9 @@ import {
   RoomMembersDB,
   RoomMembers,
   FetchRoomMembersReturn,
+  JoinRequestsDB,
+  FetchJoinRequestsReturn,
+  SendJoinRequestReturn,
 } from "../types/types.js";
 
 const client = new DynamoDBClient({});
@@ -73,6 +76,7 @@ async function makeRoom(req: Request): MakeRoomReturnType {
         SortKey: "OWNER",
         ownerID,
         ownerName,
+        RoomID,
       },
     });
 
@@ -160,6 +164,7 @@ async function fetchRoomOwner(RoomID: string): FetchRoomOwnerReturn {
   const roomOwner = {
     ownerID: roomOwnerDB.ownerID,
     ownerName: roomOwnerDB.ownerName,
+    RoomID: roomOwnerDB.RoomID,
   };
 
   return { roomOwner, statusCode: 200 };
@@ -186,6 +191,7 @@ async function fetchRoomMembers(RoomID: string): FetchRoomMembersReturn {
   const roomMembers: RoomMembers = roomMembersDB.map((member) => ({
     userName: member.userName,
     userID: member.userID,
+    RoomID,
     joinedAt: member.joinedAt,
     profileColor: member.profileColor,
   }));
@@ -202,4 +208,81 @@ async function fetchRoomMembers(RoomID: string): FetchRoomMembersReturn {
   };
 }
 
-export { makeRoom, fetchRoom, fetchRoomOwner, fetchRoomMembers };
+async function fetchJoinRequests(RoomID: string): FetchJoinRequestsReturn {
+  const joinRequestsCommand = new QueryCommand({
+    TableName: "chatvious",
+    KeyConditionExpression:
+      "PartitionKey = :roomsID AND begins_with(SortKey, :joinRequest)",
+    ExpressionAttributeValues: {
+      ":roomsID": `ROOM#${RoomID}`,
+      ":joinRequest": "JOIN_REQUESTS#",
+    },
+    ConsistentRead: true,
+  });
+
+  const joinRequestResponse = await docClient.send(joinRequestsCommand);
+
+  if (joinRequestResponse.$metadata.httpStatusCode !== 200) {
+    return { error: "Failed to Get Join Requests", statusCode: 500 };
+  }
+  const joinRequestsDB = joinRequestResponse.Items as JoinRequestsDB;
+  const joinRequests = joinRequestsDB?.map((request) => ({
+    RoomID: request.RoomID,
+    fromUserID: request.fromUserID,
+    fromUserName: request.fromUserName,
+    roomName: request.roomName,
+    sentJoinRequestAt: request.sentJoinRequestAt,
+  }));
+
+  if (joinRequestResponse.Count === 0) {
+    return { message: "No Join Requests", joinRequests, statusCode: 200 };
+  }
+
+  return {
+    message: `${joinRequests.length} Join Request Fetched`,
+    joinRequests,
+    statusCode: 200,
+  };
+}
+
+async function sendJoinRequest(
+  fromUserName: string,
+  fromUserID: string,
+  roomName: string,
+  RoomID: string
+): SendJoinRequestReturn {
+  const sentJoinRequestAt = new Date().toISOString();
+  const joinRequestCommand = new PutCommand({
+    TableName: "chatvious",
+    Item: {
+      PartitionKey: `ROOM#${RoomID}`,
+      SortKey: `JOIN_REQUESTS#${sentJoinRequestAt}#${fromUserID}`,
+      RoomID,
+      fromUserID,
+      fromUserName,
+      roomName,
+      sentJoinRequestAt,
+    },
+  });
+
+  const joinRequestResponse = await docClient.send(joinRequestCommand);
+  const statusCode = joinRequestResponse.$metadata.httpStatusCode as number;
+
+  if (statusCode !== 200) {
+    return { error: "Failed to send Join Request", statusCode };
+  }
+
+  return {
+    message: "Successfully sent Join Request to the Room",
+    statusCode: 200,
+  };
+}
+
+export {
+  makeRoom,
+  fetchRoom,
+  fetchRoomOwner,
+  fetchRoomMembers,
+  fetchJoinRequests,
+  sendJoinRequest,
+};

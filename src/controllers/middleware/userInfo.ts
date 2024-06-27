@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from "express";
-import { UserInfo, RoomsOnUser, JoinRequets } from "../../types/types.js";
+import { UserInfo, RoomsOnUser } from "../../types/types.js";
 import { fetchUserInfo } from "../../models/users.js";
 
 declare module "express" {
@@ -7,7 +7,7 @@ declare module "express" {
     user?: {
       id: string;
       anyJoinRequest?: boolean;
-      first5JoinRequest?: JoinRequets;
+      // first5JoinRequest?: JoinRequests;
       username?: string;
       ownedRooms?: RoomsOnUser;
       joinedRooms?: RoomsOnUser;
@@ -40,7 +40,7 @@ export default async function navUserInfo(
   }
   const userInfo: UserInfo = userInfoResponse.userInfo;
 
-  (req.user.username = userInfo.username),
+  (req.user.username = userInfo.userName),
     (req.user.profileColor = userInfo.profileColor),
     (req.user.ownedRooms = userInfo.ownedRooms),
     (req.user.joinedRooms = userInfo.joinedRooms);

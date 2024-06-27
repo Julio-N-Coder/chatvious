@@ -1,13 +1,13 @@
 import { Request, Response } from "express";
 import { fetchUserInfo } from "../models/users.js";
-import { JoinRequets, RoomsOnUser } from "../types/types.js";
+import { RoomsOnUser } from "../types/types.js";
 
 declare module "express" {
   interface Request {
     user?: {
       id: string;
       anyJoinRequest?: boolean;
-      first5JoinRequest?: JoinRequets;
+      // first5JoinRequest?: JoinRequets;
       username?: string;
       ownedRooms?: RoomsOnUser;
       joinedRooms?: RoomsOnUser;

@@ -18,7 +18,7 @@ export const saveUserData = async (event: PostConfirmationEvent) => {
         PartitionKey: `USER#${event.request.userAttributes.sub}`,
         SortKey: "PROFILE",
         userID: event.request.userAttributes.sub,
-        username: event.userName,
+        userName: event.userName,
         email: event.request.userAttributes.email,
         ownedRooms: [],
         joinedRooms: [],

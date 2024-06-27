@@ -27,24 +27,18 @@ type MakeRoomReturnType = Promise<MakeRoomReturnError | MakeRoomReturnSuccess>;
 
 type RoomsOnUser = { roomName: string; RoomID: string }[] | [];
 
-type UserInfoDBResponse = {
-  PartitionKey: `USER#${string}`;
-  SortKey: "PROFILE";
+type UserInfo = {
   userID: string;
-  username: string;
+  userName: string;
   email: string;
   ownedRooms: RoomsOnUser;
   joinedRooms: RoomsOnUser;
   profileColor: string;
 };
 
-type UserInfo = {
-  id: string;
-  username: string;
-  email: string;
-  ownedRooms: RoomsOnUser;
-  joinedRooms: RoomsOnUser;
-  profileColor: string;
+type UserInfoDBResponse = UserInfo & {
+  PartitionKey: `USER#${string}`;
+  SortKey: "PROFILE";
 };
 
 type FetchUserInfoError = {
@@ -59,30 +53,20 @@ type FetchUserInfoSuccess = {
 
 type FetchUserInfoReturn = Promise<FetchUserInfoError | FetchUserInfoSuccess>;
 
-// not implemented yet
-type RoomMemberAdmins = {
-  RoomID: string;
-  joinedAt: string;
-  userID: string;
-  userName: string;
-  profileColor: string;
-}[];
-
-type RoomMembersDB = {
-  PartitionKey: `ROOM#${string}`;
-  SortKey: `MEMBERS#${string}`;
-  userName: string;
-  userID: string;
-  joinedAt: string;
-  profileColor: string;
-}[];
-
 type RoomMembers = {
   userName: string;
   userID: string;
+  RoomID: string;
+  isAdmin?: boolean;
   joinedAt: string;
   profileColor: string;
 }[];
+
+type RoomMembersDB = RoomMembers &
+  {
+    PartitionKey: `ROOM#${string}`;
+    SortKey: `MEMBERS#${string}`;
+  }[];
 
 type FetchRoomMembersError = {
   error: string;
@@ -100,11 +84,15 @@ type FetchRoomMembersReturn = Promise<
   FetchRoomMembersError | FetchRoomMembersSuccess
 >;
 
-type RoomOwnerDB = {
-  PartitionKey: `ROOM#${string}`;
-  SortKey: "OWNER";
+type RoomOwner = {
   ownerID: string;
   ownerName: string;
+  RoomID: string;
+};
+
+type RoomOwnerDB = RoomOwner & {
+  PartitionKey: `ROOM#${string}`;
+  SortKey: "OWNER";
 };
 
 type FetchRoomOwnerError = {
@@ -113,7 +101,7 @@ type FetchRoomOwnerError = {
 };
 
 type FetchRoomOwnerSuccess = {
-  roomOwner: { ownerID: string; ownerName: string };
+  roomOwner: RoomOwner;
   statusCode: number;
 };
 
@@ -121,18 +109,15 @@ type FetchRoomOwnerReturn = Promise<
   FetchRoomOwnerError | FetchRoomOwnerSuccess
 >;
 
-type RoomInfoDBType = {
-  PartitionKey: `ROOM#${string}`;
-  SortKey: `METADATA`;
+type RoomInfoType = {
   RoomID: string;
   roomName: string;
   createdAt: string;
 };
 
-type RoomInfoType = {
-  RoomID: string;
-  roomName: string;
-  createdAt: string;
+type RoomInfoDBType = RoomInfoType & {
+  PartitionKey: `ROOM#${string}`;
+  SortKey: `METADATA`;
 };
 
 type FetchRoomErrorReturn = {
@@ -147,29 +132,48 @@ type FetchRoomSuccessReturn = {
 
 type FetchRoomReturn = Promise<FetchRoomErrorReturn | FetchRoomSuccessReturn>;
 
-type SendRoomRequestError = {
+type SendJoinRequestError = {
   error: string;
   statusCode: number;
 };
 
-type SendRoomRequestSuccess = {
+type SendJoinRequestSuccess = {
   message: string;
   statusCode: number;
 };
 
-type SendRoomRequestReturn = Promise<
-  SendRoomRequestSuccess | SendRoomRequestError
+type SendJoinRequestReturn = Promise<
+  SendJoinRequestSuccess | SendJoinRequestError
 >;
-type JoinRequest = {
+
+type JoinRequests = {
   RoomID: string;
-  createdAt: string;
-  ownerID: string;
-  fromUserName: string;
   fromUserID: string;
+  fromUserName: string;
   roomName: string;
+  sentJoinRequestAt: string;
+}[];
+
+type JoinRequestsDB = JoinRequests &
+  {
+    PartitionKey: `ROOM#${string}`;
+    SortKey: `JOIN_REQUESTS#${string}#${string}`;
+  }[];
+
+type FetchJoinRequestsError = {
+  error: string;
+  statusCode: number;
 };
 
-type JoinRequets = JoinRequest[];
+type FetchJoinRequestsSuccess = {
+  message: string;
+  joinRequests: JoinRequests;
+  statusCode: number;
+};
+
+type FetchJoinRequestsReturn = Promise<
+  FetchJoinRequestsError | FetchJoinRequestsSuccess
+>;
 
 export {
   AuthCodeTokenResponse,
@@ -187,6 +191,7 @@ export {
   FetchRoomReturn,
   RoomOwnerDB,
   FetchRoomOwnerReturn,
-  SendRoomRequestReturn,
-  JoinRequets,
+  SendJoinRequestReturn,
+  JoinRequestsDB,
+  FetchJoinRequestsReturn,
 };

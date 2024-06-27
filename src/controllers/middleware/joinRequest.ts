@@ -1,15 +1,18 @@
 import { Request, Response, NextFunction } from "express";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { DynamoDBDocumentClient, QueryCommand } from "@aws-sdk/lib-dynamodb";
-import { JoinRequets } from "../../types/types.js";
+import { DynamoDBDocumentClient } from "@aws-sdk/lib-dynamodb";
+// import { fetchFirst5JoinRequests } from "../../models/users.js";
+import { RoomsOnUser } from "../../types/types.js";
 
 declare module "express" {
   interface Request {
     user?: {
       id: string;
       anyJoinRequest?: boolean;
-      first5JoinRequest?: JoinRequets;
+      // first5JoinRequest?: JoinRequets;
       username?: string;
+      ownedRooms?: RoomsOnUser;
+      joinedRooms?: RoomsOnUser;
       profileColor?: string;
     };
   }
@@ -18,7 +21,8 @@ declare module "express" {
 const client = new DynamoDBClient({});
 const docClient = DynamoDBDocumentClient.from(client);
 
-export default async function get5JoinRequest(
+// not implemented yet
+async function get5JoinRequest(
   req: Request,
   res: Response,
   next: NextFunction
@@ -31,43 +35,19 @@ export default async function get5JoinRequest(
     return;
   }
 
-  const joinRequestsCommand = new QueryCommand({
-    TableName: "chatvious-joinRoomRequest",
-    KeyConditionExpression: "ownerID = :userID",
-    ExpressionAttributeValues: {
-      ":userID": userID,
-    },
-    ConsistentRead: true,
-  });
+  // const joinRequests = await fetchFirst5JoinRequests(userID);
 
-  const joinRequestsResponse = await docClient.send(joinRequestsCommand);
-  const statusCode = joinRequestsResponse.$metadata.httpStatusCode as number;
+  // if (joinRequestsResponse.Count === 0) {
+  //   req.user.anyJoinRequest = false;
+  //   next();
+  //   return;
+  // }
 
-  if (statusCode !== 200) {
-    res.status(500).send({
-      message:
-        "We're sorry for the inconviencence, there seems to be a problem with our servers",
-    });
-    return;
-  }
-  if (joinRequestsResponse.Count === 0) {
-    req.user.anyJoinRequest = false;
-    next();
-    return;
-  }
+  // const first5JoinRequest = joinRequestsResponse.Items as JoinRequets;
 
-  const joinRequests = joinRequestsResponse.Items as JoinRequets;
-  const first5JoinRequest: JoinRequets = [];
-
-  for (let i = 0; i < joinRequests.length; i++) {
-    if (first5JoinRequest.length === 5) {
-      break;
-    }
-
-    first5JoinRequest.push(joinRequests[i]);
-  }
-
-  req.user.anyJoinRequest = true;
-  req.user.first5JoinRequest = first5JoinRequest;
+  // req.user.anyJoinRequest = true;
+  // req.user.first5JoinRequest = first5JoinRequest;
   next();
 }
+
+// export default get5JoinRequest;
