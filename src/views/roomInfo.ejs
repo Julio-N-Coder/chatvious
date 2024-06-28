@@ -11,7 +11,7 @@
   <body class="min-h-screen bg-base-300">
     <div class="roboto antialiased">
       <%- include("./components/navBar", {profileColor, username,
-      anyJoinRequest: false, first5JoinRequest}) %>
+      anyJoinRequest: false, navJoinRequest }) %>
       <div
         class="container mx-auto mt-4 border-2 border-base-content rounded-2xl shadow-lg shadow-base-content/30"
       >
@@ -26,7 +26,7 @@
             <div>
               <div class="m-2 flex gap-2">
                 <span>Room Owner:</span>
-                <span><%= roomOwner.ownerName %></span>
+                <span><%= roomOwner.userName %></span>
               </div>
             </div>
             <div>
@@ -82,8 +82,8 @@
             <div class="m-2">
               <div class="text-center text-3xl">Members</div>
               <div class="divide-y">
-                <% if (roomMembers.length > 0) { %> <%
-                roomInfo.authedUsers.map((member) => { %>
+                <% if (roomMembers.length > 0) { %> <% roomMembers.map(function
+                (member) { %>
                 <div class="text-2xl py-2">
                   <%- include("./components/profileIcon", {username:
                   member.userName, forNav: false}) %>

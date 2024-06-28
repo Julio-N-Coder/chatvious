@@ -1,14 +1,13 @@
 import { Request, Response, NextFunction } from "express";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocumentClient } from "@aws-sdk/lib-dynamodb";
-// import { fetchFirst5JoinRequests } from "../../models/users.js";
 import { RoomsOnUser } from "../../types/types.js";
 
 declare module "express" {
   interface Request {
     user?: {
       id: string;
-      // first5JoinRequest?: JoinRequets;
+      navJoinRequests?: { RoomID: string; roomName: string }[] | [];
       username?: string;
       ownedRooms?: RoomsOnUser;
       joinedRooms?: RoomsOnUser;

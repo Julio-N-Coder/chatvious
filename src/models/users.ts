@@ -3,6 +3,7 @@ import {
   FetchUserInfoReturn,
   UserInfoDBResponse,
   RoomsOnUser,
+  FetchNavJoinRequestsReturn,
 } from "../types/types.js";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import {
@@ -43,27 +44,83 @@ async function fetchUserInfo(userID: string): FetchUserInfoReturn {
   return { userInfo, statusCode: 200 };
 }
 
-// not implemented yet
-async function fetchFirst5JoinRequests(
-  userID: string,
+// fetching only 5 join request.
+async function fetchNavJoinRequests(
   ownedRooms: RoomsOnUser,
   joinedRooms: RoomsOnUser
-) {
-  const joinRequestsCommand = new QueryCommand({
-    TableName: "chatvious",
-    KeyConditionExpression: "ownerID = :userID",
-    ExpressionAttributeValues: {
-      ":userID": userID,
-    },
-    Limit: 5,
-  });
+): FetchNavJoinRequestsReturn {
+  const navJoinRequest: { RoomID: string; roomName: string }[] = [];
 
-  const joinRequestsResponse = await docClient.send(joinRequestsCommand);
-  const statusCode = joinRequestsResponse.$metadata.httpStatusCode as number;
-
-  if (statusCode !== 200) {
-    return;
+  if (ownedRooms.length === 0 && joinedRooms.length === 0) {
+    return { message: "No join requests", navJoinRequest, statusCode: 200 };
   }
+
+  for (let i = 0; i < ownedRooms.length && i < 5; i++) {
+    const joinRequestsCommand = new QueryCommand({
+      TableName: "chatvious",
+      KeyConditionExpression:
+        "PartitionKey = :partitionkey AND begins_with(SortKey, :joinRequest)",
+      ExpressionAttributeValues: {
+        ":partitionkey": `ROOM#${ownedRooms[i].RoomID}`,
+        ":joinRequest": "JOIN_REQUESTS#",
+      },
+      Limit: 1,
+      ProjectionExpression: "RoomID, roomName",
+    });
+
+    const joinRequestsResponse = await docClient.send(joinRequestsCommand);
+    const statusCode = joinRequestsResponse.$metadata.httpStatusCode as number;
+
+    if (statusCode !== 200 || !joinRequestsResponse.Items) {
+      console.log("Failed to Get Join Requests");
+      return { error: "Failed to Get Join Requests", statusCode };
+    }
+    if (joinRequestsResponse.Count === 1) {
+      navJoinRequest.push(
+        joinRequestsResponse.Items[0] as { RoomID: string; roomName: string }
+      );
+    } else break;
+  }
+
+  if (navJoinRequest.length >= 5) {
+    return { message: "Fetch 5 Join Request", navJoinRequest, statusCode: 200 };
+  }
+
+  const reqeustLeft = 5 - navJoinRequest.length;
+  for (let i = 0; i < joinedRooms.length && i < reqeustLeft; i++) {
+    const currentJoinRoom = joinedRooms[i];
+    if (!("isAdminOrOwner" in currentJoinRoom)) continue;
+
+    const joinRequestsCommand = new QueryCommand({
+      TableName: "chatvious",
+      KeyConditionExpression:
+        "PartitionKey = :partitionkey AND begins_with(SortKey, :joinRequest)",
+      ExpressionAttributeValues: {
+        ":partitionkey": `ROOM#${currentJoinRoom.RoomID}`,
+        ":joinRequest": "JOIN_REQUESTS#",
+      },
+      Limit: 1,
+      ProjectionExpression: "RoomID, roomName",
+    });
+
+    const joinRequestsResponse = await docClient.send(joinRequestsCommand);
+    const statusCode = joinRequestsResponse.$metadata.httpStatusCode as number;
+
+    if (statusCode !== 200 || !joinRequestsResponse.Items) {
+      return { error: "Failed to Get Join Requests", statusCode };
+    }
+    if (joinRequestsResponse.Count === 1) {
+      navJoinRequest.push(
+        joinRequestsResponse.Items[0] as { RoomID: string; roomName: string }
+      );
+    } else break;
+  }
+
+  return {
+    message: "Fetched Nav Join Requests",
+    navJoinRequest,
+    statusCode: 200,
+  };
 }
 
-export { fetchUserInfo };
+export { fetchUserInfo, fetchNavJoinRequests };

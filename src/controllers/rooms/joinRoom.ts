@@ -5,7 +5,6 @@ import cognitoData from "../../cognitoData.js";
 import {
   fetchRoom,
   fetchRoomMembers,
-  fetchRoomOwner,
   fetchJoinRequests,
   sendJoinRequest,
 } from "../../models/rooms.js";
@@ -57,14 +56,6 @@ export default async function joinRoom(req: Request, res: Response) {
     return;
   }
 
-  const roomOwnerResponse = await fetchRoomOwner(RoomID);
-  if ("error" in roomOwnerResponse) {
-    res
-      .status(roomOwnerResponse.statusCode)
-      .json({ error: roomOwnerResponse.error });
-    return;
-  }
-
   const roomMembersResponse = await fetchRoomMembers(RoomID);
   if ("error" in roomMembersResponse) {
     res
@@ -73,14 +64,10 @@ export default async function joinRoom(req: Request, res: Response) {
     return;
   }
 
-  const { ownerID } = roomOwnerResponse.roomOwner;
   const { roomName } = fetchRoomResponse.roomInfo;
   const { roomMembers } = roomMembersResponse;
 
-  if (ownerID === userID) {
-    res.status(400).json({ error: "You are the owner of this room" });
-    return;
-  } else if (roomMembers.find((member) => member.userID === userID)) {
+  if (roomMembers.find((member) => member.userID === userID)) {
     res.status(400).json({ error: "You are already a member of this room" });
     return;
   }

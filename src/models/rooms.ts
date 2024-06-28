@@ -1,4 +1,3 @@
-import { Request } from "express";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import {
   DynamoDBDocumentClient,
@@ -7,18 +6,13 @@ import {
   GetCommand,
   QueryCommand,
 } from "@aws-sdk/lib-dynamodb";
-import { CognitoJwtVerifier } from "aws-jwt-verify";
-import cognitoData from "../cognitoData.js";
-import { JwtBaseError } from "aws-jwt-verify/error";
 import {
   MakeRoomReturnType,
   RoomInfoDBType,
   FetchRoomReturn,
   RoomInfoType,
-  RoomOwnerDB,
-  FetchRoomOwnerReturn,
-  RoomMembersDB,
-  RoomMembers,
+  RoomMemberDB,
+  RoomMember,
   FetchRoomMembersReturn,
   JoinRequestsDB,
   FetchJoinRequestsReturn,
@@ -28,95 +22,91 @@ import {
 const client = new DynamoDBClient({});
 const docClient = DynamoDBDocumentClient.from(client);
 
-async function makeRoom(req: Request): MakeRoomReturnType {
-  const verifier = CognitoJwtVerifier.create({
-    userPoolId: cognitoData.USER_POOL_ID,
-    tokenUse: "access",
-    clientId: cognitoData.CLIENT_ID,
+async function makeRoom(
+  ownerID: string,
+  ownerName: string,
+  roomName: string,
+  profileColor: string
+): MakeRoomReturnType {
+  const RoomID = crypto.randomUUID() as string;
+
+  const madeDate = new Date().toISOString() as string;
+  const roomData: RoomInfoDBType = {
+    PartitionKey: `ROOM#${RoomID}`,
+    SortKey: "METADATA",
+    RoomID,
+    roomName,
+    createdAt: madeDate,
+  };
+
+  const newRoomCommand = new PutCommand({
+    TableName: "chatvious",
+    Item: roomData,
   });
 
-  const access_token = req.cookies.access_token as string | undefined;
-  if (!access_token) {
-    return { error: "Unauthorized", statusCode: 401 };
-  }
+  // newRoom value needs to be wrapped in an array
+  const updateUserRoomCommand = new UpdateCommand({
+    TableName: "chatvious",
+    Key: { PartitionKey: `USER#${ownerID}`, SortKey: "PROFILE" },
+    UpdateExpression: "SET ownedRooms = list_append(ownedRooms, :newRoom)",
+    ExpressionAttributeValues: {
+      ":newRoom": [
+        {
+          roomName: roomData.roomName,
+          RoomID: roomData.RoomID,
+        },
+      ],
+    },
+  });
 
-  try {
-    const payload = await verifier.verify(access_token);
-    const ownerID = payload.sub;
-    const ownerName = payload.username;
-    const RoomID = crypto.randomUUID();
+  // make RoomMember Entry for owner.
+  const roomMemberItem: RoomMemberDB = {
+    PartitionKey: `ROOM#${RoomID}`,
+    SortKey: `MEMBERS#DATE#${madeDate}#USERID#${ownerID}`,
+    userID: ownerID,
+    userName: ownerName,
+    RoomID,
+    RoomUserStatus: `OWNER#USERID#${ownerID}`,
+    joinedAt: madeDate,
+    profileColor,
+  };
 
-    const roomData: RoomInfoDBType = {
-      PartitionKey: `ROOM#${RoomID}`,
-      SortKey: "METADATA",
-      RoomID,
-      roomName: req.body.roomName,
-      createdAt: new Date().toISOString(),
+  const roomMemberCommand = new PutCommand({
+    TableName: "chatvious",
+    Item: roomMemberItem,
+  });
+
+  const makeRoomResponse = await docClient.send(newRoomCommand);
+  const makeRoomStatusCode = makeRoomResponse.$metadata
+    .httpStatusCode as number;
+  if (makeRoomStatusCode !== 200) {
+    return {
+      error: "Failed to make room",
+      statusCode: makeRoomStatusCode,
     };
-
-    const newRoomCommand = new PutCommand({
-      TableName: "chatvious",
-      Item: roomData,
-    });
-
-    // newRoom value needs to be wrapped in an array
-    const updateUserRoomCommand = new UpdateCommand({
-      TableName: "chatvious",
-      Key: { PartitionKey: `USER#${ownerID}`, SortKey: "PROFILE" },
-      UpdateExpression: "SET ownedRooms = list_append(ownedRooms, :newRoom)",
-      ExpressionAttributeValues: {
-        ":newRoom": [{ roomName: roomData.roomName, RoomID: roomData.RoomID }],
-      },
-    });
-
-    const createRoomOwnerCommand = new PutCommand({
-      TableName: "chatvious",
-      Item: {
-        PartitionKey: `ROOM#${RoomID}`,
-        SortKey: "OWNER",
-        ownerID,
-        ownerName,
-        RoomID,
-      },
-    });
-
-    const makeRoomResponse = await docClient.send(newRoomCommand);
-    const makeRoomStatusCode = makeRoomResponse.$metadata
-      .httpStatusCode as number;
-    if (makeRoomStatusCode !== 200) {
-      return {
-        error: "Failed to make room",
-        statusCode: makeRoomStatusCode,
-      };
-    }
-
-    const updateUsersResponse = await docClient.send(updateUserRoomCommand);
-    const updateStatusCode = updateUsersResponse.$metadata
-      .httpStatusCode as number;
-    if (updateStatusCode !== 200) {
-      return {
-        error: "Failed to update user",
-        statusCode: updateStatusCode,
-      };
-    }
-
-    const createOwnerResponse = await docClient.send(createRoomOwnerCommand);
-    const createOwnerStatusCode = createOwnerResponse.$metadata
-      .httpStatusCode as number;
-    if (createOwnerStatusCode !== 200) {
-      return {
-        error: "Failed to create owner",
-        statusCode: createOwnerStatusCode,
-      };
-    }
-
-    return { message: "Room Created", statusCode: 201 };
-  } catch (err) {
-    if (err instanceof JwtBaseError) {
-      return { error: "Not Authorized", statusCode: 401 };
-    }
-    return { error: "Internal Server Error", statusCode: 500 };
   }
+
+  const roomMemberResponse = await docClient.send(roomMemberCommand);
+  const roomMemberStatusCode = roomMemberResponse.$metadata
+    .httpStatusCode as number;
+  if (roomMemberStatusCode !== 200) {
+    return {
+      error: "Failed to make room member",
+      statusCode: roomMemberStatusCode,
+    };
+  }
+
+  const updateUsersResponse = await docClient.send(updateUserRoomCommand);
+  const updateStatusCode = updateUsersResponse.$metadata
+    .httpStatusCode as number;
+  if (updateStatusCode !== 200) {
+    return {
+      error: "Failed to update user",
+      statusCode: updateStatusCode,
+    };
+  }
+
+  return { message: "Room Created", statusCode: 201 };
 }
 
 async function fetchRoom(RoomID: string): FetchRoomReturn {
@@ -144,32 +134,6 @@ async function fetchRoom(RoomID: string): FetchRoomReturn {
   return { roomInfo, statusCode: 200 };
 }
 
-async function fetchRoomOwner(RoomID: string): FetchRoomOwnerReturn {
-  const roomOwnerCommand = new GetCommand({
-    TableName: "chatvious",
-    Key: { PartitionKey: `ROOM#${RoomID}`, SortKey: "OWNER" },
-  });
-
-  const roomOwnerResponse = await docClient.send(roomOwnerCommand);
-
-  if (roomOwnerResponse.$metadata.httpStatusCode !== 200) {
-    return { error: "Failed to Get Room Info", statusCode: 500 };
-  }
-
-  const roomOwnerDB = roomOwnerResponse.Item as RoomOwnerDB | undefined;
-  if (roomOwnerDB == undefined) {
-    return { error: "Bad Request", statusCode: 400 };
-  }
-
-  const roomOwner = {
-    ownerID: roomOwnerDB.ownerID,
-    ownerName: roomOwnerDB.ownerName,
-    RoomID: roomOwnerDB.RoomID,
-  };
-
-  return { roomOwner, statusCode: 200 };
-}
-
 async function fetchRoomMembers(RoomID: string): FetchRoomMembersReturn {
   const roomMembersCommand = new QueryCommand({
     TableName: "chatvious",
@@ -187,11 +151,12 @@ async function fetchRoomMembers(RoomID: string): FetchRoomMembersReturn {
     return { error: "Failed to Get Room Members", statusCode: 500 };
   }
 
-  const roomMembersDB = roomMembersResponse.Items as RoomMembersDB;
-  const roomMembers: RoomMembers = roomMembersDB.map((member) => ({
+  const roomMembersDB = roomMembersResponse.Items as RoomMemberDB[];
+  const roomMembers: RoomMember[] = roomMembersDB.map((member) => ({
     userName: member.userName,
     userID: member.userID,
     RoomID,
+    RoomUserStatus: member.RoomUserStatus,
     joinedAt: member.joinedAt,
     profileColor: member.profileColor,
   }));
@@ -284,7 +249,6 @@ async function sendJoinRequest(
 export {
   makeRoom,
   fetchRoom,
-  fetchRoomOwner,
   fetchRoomMembers,
   fetchJoinRequests,
   sendJoinRequest,

@@ -1,12 +1,12 @@
 import { Request, Response, NextFunction } from "express";
 import { UserInfo, RoomsOnUser } from "../../types/types.js";
-import { fetchUserInfo } from "../../models/users.js";
+import { fetchUserInfo, fetchNavJoinRequests } from "../../models/users.js";
 
 declare module "express" {
   interface Request {
     user?: {
       id: string;
-      // first5JoinRequest?: JoinRequests;
+      navJoinRequests?: { RoomID: string; roomName: string }[] | [];
       username?: string;
       ownedRooms?: RoomsOnUser;
       joinedRooms?: RoomsOnUser;
@@ -38,10 +38,23 @@ export default async function navUserInfo(
     return;
   }
   const userInfo: UserInfo = userInfoResponse.userInfo;
+  // make sure to add "isAdminOrOwner: true," in joinedRooms, user attribute when a member joins.
+  const fetchNavJoinRequestsResponse = await fetchNavJoinRequests(
+    userInfo.ownedRooms,
+    userInfo.joinedRooms
+  );
+  if ("error" in fetchNavJoinRequestsResponse) {
+    res.status(500).send({
+      message:
+        "We're sorry for the inconviencence, there seems to be a problem with our servers",
+    });
+    return;
+  }
 
   (req.user.username = userInfo.userName),
     (req.user.profileColor = userInfo.profileColor),
     (req.user.ownedRooms = userInfo.ownedRooms),
     (req.user.joinedRooms = userInfo.joinedRooms);
+  req.user.navJoinRequests = fetchNavJoinRequestsResponse.navJoinRequest;
   next();
 }

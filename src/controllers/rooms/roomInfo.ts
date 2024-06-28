@@ -1,7 +1,6 @@
 import { Request, Response } from "express";
 import {
   fetchRoom,
-  fetchRoomOwner,
   fetchRoomMembers,
   fetchJoinRequests,
 } from "../../models/rooms.js";
@@ -11,7 +10,7 @@ declare module "express" {
   interface Request {
     user?: {
       id: string;
-      // first5JoinRequest?: JoinRequets;
+      navJoinRequests?: { RoomID: string; roomName: string }[] | [];
       ownedRooms?: RoomsOnUser;
       joinedRooms?: RoomsOnUser;
       username?: string;
@@ -36,14 +35,6 @@ export default async function roomInfo(req: Request, res: Response) {
     return;
   }
 
-  const roomOwnerResponse = await fetchRoomOwner(RoomID);
-  if ("error" in roomOwnerResponse) {
-    res
-      .status(roomOwnerResponse.statusCode)
-      .json({ error: roomOwnerResponse.error });
-    return;
-  }
-
   // fetch RoomMembers to display
   const roomMembersResponse = await fetchRoomMembers(RoomID);
   if ("error" in roomMembersResponse) {
@@ -54,22 +45,31 @@ export default async function roomInfo(req: Request, res: Response) {
   }
 
   const { roomMembers } = roomMembersResponse;
-  // I need to check whether they are admin.
   let isAdmin = false;
+  let isOwner = false;
   roomMembers.find((member) => {
     if (member.userID === userID) {
-      if (member.isAdmin) {
+      if (member.RoomUserStatus.startsWith("OWNER#")) {
+        isOwner = true;
+      } else if (member.RoomUserStatus.startsWith("ADMIN#")) {
         isAdmin = true;
       }
     }
   });
 
+  const roomOwner = roomMembers.find((member) =>
+    member.RoomUserStatus.startsWith("OWNER#")
+  );
+  if (roomOwner == undefined) {
+    res.status(500).json({ error: "Room Owner not found" });
+    return;
+  }
+
   const { roomInfo } = roomInfoResponse;
-  const { roomOwner } = roomOwnerResponse;
   const { profileColor, username } = req.user;
-  // if they are owner, also get joinRoomRequest to display
-  if (roomOwner.ownerID === userID || isAdmin) {
-    // fetch join request to display.
+  const navJoinRequest = req.user?.navJoinRequests;
+
+  if (isOwner || isAdmin) {
     const joinRequestResponse = await fetchJoinRequests(RoomID);
     if ("error" in joinRequestResponse) {
       res
@@ -86,7 +86,7 @@ export default async function roomInfo(req: Request, res: Response) {
       roomMembers,
       isOwnerOrAdmin: true,
       joinRequests,
-      first5JoinRequest: [],
+      navJoinRequest,
       profileColor,
       username,
     });
@@ -99,7 +99,7 @@ export default async function roomInfo(req: Request, res: Response) {
     roomOwner,
     roomMembers,
     isOwnerOrAdmin: false,
-    first5JoinRequest: [],
+    navJoinRequest,
     profileColor,
     username,
   });

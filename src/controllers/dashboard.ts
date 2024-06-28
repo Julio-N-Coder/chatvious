@@ -6,7 +6,7 @@ declare module "express" {
   interface Request {
     user?: {
       id: string;
-      // first5JoinRequest?: JoinRequets;
+      navJoinRequests?: { RoomID: string; roomName: string }[] | [];
       username?: string;
       ownedRooms?: RoomsOnUser;
       joinedRooms?: RoomsOnUser;
@@ -22,15 +22,14 @@ export default async function dashboard(req: Request, res: Response) {
   const joinedRooms = req.user?.joinedRooms;
   const username = req.user?.username;
   const profileColor = req.user?.profileColor;
-  // const anyJoinRequest = req.user?.anyJoinRequest;
-  // const first5JoinRequest = req.user?.first5JoinRequest;
+  const navJoinRequest = req.user?.navJoinRequests;
 
   res.render("dashboard", {
     ownedRooms,
     joinedRooms,
     username,
     profileColor,
-    first5JoinRequest: [],
+    navJoinRequest,
   });
   return;
 }
