@@ -4,12 +4,14 @@ import {
   UserInfoDBResponse,
   RoomsOnUser,
   FetchNavJoinRequestsReturn,
+  UpdateJoinedRoomsReturn,
 } from "../types/types.js";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import {
   DynamoDBDocumentClient,
   GetCommand,
   QueryCommand,
+  UpdateCommand,
 } from "@aws-sdk/lib-dynamodb";
 
 const client = new DynamoDBClient({});
@@ -42,6 +44,32 @@ async function fetchUserInfo(userID: string): FetchUserInfoReturn {
   };
 
   return { userInfo, statusCode: 200 };
+}
+
+async function updateJoinedRooms(
+  userID: string,
+  joinedRoom: { RoomID: string; isAdmin: boolean; roomName: string }
+): UpdateJoinedRoomsReturn {
+  const updateJoinedRoomsCommand = new UpdateCommand({
+    TableName: "chatvious",
+    Key: { PartitionKey: `USER#${userID}`, SortKey: "PROFILE" },
+    UpdateExpression: "SET joinedRooms = list_append(joinedRooms, :joinedRoom)",
+    ExpressionAttributeValues: {
+      ":joinedRoom": [joinedRoom],
+    },
+  });
+
+  const updateJoinedRoomsResponse = await docClient.send(
+    updateJoinedRoomsCommand
+  );
+  const statusCode = updateJoinedRoomsResponse.$metadata
+    .httpStatusCode as number;
+
+  if (statusCode !== 200) {
+    return { error: "Failed to Update Joined Rooms", statusCode };
+  }
+
+  return { message: "Joined Rooms Updated", statusCode: 200 };
 }
 
 // fetching only 5 join request.
@@ -123,4 +151,4 @@ async function fetchNavJoinRequests(
   };
 }
 
-export { fetchUserInfo, fetchNavJoinRequests };
+export { fetchUserInfo, fetchNavJoinRequests, updateJoinedRooms };

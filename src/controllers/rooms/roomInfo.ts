@@ -50,16 +50,16 @@ export default async function roomInfo(req: Request, res: Response) {
   // can instead check by ownedRooms, joinedRooms on the user on req.user.
   roomMembers.find((member) => {
     if (member.userID === userID) {
-      if (member.RoomUserStatus.startsWith("OWNER#")) {
+      if (member.RoomUserStatus === "OWNER") {
         isOwner = true;
-      } else if (member.RoomUserStatus.startsWith("ADMIN#")) {
+      } else if (member.RoomUserStatus === "ADMIN") {
         isAdmin = true;
       }
     }
   });
 
-  const roomOwner = roomMembers.find((member) =>
-    member.RoomUserStatus.startsWith("OWNER#")
+  const roomOwner = roomMembers.find(
+    (member) => member.RoomUserStatus === "OWNER"
   );
   if (roomOwner == undefined) {
     res.status(500).json({ error: "Room Owner not found" });

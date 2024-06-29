@@ -14,6 +14,7 @@ import {
   RoomInfoType,
   RoomMemberDB,
   RoomMember,
+  FetchRoomMemberReturn,
   FetchRoomMembersReturn,
   JoinRequestsDB,
   FetchJoinRequestsReturn,
@@ -65,11 +66,11 @@ async function makeRoom(
   // make RoomMember Entry for owner.
   const roomMemberItem: RoomMemberDB = {
     PartitionKey: `ROOM#${RoomID}`,
-    SortKey: `MEMBERS#DATE#${madeDate}#USERID#${ownerID}`,
+    SortKey: `MEMBERS#USERID#${ownerID}`,
     userID: ownerID,
     userName: ownerName,
     RoomID,
-    RoomUserStatus: `OWNER#USERID#${ownerID}`,
+    RoomUserStatus: "OWNER",
     joinedAt: madeDate,
     profileColor,
   };
@@ -176,8 +177,40 @@ async function fetchRoomMembers(RoomID: string): FetchRoomMembersReturn {
   };
 }
 
-// not finished
-async function fetchRoomMember(RoomID: string, userID: string) {}
+async function fetchRoomMember(
+  RoomID: string,
+  userID: string
+): FetchRoomMemberReturn {
+  const roomMemberCommand = new GetCommand({
+    TableName: "chatvious",
+    Key: {
+      PartitionKey: `ROOM#${RoomID}`,
+      SortKey: `MEMBERS#USERID#${userID}`,
+    },
+  });
+
+  const roomMemberResponse = await docClient.send(roomMemberCommand);
+
+  if (roomMemberResponse.$metadata.httpStatusCode !== 200) {
+    return { error: "Failed to Get Room Member", statusCode: 500 };
+  }
+
+  const roomMemberDB = roomMemberResponse.Item as RoomMemberDB | undefined;
+  if (roomMemberDB == undefined) {
+    return { error: "Bad Request", statusCode: 400 };
+  }
+
+  const roomMember: RoomMember = {
+    userName: roomMemberDB.userName,
+    userID: roomMemberDB.userID,
+    RoomID,
+    RoomUserStatus: roomMemberDB.RoomUserStatus,
+    joinedAt: roomMemberDB.joinedAt,
+    profileColor: roomMemberDB.profileColor,
+  };
+
+  return { roomMember, statusCode: 200 };
+}
 
 async function addRoomMember(
   RoomID: string,
@@ -189,11 +222,11 @@ async function addRoomMember(
 
   const roomMemberItem: RoomMemberDB = {
     PartitionKey: `ROOM#${RoomID}`,
-    SortKey: `MEMBERS#DATE#${madeDate}#USERID#${memberID}`,
+    SortKey: `MEMBERS#USERID#${memberID}`,
     userID: memberID,
     userName: memberName,
     RoomID,
-    RoomUserStatus: `MEMBER#USERID#${memberID}`,
+    RoomUserStatus: "MEMBER",
     joinedAt: madeDate,
     profileColor,
   };
@@ -300,6 +333,7 @@ async function removeJoinRequest(
       PartitionKey: `ROOM#${RoomID}`,
       SortKey: `JOIN_REQUESTS#DATE#${sentJoinRequestAt}#USERID#${requestUserID}`,
     },
+    ReturnValues: "ALL_OLD",
   });
 
   const joinRequestResponse = await docClient.send(joinRequestCommand);
@@ -307,6 +341,10 @@ async function removeJoinRequest(
 
   if (statusCode !== 200) {
     return { error: "Failed to remove Join Request", statusCode };
+  }
+  // checks if anything was deleted.
+  if (joinRequestResponse.Attributes == undefined) {
+    return { error: "Bad Request", statusCode: 400 };
   }
 
   return {

@@ -63,18 +63,25 @@ type RoomMember = {
   userID: string;
   userName: string;
   RoomID: string;
-  RoomUserStatus: // gsi sort
-  | `MEMBER#USERID#${string}`
-    | `ADMIN#USERID#${string}`
-    | `OWNER#USERID#${string}`;
-  joinedAt: string;
+  RoomUserStatus: "MEMBER" | "ADMIN" | "OWNER";
+  joinedAt: string; // gsi sort key
   profileColor: string;
 };
 
 type RoomMemberDB = RoomMember & {
-  PartitionKey: `ROOM#${string}`; // RoomID // gsi pk
-  SortKey: `MEMBERS#DATE#${string}#USERID#${string}`;
+  PartitionKey: `ROOM#${string}`; // RoomID // gsi partition key
+  SortKey: `MEMBERS#USERID#${string}`;
 };
+
+type FetchRoomMemberError = BaseModelsError;
+type FetchRoomMemberSuccess = {
+  roomMember: RoomMember;
+  statusCode: number;
+};
+
+type FetchRoomMemberReturn = Promise<
+  FetchRoomMemberError | FetchRoomMemberSuccess
+>;
 
 type FetchRoomMembersError = BaseModelsError;
 
@@ -179,6 +186,16 @@ type RemoveJoinRequestReturn = Promise<
   RemoveJoinRequestError | RemoveJoinRequestSuccess
 >;
 
+type UpdateJoinedRoomsError = BaseModelsError;
+type UpdateJoinedRoomsSuccess = {
+  message: string;
+  statusCode: number;
+};
+
+type UpdateJoinedRoomsReturn = Promise<
+  UpdateJoinedRoomsError | UpdateJoinedRoomsSuccess
+>;
+
 export {
   AuthCodeTokenResponse,
   TokenRefresh,
@@ -188,6 +205,7 @@ export {
   RoomInfoType,
   RoomMemberDB,
   RoomMember,
+  FetchRoomMemberReturn,
   FetchRoomMembersReturn,
   UserInfoDBResponse,
   UserInfo,
@@ -199,4 +217,5 @@ export {
   FetchNavJoinRequestsReturn,
   RemoveJoinRequestReturn,
   AddRoomMemberReturn,
+  UpdateJoinedRoomsReturn,
 };

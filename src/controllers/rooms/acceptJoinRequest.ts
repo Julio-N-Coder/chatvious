@@ -2,12 +2,8 @@ import { Request, Response } from "express";
 import { CognitoJwtVerifier } from "aws-jwt-verify";
 import cognitoData from "../../cognitoData.js";
 import { CognitoAccessTokenPayload } from "aws-jwt-verify/jwt-model";
-import {
-  removeJoinRequest,
-  addRoomMember,
-  fetchRoomMember,
-} from "../../models/rooms.js";
-import { fetchUserInfo } from "../../models/users.js";
+import { removeJoinRequest, addRoomMember } from "../../models/rooms.js";
+import { fetchUserInfo, updateJoinedRooms } from "../../models/users.js";
 
 // remove join_request from db and add them to members table as member status
 export default async function acceptJoinRequest(req: Request, res: Response) {
@@ -56,6 +52,7 @@ export default async function acceptJoinRequest(req: Request, res: Response) {
   const userInfo = userInfoResponse.userInfo;
   const ownedRooms = userInfo.ownedRooms;
   const joinedRooms = userInfo.joinedRooms;
+  let roomName = "";
 
   if (ownedRooms.length === 0 && joinedRooms.length === 0) {
     res.status(403).send("Forbidden");
@@ -66,6 +63,7 @@ export default async function acceptJoinRequest(req: Request, res: Response) {
   userInfo.ownedRooms.forEach((room) => {
     if (room.RoomID === RoomID) {
       isOwner = true;
+      roomName = room.roomName;
     }
   });
 
@@ -75,21 +73,16 @@ export default async function acceptJoinRequest(req: Request, res: Response) {
       if ("isAdmin" in room) {
         if (room.isAdmin) {
           isAdmin = true;
+          roomName = room.roomName;
         }
       }
     }
   });
 
-  if (!isOwner) {
-    if (!isAdmin) {
-      res.status(403).send("Forbidden");
-      return;
-    }
+  if (!isOwner && !isAdmin) {
+    res.status(403).send("Forbidden");
+    return;
   }
-
-  // check whether request user is already a part of the room
-  // not set up yet.
-  // const isMemberResponse = await fetchRoomMember(RoomID, requestUserID);
 
   const removeJoinRequestResponse = await removeJoinRequest(
     RoomID,
@@ -129,7 +122,20 @@ export default async function acceptJoinRequest(req: Request, res: Response) {
     return;
   }
 
-  res.status(200).send({
+  // update request user joined rooms.
+  const updateJoinedRoomsResponse = await updateJoinedRooms(requestUserID, {
+    RoomID,
+    isAdmin: false,
+    roomName,
+  });
+  if ("error" in updateJoinedRoomsResponse) {
+    res.status(updateJoinedRoomsResponse.statusCode).send({
+      message: updateJoinedRoomsResponse.error,
+    });
+    return;
+  }
+
+  res.status(200).json({
     message: "Join request accepted",
   });
   return;
