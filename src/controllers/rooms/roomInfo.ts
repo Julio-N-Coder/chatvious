@@ -47,6 +47,7 @@ export default async function roomInfo(req: Request, res: Response) {
   const { roomMembers } = roomMembersResponse;
   let isAdmin = false;
   let isOwner = false;
+  // can instead check by ownedRooms, joinedRooms on the user on req.user.
   roomMembers.find((member) => {
     if (member.userID === userID) {
       if (member.RoomUserStatus.startsWith("OWNER#")) {
@@ -79,7 +80,7 @@ export default async function roomInfo(req: Request, res: Response) {
     }
     const { joinRequests } = joinRequestResponse;
 
-    console.log("rendering roomInfo page", "Onwer");
+    console.log("rendering roomInfo page", "Owner");
     res.render("roomInfo", {
       roomInfo,
       roomOwner,

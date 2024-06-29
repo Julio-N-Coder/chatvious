@@ -4,6 +4,7 @@ import {
   PutCommand,
   UpdateCommand,
   GetCommand,
+  DeleteCommand,
   QueryCommand,
 } from "@aws-sdk/lib-dynamodb";
 import {
@@ -17,6 +18,8 @@ import {
   JoinRequestsDB,
   FetchJoinRequestsReturn,
   SendJoinRequestReturn,
+  RemoveJoinRequestReturn,
+  AddRoomMemberReturn,
 } from "../types/types.js";
 
 const client = new DynamoDBClient({});
@@ -173,6 +176,46 @@ async function fetchRoomMembers(RoomID: string): FetchRoomMembersReturn {
   };
 }
 
+// not finished
+async function fetchRoomMember(RoomID: string, userID: string) {}
+
+async function addRoomMember(
+  RoomID: string,
+  memberID: string,
+  memberName: string,
+  profileColor: string
+): AddRoomMemberReturn {
+  const madeDate = new Date().toISOString() as string;
+
+  const roomMemberItem: RoomMemberDB = {
+    PartitionKey: `ROOM#${RoomID}`,
+    SortKey: `MEMBERS#DATE#${madeDate}#USERID#${memberID}`,
+    userID: memberID,
+    userName: memberName,
+    RoomID,
+    RoomUserStatus: `MEMBER#USERID#${memberID}`,
+    joinedAt: madeDate,
+    profileColor,
+  };
+
+  const roomMemberCommand = new PutCommand({
+    TableName: "chatvious",
+    Item: roomMemberItem,
+  });
+
+  const makeRoomResponse = await docClient.send(roomMemberCommand);
+  const makeRoomStatusCode = makeRoomResponse.$metadata
+    .httpStatusCode as number;
+  if (makeRoomStatusCode !== 200) {
+    return {
+      error: "Failed to add Member",
+      statusCode: makeRoomStatusCode,
+    };
+  }
+
+  return { message: "Member Added", statusCode: 201 };
+}
+
 async function fetchJoinRequests(RoomID: string): FetchJoinRequestsReturn {
   const joinRequestsCommand = new QueryCommand({
     TableName: "chatvious",
@@ -223,7 +266,7 @@ async function sendJoinRequest(
     TableName: "chatvious",
     Item: {
       PartitionKey: `ROOM#${RoomID}`,
-      SortKey: `JOIN_REQUESTS#${sentJoinRequestAt}#${fromUserID}`,
+      SortKey: `JOIN_REQUESTS#DATE#${sentJoinRequestAt}#USERID#${fromUserID}`,
       RoomID,
       fromUserID,
       fromUserName,
@@ -246,10 +289,39 @@ async function sendJoinRequest(
   };
 }
 
+async function removeJoinRequest(
+  RoomID: string,
+  sentJoinRequestAt: string,
+  requestUserID: string
+): RemoveJoinRequestReturn {
+  const joinRequestCommand = new DeleteCommand({
+    TableName: "chatvious",
+    Key: {
+      PartitionKey: `ROOM#${RoomID}`,
+      SortKey: `JOIN_REQUESTS#DATE#${sentJoinRequestAt}#USERID#${requestUserID}`,
+    },
+  });
+
+  const joinRequestResponse = await docClient.send(joinRequestCommand);
+  const statusCode = joinRequestResponse.$metadata.httpStatusCode as number;
+
+  if (statusCode !== 200) {
+    return { error: "Failed to remove Join Request", statusCode };
+  }
+
+  return {
+    message: "Successfully removed Join Request",
+    statusCode: 200,
+  };
+}
+
 export {
   makeRoom,
   fetchRoom,
   fetchRoomMembers,
+  fetchRoomMember,
   fetchJoinRequests,
   sendJoinRequest,
+  removeJoinRequest,
+  addRoomMember,
 };

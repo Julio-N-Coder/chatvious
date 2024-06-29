@@ -38,7 +38,6 @@ export default async function navUserInfo(
     return;
   }
   const userInfo: UserInfo = userInfoResponse.userInfo;
-  // make sure to add "isAdminOrOwner: true," in joinedRooms, user attribute when a member joins.
   const fetchNavJoinRequestsResponse = await fetchNavJoinRequests(
     userInfo.ownedRooms,
     userInfo.joinedRooms

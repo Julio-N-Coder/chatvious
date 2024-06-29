@@ -13,10 +13,12 @@ type TokenRefresh = {
   expires_in: number;
 };
 
-type MakeRoomReturnError = {
+type BaseModelsError = {
   error: string;
   statusCode: number;
 };
+
+type MakeRoomReturnError = BaseModelsError;
 
 type MakeRoomReturnSuccess = {
   message: string;
@@ -30,7 +32,7 @@ type RoomsOnUser =
   | {
       roomName: string;
       RoomID: string;
-      isAdminOrOwner: boolean;
+      isAdmin: boolean;
     }[]
   | [];
 
@@ -48,10 +50,7 @@ type UserInfoDBResponse = UserInfo & {
   SortKey: "PROFILE";
 };
 
-type FetchUserInfoError = {
-  error: string;
-  statusCode: number;
-};
+type FetchUserInfoError = BaseModelsError;
 
 type FetchUserInfoSuccess = {
   userInfo: UserInfo;
@@ -73,14 +72,11 @@ type RoomMember = {
 };
 
 type RoomMemberDB = RoomMember & {
-  PartitionKey: `ROOM#${string}`; // gsi pk
+  PartitionKey: `ROOM#${string}`; // RoomID // gsi pk
   SortKey: `MEMBERS#DATE#${string}#USERID#${string}`;
 };
 
-type FetchRoomMembersError = {
-  error: string;
-  statusCode: number;
-};
+type FetchRoomMembersError = BaseModelsError;
 
 type FetchRoomMembersSuccess = {
   roomMembers: RoomMember[];
@@ -93,6 +89,15 @@ type FetchRoomMembersReturn = Promise<
   FetchRoomMembersError | FetchRoomMembersSuccess
 >;
 
+type AddRoomMemberError = BaseModelsError;
+
+type AddRoomMemberSuccess = {
+  message: string;
+  statusCode: number;
+};
+
+type AddRoomMemberReturn = Promise<AddRoomMemberError | AddRoomMemberSuccess>;
+
 type RoomInfoType = {
   RoomID: string;
   roomName: string;
@@ -100,14 +105,11 @@ type RoomInfoType = {
 };
 
 type RoomInfoDBType = RoomInfoType & {
-  PartitionKey: `ROOM#${string}`;
+  PartitionKey: `ROOM#${string}`; // Room ID
   SortKey: `METADATA`;
 };
 
-type FetchRoomErrorReturn = {
-  error: string;
-  statusCode: number;
-};
+type FetchRoomErrorReturn = BaseModelsError;
 
 type FetchRoomSuccessReturn = {
   roomInfo: RoomInfoType;
@@ -116,10 +118,7 @@ type FetchRoomSuccessReturn = {
 
 type FetchRoomReturn = Promise<FetchRoomErrorReturn | FetchRoomSuccessReturn>;
 
-type SendJoinRequestError = {
-  error: string;
-  statusCode: number;
-};
+type SendJoinRequestError = BaseModelsError;
 
 type SendJoinRequestSuccess = {
   message: string;
@@ -141,14 +140,11 @@ type JoinRequests = {
 
 type JoinRequestsDB = JoinRequests &
   {
-    PartitionKey: `ROOM#${string}`;
-    SortKey: `JOIN_REQUESTS#${string}#${string}`;
+    PartitionKey: `ROOM#${string}`; // RoomID
+    SortKey: `JOIN_REQUESTS#DATE#${string}#USERID#${string}`;
   }[];
 
-type FetchJoinRequestsError = {
-  error: string;
-  statusCode: number;
-};
+type FetchJoinRequestsError = BaseModelsError;
 
 type FetchJoinRequestsSuccess = {
   message: string;
@@ -160,10 +156,7 @@ type FetchJoinRequestsReturn = Promise<
   FetchJoinRequestsError | FetchJoinRequestsSuccess
 >;
 
-type FetchNavJoinRequestsError = {
-  error: string;
-  statusCode: number;
-};
+type FetchNavJoinRequestsError = BaseModelsError;
 
 type FetchNavJoinRequestsSuccess = {
   message: string;
@@ -173,6 +166,17 @@ type FetchNavJoinRequestsSuccess = {
 
 type FetchNavJoinRequestsReturn = Promise<
   FetchNavJoinRequestsError | FetchNavJoinRequestsSuccess
+>;
+
+type RemoveJoinRequestError = BaseModelsError;
+
+type RemoveJoinRequestSuccess = {
+  message: string;
+  statusCode: number;
+};
+
+type RemoveJoinRequestReturn = Promise<
+  RemoveJoinRequestError | RemoveJoinRequestSuccess
 >;
 
 export {
@@ -193,4 +197,6 @@ export {
   JoinRequestsDB,
   FetchJoinRequestsReturn,
   FetchNavJoinRequestsReturn,
+  RemoveJoinRequestReturn,
+  AddRoomMemberReturn,
 };

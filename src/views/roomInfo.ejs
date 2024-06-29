@@ -45,15 +45,24 @@
             <div class="max-h-72 overflow-y-auto flex flex-wrap justify-evenly">
               <% joinRequests.map((joinRequest) => { %>
               <div
-                class="flex items-center border-2 border-base-content rounded-xl gap-1 p-2"
+                data-userid="<%= joinRequest.fromUserID %>"
+                data-date="<%= joinRequest.sentJoinRequestAt %>"
+                class="border-2 border-base-content rounded-xl p-2"
               >
-                <%- include("./components/profileIcon", {forNav: false,
-                username: joinRequest.fromUserName}) %>
-                <div class=""><%= joinRequest.fromUserName %></div>
-                <div class="ml-4">
-                  <button class="btn btn-accent btn-sm">Accept Request</button>
-                  <button class="btn btn-accent btn-sm">Request Request</button>
+                <div class="flex items-center gap-1">
+                  <%- include("./components/profileIcon", {forNav: false,
+                  username: joinRequest.fromUserName}) %>
+                  <div class=""><%= joinRequest.fromUserName %></div>
+                  <div class="ml-4">
+                    <button class="acceptJoinRequest btn btn-accent btn-sm">
+                      Accept Request
+                    </button>
+                    <button class="rejectJoinRequest btn btn-accent btn-sm">
+                      Reject Request
+                    </button>
+                  </div>
                 </div>
+                <div class="hidden">Show Status</div>
               </div>
               <% }) %>
             </div>
@@ -101,7 +110,9 @@
         </div>
       </div>
     </div>
-    <% if (!isOwnerOrAdmin) { %>
+    <% if (isOwnerOrAdmin) { %> <% if (joinRequests.length > 0) { %>
+    <script defer src="/ejs/roomInfoAcceptJoin.js"></script>
+    <% } %> <% } else { %>
     <script defer src="/ejs/roomInfoJoinRequest.js"></script>
     <% } %>
   </body>
