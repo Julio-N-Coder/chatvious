@@ -5,6 +5,7 @@ import {
   RoomsOnUser,
   FetchNavJoinRequestsReturn,
   UpdateJoinedRoomsReturn,
+  BaseModelsReturnType,
 } from "../types/types.js";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import {
@@ -70,6 +71,55 @@ async function updateJoinedRooms(
   }
 
   return { message: "Joined Rooms Updated", statusCode: 200 };
+}
+
+async function removeJoinedRoom(
+  userID: string,
+  RoomID: string
+): BaseModelsReturnType {
+  const fetchUserInfoCommand = new GetCommand({
+    TableName: "chatvious",
+    Key: { PartitionKey: `USER#${userID}`, SortKey: "PROFILE" },
+    ProjectionExpression: "joinedRooms",
+  });
+
+  const fetchUserInfoResponse = await docClient.send(fetchUserInfoCommand);
+  const userInfoStatusCode = fetchUserInfoResponse.$metadata
+    .httpStatusCode as number;
+  if (userInfoStatusCode !== 200) {
+    return { error: "Failed to Get User Info", statusCode: userInfoStatusCode };
+  } else if (!fetchUserInfoResponse.Item) {
+    return { error: "User not found", statusCode: 404 };
+  }
+
+  const joinedRooms = fetchUserInfoResponse.Item.joinedRooms as RoomsOnUser;
+  let joinedRoomIndex = -1;
+  const joinedRoom = joinedRooms.find((room) => {
+    joinedRoomIndex++;
+    return room.RoomID === RoomID;
+  });
+
+  if (!joinedRoom) {
+    return { error: "User has not joined this room", statusCode: 400 };
+  }
+
+  const removeJoinedRoomCommand = new UpdateCommand({
+    TableName: "chatvious",
+    Key: { PartitionKey: `USER#${userID}`, SortKey: "PROFILE" },
+    UpdateExpression: `REMOVE joinedRooms[${joinedRoomIndex}]`,
+  });
+
+  const removeJoinedRoomResponse = await docClient.send(
+    removeJoinedRoomCommand
+  );
+  const statusCode = removeJoinedRoomResponse.$metadata
+    .httpStatusCode as number;
+
+  if (statusCode !== 200) {
+    return { error: "Failed to remove Join Room", statusCode };
+  }
+
+  return { message: "Join Room Removed", statusCode: 200 };
 }
 
 // fetching only 5 join request.
@@ -153,4 +203,9 @@ async function fetchNavJoinRequests(
   };
 }
 
-export { fetchUserInfo, fetchNavJoinRequests, updateJoinedRooms };
+export {
+  fetchUserInfo,
+  fetchNavJoinRequests,
+  updateJoinedRooms,
+  removeJoinedRoom,
+};

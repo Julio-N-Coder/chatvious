@@ -18,6 +18,13 @@ type BaseModelsError = {
   statusCode: number;
 };
 
+type BaseModelsSuccess = {
+  message: string;
+  statusCode: number;
+};
+
+type BaseModelsReturnType = Promise<BaseModelsError | BaseModelsSuccess>;
+
 type MakeRoomReturnError = BaseModelsError;
 
 type MakeRoomReturnSuccess = {
@@ -104,6 +111,15 @@ type AddRoomMemberSuccess = {
 };
 
 type AddRoomMemberReturn = Promise<AddRoomMemberError | AddRoomMemberSuccess>;
+
+type RemoveRoomMemberSuccess = {
+  message: string;
+  statusCode: number;
+};
+
+type RemoveRoomMemberReturn = Promise<
+  BaseModelsError | RemoveRoomMemberSuccess
+>;
 
 type RoomInfoType = {
   RoomID: string;
@@ -199,6 +215,7 @@ type UpdateJoinedRoomsReturn = Promise<
 export {
   AuthCodeTokenResponse,
   TokenRefresh,
+  BaseModelsReturnType,
   RoomsOnUser,
   MakeRoomReturnType,
   RoomInfoDBType,
@@ -207,6 +224,7 @@ export {
   RoomMember,
   FetchRoomMemberReturn,
   FetchRoomMembersReturn,
+  RemoveRoomMemberReturn,
   UserInfoDBResponse,
   UserInfo,
   FetchUserInfoReturn,

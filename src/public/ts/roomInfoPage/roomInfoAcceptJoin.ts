@@ -29,7 +29,6 @@ for (let i = 0; i < acceptJoinRequest.length; i++) {
         body: JSON.stringify({ sentJoinRequestAt, RoomID, userID }),
       });
     } catch (error) {
-      console.log("fetch went wrong");
       fixedStatusBox.classList.add("bg-error", "text-error-content");
       fixedStatusBox.innerText = "Something Went Wrong";
       button.disabled = false;
@@ -37,7 +36,6 @@ for (let i = 0; i < acceptJoinRequest.length; i++) {
     }
 
     if (!acceptJoinRequestResponse.ok) {
-      console.log("Failed to accept join request");
       const errorResponse: BasicServerError =
         await acceptJoinRequestResponse.json();
 
@@ -48,7 +46,6 @@ for (let i = 0; i < acceptJoinRequest.length; i++) {
     }
 
     // display status and if successful,
-    console.log("Join request accepted");
     const joinRequestAccepted: BasicServerSuccess =
       await acceptJoinRequestResponse.json();
     fixedStatusBox.classList.add("bg-success", "text-success-content");
@@ -90,7 +87,6 @@ for (let i = 0; i < rejectJoinRequest.length; i++) {
         body: JSON.stringify({ sentJoinRequestAt, RoomID, userID }),
       });
     } catch (error) {
-      console.log("fetch went wrong");
       fixedStatusBox.classList.add("bg-error", "text-error-content");
       fixedStatusBox.innerText = "Something Went Wrong";
       button.disabled = false;
@@ -98,8 +94,6 @@ for (let i = 0; i < rejectJoinRequest.length; i++) {
     }
 
     if (!acceptJoinRequestResponse.ok) {
-      // error handling not set up yet.
-      console.log("Failed to reject join request");
       const errorResponse: BasicServerError =
         await acceptJoinRequestResponse.json();
 
@@ -110,7 +104,6 @@ for (let i = 0; i < rejectJoinRequest.length; i++) {
     }
 
     // display status and if successful,
-    console.log("Join request rejected");
     const joinRequestAccepted: BasicServerSuccess =
       await acceptJoinRequestResponse.json();
     fixedStatusBox.classList.add("bg-success", "text-success-content");

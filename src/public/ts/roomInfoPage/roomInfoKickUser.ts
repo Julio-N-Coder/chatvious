@@ -1,0 +1,62 @@
+import { BasicServerSuccess, BasicServerError } from "../types";
+
+const kickButtons = document.getElementsByClassName(
+  "kick"
+) as HTMLCollectionOf<HTMLButtonElement>;
+
+const fixedStatusBox = document.getElementById(
+  "fixedStatusBox"
+) as HTMLDivElement;
+
+for (let i = 0; i < kickButtons.length; i++) {
+  kickButtons[i].addEventListener("click", async (e: Event) => {
+    const kickButton = e.target as HTMLButtonElement;
+    const memberParentElem = kickButtons[i].parentElement as HTMLDivElement;
+    const userID = memberParentElem.dataset.userid;
+    const RoomID = location.pathname.split("/").pop();
+
+    kickButton.disabled = true;
+
+    let kickMemberResponse: Response;
+    try {
+      kickMemberResponse = await fetch("/rooms/kickMember", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ userID, RoomID }),
+      });
+    } catch (error) {
+      fixedStatusBox.classList.add("bg-error", "text-error-content");
+      fixedStatusBox.textContent = "Something Went Wrong";
+
+      kickButton.disabled = false;
+      return;
+    }
+
+    if (!kickMemberResponse.ok) {
+      console.log("Failed to kick member");
+      const kickMemberError: BasicServerError = await kickMemberResponse.json();
+      fixedStatusBox.classList.add("bg-error", "text-error-content");
+      fixedStatusBox.textContent = kickMemberError.error;
+      kickButton.disabled = false;
+      return;
+    }
+
+    memberParentElem.remove();
+    const kickMemberSuccess: BasicServerSuccess =
+      await kickMemberResponse.json();
+    fixedStatusBox.classList.add("bg-success", "text-success-content");
+    fixedStatusBox.textContent = kickMemberSuccess.message;
+
+    setTimeout(() => {
+      fixedStatusBox.classList.remove(
+        "bg-success",
+        "text-success-content",
+        "bg-error",
+        "text-error-content"
+      );
+      fixedStatusBox.innerText = "";
+    }, 5000);
+  });
+}

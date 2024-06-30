@@ -15,6 +15,7 @@ const config = {
     chatRoom: "./src/public/ts/chatRoom/chatRoom.ts",
     roomInfoJoinRequest: "./src/public/ts/roomInfoPage/roomInfoJoinRequest.ts",
     roomInfoAcceptJoin: "./src/public/ts/roomInfoPage/roomInfoAcceptJoin.ts",
+    roomInfoKickUser: "./src/public/ts/roomInfoPage/roomInfoKickUser.ts",
   },
   output: {
     filename: "[name].js",

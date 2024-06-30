@@ -21,6 +21,7 @@ import {
   SendJoinRequestReturn,
   RemoveJoinRequestReturn,
   AddRoomMemberReturn,
+  RemoveRoomMemberReturn,
 } from "../types/types.js";
 
 const client = new DynamoDBClient({});
@@ -249,6 +250,33 @@ async function addRoomMember(
   return { message: "Member Added", statusCode: 201 };
 }
 
+async function removeRoomMember(
+  RoomID: string,
+  memberID: string
+): RemoveRoomMemberReturn {
+  const removeMemberCommand = new DeleteCommand({
+    TableName: "chatvious",
+    Key: {
+      PartitionKey: `ROOM#${RoomID}`,
+      SortKey: `MEMBERS#USERID#${memberID}`,
+    },
+    ReturnValues: "ALL_OLD",
+  });
+
+  const removeMemberResponse = await docClient.send(removeMemberCommand);
+  const StatusCode = removeMemberResponse.$metadata.httpStatusCode as number;
+  if (StatusCode !== 200) {
+    return {
+      error: "Failed to remove Member",
+      statusCode: StatusCode,
+    };
+  } else if (removeMemberResponse.Attributes == undefined) {
+    return { error: "Bad Request", statusCode: 400 };
+  }
+
+  return { message: "Member Removed", statusCode: 200 };
+}
+
 async function fetchJoinRequests(RoomID: string): FetchJoinRequestsReturn {
   const joinRequestsCommand = new QueryCommand({
     TableName: "chatvious",
@@ -362,4 +390,5 @@ export {
   sendJoinRequest,
   removeJoinRequest,
   addRoomMember,
+  removeRoomMember,
 };
