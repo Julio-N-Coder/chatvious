@@ -2,8 +2,7 @@
   id="profile"
   class="dropdown dropdown-end relative border border-black w-10 h-10 rounded-full text-white text-center place-content-center text-2xl bg-<%= profileColor %>-500"
 >
-  <%# don't forget to make hidden functionality to hide pinger in client %> <%
-  if (forNav) { %>
+ <% if (forNav) { %>
   <div
     id="notification"
     class="rounded-full bg-red-600 w-2 h-2 absolute <%= navJoinRequest.length > 0 ? "" : "hidden" %>"

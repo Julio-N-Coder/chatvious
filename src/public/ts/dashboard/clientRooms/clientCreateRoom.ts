@@ -1,4 +1,4 @@
-import { MakeRoomResponse } from "../../types";
+import { BasicServerResponse } from "../../types";
 
 const createForm = document.getElementById("create-form") as HTMLFormElement;
 const createRoomModel = document.getElementById(
@@ -62,7 +62,7 @@ async function createRoom(e: SubmitEvent) {
       window.location.href = `/dashboard`;
     }
 
-    const makeRoomResponseJson: MakeRoomResponse =
+    const makeRoomResponseJson: BasicServerResponse =
       await makeRoomResponse.json();
 
     if ("error" in makeRoomResponseJson) {

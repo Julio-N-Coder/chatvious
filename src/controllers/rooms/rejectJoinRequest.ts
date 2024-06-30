@@ -30,15 +30,7 @@ export default async function rejectJoinRequest(req: Request, res: Response) {
   const requestUserID = req.body.userID as string | undefined;
   const sentJoinRequestAt = req.body.sentJoinRequestAt as string | undefined;
 
-  if (!RoomID) {
-    res.status(400).json({ error: "Bad Request" });
-    return;
-  }
-  if (!requestUserID) {
-    res.status(400).json({ error: "Bad Request" });
-    return;
-  }
-  if (!sentJoinRequestAt) {
+  if (!RoomID || !requestUserID || !sentJoinRequestAt) {
     res.status(400).json({ error: "Bad Request" });
     return;
   }

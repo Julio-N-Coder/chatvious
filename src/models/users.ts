@@ -117,7 +117,9 @@ async function fetchNavJoinRequests(
   const reqeustLeft = 5 - navJoinRequest.length;
   for (let i = 0; i < joinedRooms.length && i < reqeustLeft; i++) {
     const currentJoinRoom = joinedRooms[i];
-    if (!("isAdmin" in currentJoinRoom)) continue;
+    if ("isAdmin" in currentJoinRoom) {
+      if (!currentJoinRoom.isAdmin) continue;
+    }
 
     const joinRequestsCommand = new QueryCommand({
       TableName: "chatvious",

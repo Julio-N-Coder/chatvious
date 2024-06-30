@@ -12,6 +12,7 @@
     <div class="roboto antialiased">
       <%- include("./components/navBar", {profileColor, username,
       anyJoinRequest: false, navJoinRequest }) %>
+      <div id="fixedStatusBox" class="fixed rounded-r-lg px-1 max-w-52"></div>
       <div
         class="container mx-auto mt-4 border-2 border-base-content rounded-2xl shadow-lg shadow-base-content/30"
       >
@@ -22,10 +23,13 @@
         </h1>
         <div class="m-2 space-y-2">
           <%# onwerName and createdAt %>
-          <div class="text-2xl flex justify-evenly">
+          <div class="text-2xl flex justify-evenly items-center">
             <div>
-              <div class="m-2 flex gap-2">
+              <div class="m-2 flex gap-2 items-center">
                 <span>Room Owner:</span>
+                <%- include("./components/profileIcon", {username:
+                roomOwner.userName, profileColor: roomOwner.profileColor,
+                forNav: false}) %>
                 <span><%= roomOwner.userName %></span>
               </div>
             </div>
@@ -42,6 +46,7 @@
           <%# Join Request %> <% if (isOwnerOrAdmin) { %>
           <div class="border-base-content border-2 rounded-xl text-xl p-1">
             <div class="text-3xl text-center">Join Requests</div>
+            <% if (joinRequests.length > 0) { %>
             <div class="max-h-72 overflow-y-auto flex flex-wrap justify-evenly">
               <% joinRequests.map((joinRequest) => { %>
               <div
@@ -51,7 +56,8 @@
               >
                 <div class="flex items-center gap-1">
                   <%- include("./components/profileIcon", {forNav: false,
-                  username: joinRequest.fromUserName}) %>
+                  username: joinRequest.fromUserName, profileColor:
+                  joinRequest.profileColor }) %>
                   <div class=""><%= joinRequest.fromUserName %></div>
                   <div class="ml-4">
                     <button class="acceptJoinRequest btn btn-accent btn-sm">
@@ -62,12 +68,14 @@
                     </button>
                   </div>
                 </div>
-                <div class="hidden">Show Status</div>
               </div>
               <% }) %>
             </div>
+            <% } else { %>
+            <div class="text-center">Currently No Join Request</div>
+            <% } %>
           </div>
-          <% } else { %>
+          <% } else if (!isMember) { %>
           <div class="text-lg flex justify-center">
             <div class="flex gap-1 justify-center">
               <div>Send Join Request to Room?</div>
@@ -91,17 +99,23 @@
             <div class="m-2">
               <div class="text-center text-3xl">Members</div>
               <div class="divide-y">
-                <% if (roomMembers.length > 0) { %> <% roomMembers.map(function
-                (member) { %>
+                <% if (roomMembers.length > 1) { %> <% for (let i = 0; i <
+                roomMembers.length; i++) { %> <% const member = roomMembers[i]
+                %> <% if (member.RoomUserStatus === "OWNER") continue %>
                 <div class="text-2xl py-2">
                   <%- include("./components/profileIcon", {username:
-                  member.userName, forNav: false}) %>
-                  <span class="align-middle"><%= member.userName %></span>
-                  <% if (isOwnerOrAdmin) { %> <%# Not implemented yet %>
+                  member.userName, profileColor: member.profileColor, forNav:
+                  false}) %>
+                  <span class=""><%= member.userName %></span>
+                  <span class="text-lg"><%= member.RoomUserStatus %></span>
+                  <% if (isOwnerOrAdmin && member.RoomUserStatus === "MEMBER") {
+                  %> <%# Not implemented yet %>
+                  <button class="ml-3 btn btn-accent btn-sm">Kick</button>
+                  <% } else if (isOwner) {%>
                   <button class="ml-3 btn btn-accent btn-sm">Kick</button>
                   <% } %>
                 </div>
-                <% }) %> <% } else { %>
+                <% } %> <% } else { %>
                 <div class="text-center text-2xl">There are no Members yet</div>
                 <% } %>
               </div>

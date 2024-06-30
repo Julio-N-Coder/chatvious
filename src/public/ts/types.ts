@@ -5,8 +5,19 @@ type TokenRefresh = {
   expires_in: number;
 };
 
-type MakeRoomResponse = { error: string } | { message: string };
+type BasicServerError = {
+  error: string;
+};
 
-type JoinRoomResponse = { error: string } | { message: string };
+type BasicServerSuccess = {
+  message: string;
+};
 
-export { TokenRefresh, MakeRoomResponse, JoinRoomResponse };
+type BasicServerResponse = BasicServerError | BasicServerSuccess;
+
+export {
+  TokenRefresh,
+  BasicServerError,
+  BasicServerSuccess,
+  BasicServerResponse,
+};

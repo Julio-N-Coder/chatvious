@@ -9,7 +9,7 @@ import { fetchUserInfo, updateJoinedRooms } from "../../models/users.js";
 export default async function acceptJoinRequest(req: Request, res: Response) {
   const access_token = req.cookies.access_token as string | undefined;
   if (!access_token) {
-    res.status(401).send("Unauthorized");
+    res.status(401).json({ error: "Unauthorized" });
     return;
   }
 
@@ -23,11 +23,11 @@ export default async function acceptJoinRequest(req: Request, res: Response) {
   try {
     payload = await verifier.verify(access_token);
   } catch (error) {
-    res.status(401).send("Unauthorized");
+    res.status(401).json({ error: "Unauthorized" });
     return;
   }
 
-  // verify if they are the owner or a admin of room.
+  // verify if they are the owner or an admin of room.
   const userID = payload.sub;
   const { RoomID, sentJoinRequestAt } = req.body as {
     RoomID: string | undefined;
@@ -36,14 +36,14 @@ export default async function acceptJoinRequest(req: Request, res: Response) {
   const requestUserID = req.body.userID as string | undefined;
 
   if (!RoomID || !sentJoinRequestAt || !requestUserID) {
-    res.status(400).send("Bad Request");
+    res.status(400).json({ error: "Bad Request" });
     return;
   }
 
   const userInfoResponse = await fetchUserInfo(userID);
   if ("error" in userInfoResponse) {
-    res.status(500).send({
-      message:
+    res.status(500).json({
+      error:
         "We're sorry for the inconviencence, there seems to be a problem with our servers",
     });
     return;
@@ -55,7 +55,7 @@ export default async function acceptJoinRequest(req: Request, res: Response) {
   let roomName = "";
 
   if (ownedRooms.length === 0 && joinedRooms.length === 0) {
-    res.status(403).send("Forbidden");
+    res.status(403).json({ error: "Forbidden" });
     return;
   }
 
@@ -80,9 +80,21 @@ export default async function acceptJoinRequest(req: Request, res: Response) {
   });
 
   if (!isOwner && !isAdmin) {
-    res.status(403).send("Forbidden");
+    res.status(403).json({ error: "Forbidden" });
     return;
   }
+
+  // request user info
+  const requestUserInfoResponse = await fetchUserInfo(requestUserID);
+  if ("error" in requestUserInfoResponse) {
+    res.status(500).json({
+      error:
+        "We're sorry for the inconviencence, there seems to be a problem with our servers",
+    });
+    return;
+  }
+  const requestUserName = requestUserInfoResponse.userInfo.userName;
+  const requestUserProfileColor = requestUserInfoResponse.userInfo.profileColor;
 
   const removeJoinRequestResponse = await removeJoinRequest(
     RoomID,
@@ -90,23 +102,11 @@ export default async function acceptJoinRequest(req: Request, res: Response) {
     requestUserID
   );
   if ("error" in removeJoinRequestResponse) {
-    res.status(removeJoinRequestResponse.statusCode).send({
-      message: removeJoinRequestResponse.error,
+    res.status(removeJoinRequestResponse.statusCode).json({
+      error: removeJoinRequestResponse.error,
     });
     return;
   }
-
-  // request user info
-  const requestUserInfoResponse = await fetchUserInfo(requestUserID);
-  if ("error" in requestUserInfoResponse) {
-    res.status(500).send({
-      message:
-        "We're sorry for the inconviencence, there seems to be a problem with our servers",
-    });
-    return;
-  }
-  const requestUserName = requestUserInfoResponse.userInfo.userName;
-  const requestUserProfileColor = requestUserInfoResponse.userInfo.profileColor;
 
   // add user as a member to room.
   const addMemberResponse = await addRoomMember(
@@ -116,8 +116,8 @@ export default async function acceptJoinRequest(req: Request, res: Response) {
     requestUserProfileColor
   );
   if ("error" in addMemberResponse) {
-    res.status(addMemberResponse.statusCode).send({
-      message: addMemberResponse.error,
+    res.status(addMemberResponse.statusCode).json({
+      error: addMemberResponse.error,
     });
     return;
   }
@@ -129,8 +129,8 @@ export default async function acceptJoinRequest(req: Request, res: Response) {
     roomName,
   });
   if ("error" in updateJoinedRoomsResponse) {
-    res.status(updateJoinedRoomsResponse.statusCode).send({
-      message: updateJoinedRoomsResponse.error,
+    res.status(updateJoinedRoomsResponse.statusCode).json({
+      error: updateJoinedRoomsResponse.error,
     });
     return;
   }

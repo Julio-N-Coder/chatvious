@@ -1,5 +1,5 @@
 // This script only runs if they are not a part of the room
-import { JoinRoomResponse } from "../types";
+import { BasicServerResponse } from "../types";
 
 const statusContainer = document.getElementById(
   "statusContainer"
@@ -44,7 +44,8 @@ async function sendJoinRequest() {
     return;
   }
 
-  const joinRequestResponse: JoinRoomResponse = await joinRequestStatus.json();
+  const joinRequestResponse: BasicServerResponse =
+    await joinRequestStatus.json();
   if ("error" in joinRequestResponse) {
     statusTextBox.textContent = joinRequestResponse.error;
     statusTextBox.classList.add("bg-error", "text-error-content");
