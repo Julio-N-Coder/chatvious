@@ -1,11 +1,10 @@
 import {
+  BaseModelsReturnType,
   UserInfo,
   FetchUserInfoReturn,
   UserInfoDBResponse,
   RoomsOnUser,
   FetchNavJoinRequestsReturn,
-  UpdateJoinedRoomsReturn,
-  BaseModelsReturnType,
 } from "../types/types.js";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import {
@@ -50,7 +49,7 @@ async function fetchUserInfo(userID: string): FetchUserInfoReturn {
 async function updateJoinedRooms(
   userID: string,
   joinedRoom: { RoomID: string; isAdmin: boolean; roomName: string }
-): UpdateJoinedRoomsReturn {
+): BaseModelsReturnType {
   const updateJoinedRoomsCommand = new UpdateCommand({
     TableName: "chatvious",
     Key: { PartitionKey: `USER#${userID}`, SortKey: "PROFILE" },

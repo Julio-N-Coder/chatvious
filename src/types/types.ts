@@ -25,15 +25,6 @@ type BaseModelsSuccess = {
 
 type BaseModelsReturnType = Promise<BaseModelsError | BaseModelsSuccess>;
 
-type MakeRoomReturnError = BaseModelsError;
-
-type MakeRoomReturnSuccess = {
-  message: string;
-  statusCode: number;
-};
-
-type MakeRoomReturnType = Promise<MakeRoomReturnError | MakeRoomReturnSuccess>;
-
 type RoomsOnUser =
   | { roomName: string; RoomID: string }[]
   | {
@@ -57,14 +48,12 @@ type UserInfoDBResponse = UserInfo & {
   SortKey: "PROFILE";
 };
 
-type FetchUserInfoError = BaseModelsError;
-
 type FetchUserInfoSuccess = {
   userInfo: UserInfo;
   statusCode: number;
 };
 
-type FetchUserInfoReturn = Promise<FetchUserInfoError | FetchUserInfoSuccess>;
+type FetchUserInfoReturn = Promise<BaseModelsError | FetchUserInfoSuccess>;
 
 type RoomMember = {
   userID: string;
@@ -80,17 +69,12 @@ type RoomMemberDB = RoomMember & {
   SortKey: `MEMBERS#USERID#${string}`;
 };
 
-type FetchRoomMemberError = BaseModelsError;
 type FetchRoomMemberSuccess = {
   roomMember: RoomMember;
   statusCode: number;
 };
 
-type FetchRoomMemberReturn = Promise<
-  FetchRoomMemberError | FetchRoomMemberSuccess
->;
-
-type FetchRoomMembersError = BaseModelsError;
+type FetchRoomMemberReturn = Promise<BaseModelsError | FetchRoomMemberSuccess>;
 
 type FetchRoomMembersSuccess = {
   roomMembers: RoomMember[];
@@ -100,25 +84,7 @@ type FetchRoomMembersSuccess = {
 };
 
 type FetchRoomMembersReturn = Promise<
-  FetchRoomMembersError | FetchRoomMembersSuccess
->;
-
-type AddRoomMemberError = BaseModelsError;
-
-type AddRoomMemberSuccess = {
-  message: string;
-  statusCode: number;
-};
-
-type AddRoomMemberReturn = Promise<AddRoomMemberError | AddRoomMemberSuccess>;
-
-type RemoveRoomMemberSuccess = {
-  message: string;
-  statusCode: number;
-};
-
-type RemoveRoomMemberReturn = Promise<
-  BaseModelsError | RemoveRoomMemberSuccess
+  BaseModelsError | FetchRoomMembersSuccess
 >;
 
 type RoomInfoType = {
@@ -132,25 +98,12 @@ type RoomInfoDBType = RoomInfoType & {
   SortKey: `METADATA`;
 };
 
-type FetchRoomErrorReturn = BaseModelsError;
-
 type FetchRoomSuccessReturn = {
   roomInfo: RoomInfoType;
   statusCode: number;
 };
 
-type FetchRoomReturn = Promise<FetchRoomErrorReturn | FetchRoomSuccessReturn>;
-
-type SendJoinRequestError = BaseModelsError;
-
-type SendJoinRequestSuccess = {
-  message: string;
-  statusCode: number;
-};
-
-type SendJoinRequestReturn = Promise<
-  SendJoinRequestSuccess | SendJoinRequestError
->;
+type FetchRoomReturn = Promise<BaseModelsError | FetchRoomSuccessReturn>;
 
 type JoinRequests = {
   RoomID: string;
@@ -167,8 +120,6 @@ type JoinRequestsDB = JoinRequests &
     SortKey: `JOIN_REQUESTS#DATE#${string}#USERID#${string}`;
   }[];
 
-type FetchJoinRequestsError = BaseModelsError;
-
 type FetchJoinRequestsSuccess = {
   message: string;
   joinRequests: JoinRequests;
@@ -176,10 +127,8 @@ type FetchJoinRequestsSuccess = {
 };
 
 type FetchJoinRequestsReturn = Promise<
-  FetchJoinRequestsError | FetchJoinRequestsSuccess
+  BaseModelsError | FetchJoinRequestsSuccess
 >;
-
-type FetchNavJoinRequestsError = BaseModelsError;
 
 type FetchNavJoinRequestsSuccess = {
   message: string;
@@ -188,28 +137,7 @@ type FetchNavJoinRequestsSuccess = {
 };
 
 type FetchNavJoinRequestsReturn = Promise<
-  FetchNavJoinRequestsError | FetchNavJoinRequestsSuccess
->;
-
-type RemoveJoinRequestError = BaseModelsError;
-
-type RemoveJoinRequestSuccess = {
-  message: string;
-  statusCode: number;
-};
-
-type RemoveJoinRequestReturn = Promise<
-  RemoveJoinRequestError | RemoveJoinRequestSuccess
->;
-
-type UpdateJoinedRoomsError = BaseModelsError;
-type UpdateJoinedRoomsSuccess = {
-  message: string;
-  statusCode: number;
-};
-
-type UpdateJoinedRoomsReturn = Promise<
-  UpdateJoinedRoomsError | UpdateJoinedRoomsSuccess
+  BaseModelsError | FetchNavJoinRequestsSuccess
 >;
 
 export {
@@ -217,23 +145,17 @@ export {
   TokenRefresh,
   BaseModelsReturnType,
   RoomsOnUser,
-  MakeRoomReturnType,
   RoomInfoDBType,
   RoomInfoType,
   RoomMemberDB,
   RoomMember,
   FetchRoomMemberReturn,
   FetchRoomMembersReturn,
-  RemoveRoomMemberReturn,
   UserInfoDBResponse,
   UserInfo,
   FetchUserInfoReturn,
   FetchRoomReturn,
-  SendJoinRequestReturn,
   JoinRequestsDB,
   FetchJoinRequestsReturn,
   FetchNavJoinRequestsReturn,
-  RemoveJoinRequestReturn,
-  AddRoomMemberReturn,
-  UpdateJoinedRoomsReturn,
 };

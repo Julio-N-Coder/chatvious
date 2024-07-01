@@ -38,7 +38,7 @@ export default async function rejectJoinRequest(req: Request, res: Response) {
   const roomMemberResponse = await fetchRoomMember(RoomID, userID);
   if ("error" in roomMemberResponse) {
     res.status(roomMemberResponse.statusCode).json({
-      error: roomMemberResponse.error,
+      error: "Member Already Kicked",
     });
     return;
   }

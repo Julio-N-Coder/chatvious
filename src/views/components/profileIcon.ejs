@@ -2,10 +2,10 @@
   id="profile"
   class="dropdown dropdown-end relative border border-black w-10 h-10 rounded-full text-white text-center place-content-center text-2xl bg-<%= profileColor %>-500"
 >
- <% if (forNav) { %>
+  <% if (forNav) { %>
   <div
     id="notification"
-    class="rounded-full bg-red-600 w-2 h-2 absolute <%= navJoinRequest.length > 0 ? "" : "hidden" %>"
+    class="rounded-full bg-red-600 w-2 h-2 absolute hidden"
   >
     <div class="w-2 h-2 rounded-full bg-red-600 animate-ping"></div>
   </div>
@@ -16,14 +16,17 @@
     <div class="py-1 hover:bg-base-100">Profile Info</div>
     <% if (navJoinRequest.length > 0) { %> <% navJoinRequest.map(function
     (joinRequest) { %>
-    <div class="py-1 hover:bg-base-100">
+    <div
+      data-roomid="<%= joinRequest.RoomID %>"
+      class="roomJoinRequests py-1 hover:bg-base-100"
+    >
       <a href="http://localhost:3000/rooms/<%= joinRequest.RoomID %>">
         Join request in <%= joinRequest.roomName %>
       </a>
     </div>
     <% }) %> <% } %>
   </div>
-  <% } else { %> <%# need to get profile color as well %>
+  <% } else { %>
   <span><%= username[0].toUpperCase() %></span>
   <% } %>
 </div>

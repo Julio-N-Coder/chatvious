@@ -8,7 +8,7 @@ import {
   QueryCommand,
 } from "@aws-sdk/lib-dynamodb";
 import {
-  MakeRoomReturnType,
+  BaseModelsReturnType,
   RoomInfoDBType,
   FetchRoomReturn,
   RoomInfoType,
@@ -18,10 +18,6 @@ import {
   FetchRoomMembersReturn,
   JoinRequestsDB,
   FetchJoinRequestsReturn,
-  SendJoinRequestReturn,
-  RemoveJoinRequestReturn,
-  AddRoomMemberReturn,
-  RemoveRoomMemberReturn,
 } from "../types/types.js";
 
 const client = new DynamoDBClient({});
@@ -32,7 +28,7 @@ async function makeRoom(
   ownerName: string,
   roomName: string,
   profileColor: string
-): MakeRoomReturnType {
+): BaseModelsReturnType {
   const RoomID = crypto.randomUUID() as string;
 
   const madeDate = new Date().toISOString() as string;
@@ -218,7 +214,7 @@ async function addRoomMember(
   memberID: string,
   memberName: string,
   profileColor: string
-): AddRoomMemberReturn {
+): BaseModelsReturnType {
   const madeDate = new Date().toISOString() as string;
 
   const roomMemberItem: RoomMemberDB = {
@@ -253,7 +249,7 @@ async function addRoomMember(
 async function removeRoomMember(
   RoomID: string,
   memberID: string
-): RemoveRoomMemberReturn {
+): BaseModelsReturnType {
   const removeMemberCommand = new DeleteCommand({
     TableName: "chatvious",
     Key: {
@@ -321,7 +317,7 @@ async function sendJoinRequest(
   roomName: string,
   RoomID: string,
   profileColor: string
-): SendJoinRequestReturn {
+): BaseModelsReturnType {
   const sentJoinRequestAt = new Date().toISOString();
   const joinRequestCommand = new PutCommand({
     TableName: "chatvious",
@@ -354,7 +350,7 @@ async function removeJoinRequest(
   RoomID: string,
   sentJoinRequestAt: string,
   requestUserID: string
-): RemoveJoinRequestReturn {
+): BaseModelsReturnType {
   const joinRequestCommand = new DeleteCommand({
     TableName: "chatvious",
     Key: {

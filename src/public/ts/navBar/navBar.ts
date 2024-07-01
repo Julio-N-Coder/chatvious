@@ -50,3 +50,48 @@ if (preferedTheme) {
     }
   }
 }
+
+const roomJoinRequests = document.getElementsByClassName("roomJoinRequests");
+const notification = document.getElementById("notification") as HTMLDivElement;
+
+const joinReqeustsRoomIDs = Array.from(roomJoinRequests).map((el) => {
+  return el.getAttribute("data-roomid") as string;
+});
+
+const joinReqeustLocal = JSON.parse(
+  localStorage.getItem("roomJoinRequests") || "{}"
+) as { [index: string]: "NEW" | "SEEN" };
+
+const RoomIDs = Object.keys(joinReqeustLocal);
+
+// compare to roomJoinRequests elements to see if request is not there anymore remove if not
+if (RoomIDs.length) {
+  for (let i = 0; i < RoomIDs.length; i++) {
+    if (!joinReqeustsRoomIDs.includes(RoomIDs[i])) {
+      delete joinReqeustLocal[RoomIDs[i]];
+    }
+  }
+}
+
+// check if roomJoinRequests has new request not in storage
+// if it does, store it with "NEW" value
+if (joinReqeustsRoomIDs.length) {
+  for (const RoomID of joinReqeustsRoomIDs) {
+    if (!(RoomID in joinReqeustLocal)) {
+      joinReqeustLocal[RoomID] = "NEW";
+    }
+  }
+}
+
+// check current path to see if roomid path equals on of key values in storage
+const RoomIDpath = location.pathname.split("/").pop();
+if (RoomIDpath && RoomIDpath in joinReqeustLocal) {
+  joinReqeustLocal[RoomIDpath] = "SEEN";
+}
+
+// check if any stored values hav "NEW" value. show notification if does
+if (Object.values(joinReqeustLocal).includes("NEW")) {
+  notification.classList.remove("hidden");
+}
+
+localStorage.setItem("roomJoinRequests", JSON.stringify(joinReqeustLocal));

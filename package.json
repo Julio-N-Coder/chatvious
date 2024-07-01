@@ -5,6 +5,7 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "ejs-lint": "./src/lint-ejs.sh",
     "build": "tsc --p tsconfig.server.json && cp -r ./src/views ./dist && webpack --mode=development",
     "build:prod": "tsc --p tsconfig.server.json && cp -r ./src/views ./dist && webpack --mode=production --node-env=production",
     "fullBuild": "npm --prefix ./client run build && npm run build",
@@ -16,7 +17,8 @@
   "nodemonConfig": {
     "ignore": [
       "**/node_modules",
-      "dist/views"
+      "dist",
+      "client"
     ],
     "ext": "js,ejs",
     "exec": "node dist/app.js"
