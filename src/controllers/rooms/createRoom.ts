@@ -2,8 +2,8 @@ import { Request, Response } from "express";
 import { CognitoJwtVerifier } from "aws-jwt-verify";
 import { CognitoAccessTokenPayload } from "aws-jwt-verify/jwt-model";
 import cognitoData from "../../cognitoData.js";
-import { makeRoom } from "../../models/rooms.js";
-import { fetchUserInfo } from "../../models/users.js";
+import { roomManger } from "../../models/rooms.js";
+import { userManager } from "../../models/users.js";
 
 async function createRoom(req: Request, res: Response) {
   console.log("Making Create Room");
@@ -48,7 +48,7 @@ async function createRoom(req: Request, res: Response) {
   const userName = payload.username;
   const roomName = req.body.roomName as string;
 
-  const userInfoResponse = await fetchUserInfo(userID);
+  const userInfoResponse = await userManager.fetchUserInfo(userID);
   if ("error" in userInfoResponse) {
     res
       .status(userInfoResponse.statusCode)
@@ -58,7 +58,7 @@ async function createRoom(req: Request, res: Response) {
 
   const { profileColor } = userInfoResponse.userInfo;
 
-  const makeRoomResponse = await makeRoom(
+  const makeRoomResponse = await roomManger.makeRoom(
     userID,
     userName,
     roomName,

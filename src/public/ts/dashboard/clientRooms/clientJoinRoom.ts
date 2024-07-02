@@ -58,6 +58,7 @@ async function joinRoom(e: SubmitEvent) {
 
     if (joinRoomResponse.ok === true) {
       window.location.href = `/dashboard`;
+      return;
     }
     const joinRoomResponseJson: BasicServerResponse =
       await joinRoomResponse.json();
@@ -72,6 +73,7 @@ async function joinRoom(e: SubmitEvent) {
     joinmodelError.innerText = "Something went wrong while making your room.";
 
     toggleSubmitButtonState();
+    return;
   }
 }
 

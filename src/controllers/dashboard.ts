@@ -1,5 +1,4 @@
 import { Request, Response } from "express";
-import { fetchUserInfo } from "../models/users.js";
 import { RoomsOnUser } from "../types/types.js";
 
 declare module "express" {

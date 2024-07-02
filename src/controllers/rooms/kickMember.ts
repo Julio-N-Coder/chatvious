@@ -2,8 +2,8 @@ import { Request, Response } from "express";
 import { CognitoJwtVerifier } from "aws-jwt-verify";
 import { CognitoAccessTokenPayload } from "aws-jwt-verify/jwt-model";
 import cognitoData from "../../cognitoData.js";
-import { fetchRoomMember, removeRoomMember } from "../../models/rooms.js";
-import { removeJoinedRoom } from "../../models/users.js";
+import { roomManger } from "../../models/rooms.js";
+import { userManager } from "../../models/users.js";
 
 export default async function kickMember(req: Request, res: Response) {
   const access_token = req.cookies.access_token as string | undefined;
@@ -35,7 +35,10 @@ export default async function kickMember(req: Request, res: Response) {
     return;
   }
 
-  const fetchRoomMemberResponse = await fetchRoomMember(RoomID, userID);
+  const fetchRoomMemberResponse = await roomManger.fetchRoomMember(
+    RoomID,
+    userID
+  );
   if ("error" in fetchRoomMemberResponse) {
     res.status(403).json({ error: "Forbidden" });
     return;
@@ -48,7 +51,7 @@ export default async function kickMember(req: Request, res: Response) {
   }
 
   // check whether user is a lower status then kicker
-  const memberUserInfo = await fetchRoomMember(RoomID, memberUserID);
+  const memberUserInfo = await roomManger.fetchRoomMember(RoomID, memberUserID);
   if ("error" in memberUserInfo) {
     res.status(404).json({ error: "Forbidden" });
     return;
@@ -68,14 +71,20 @@ export default async function kickMember(req: Request, res: Response) {
     }
   }
 
-  const removeRoomMemberResponse = removeRoomMember(RoomID, memberUserID);
+  const removeRoomMemberResponse = roomManger.removeRoomMember(
+    RoomID,
+    memberUserID
+  );
   if ("error" in removeRoomMemberResponse) {
     res.status(400).json({ error: removeRoomMemberResponse.error });
     return;
   }
 
   // remove joinedRooms on kicked user.
-  const removeJoinedRoomResponse = removeJoinedRoom(memberUserID, RoomID);
+  const removeJoinedRoomResponse = userManager.removeJoinedRoom(
+    memberUserID,
+    RoomID
+  );
   if ("error" in removeJoinedRoomResponse) {
     res.status(400).json({ error: removeJoinedRoomResponse.error });
     return;

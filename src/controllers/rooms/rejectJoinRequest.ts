@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import { CognitoJwtVerifier } from "aws-jwt-verify";
 import { CognitoAccessTokenPayload } from "aws-jwt-verify/jwt-model";
 import cognitoData from "../../cognitoData.js";
-import { fetchRoomMember, removeJoinRequest } from "../../models/rooms.js";
+import { roomManger } from "../../models/rooms.js";
 
 export default async function rejectJoinRequest(req: Request, res: Response) {
   const access_token = req.cookies.access_token as string | undefined;
@@ -28,14 +28,13 @@ export default async function rejectJoinRequest(req: Request, res: Response) {
   const userID = payload.sub;
   const RoomID = req.body.RoomID as string | undefined;
   const requestUserID = req.body.userID as string | undefined;
-  const sentJoinRequestAt = req.body.sentJoinRequestAt as string | undefined;
 
-  if (!RoomID || !requestUserID || !sentJoinRequestAt) {
+  if (!RoomID || !requestUserID) {
     res.status(400).json({ error: "Bad Request" });
     return;
   }
 
-  const roomMemberResponse = await fetchRoomMember(RoomID, userID);
+  const roomMemberResponse = await roomManger.fetchRoomMember(RoomID, userID);
   if ("error" in roomMemberResponse) {
     res.status(roomMemberResponse.statusCode).json({
       error: "Member Already Kicked",
@@ -50,9 +49,8 @@ export default async function rejectJoinRequest(req: Request, res: Response) {
     return;
   }
 
-  const removeJoinRequestResponse = await removeJoinRequest(
+  const removeJoinRequestResponse = await roomManger.removeJoinRequest(
     RoomID,
-    sentJoinRequestAt,
     requestUserID
   );
   if ("error" in removeJoinRequestResponse) {

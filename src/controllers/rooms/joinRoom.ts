@@ -2,13 +2,8 @@ import { Request, Response } from "express";
 import { CognitoJwtVerifier } from "aws-jwt-verify";
 import { CognitoAccessTokenPayload } from "aws-jwt-verify/jwt-model";
 import cognitoData from "../../cognitoData.js";
-import {
-  fetchRoom,
-  fetchRoomMembers,
-  fetchJoinRequests,
-  sendJoinRequest,
-} from "../../models/rooms.js";
-import { fetchUserInfo } from "../../models/users.js";
+import { roomManger } from "../../models/rooms.js";
+import { userManager } from "../../models/users.js";
 
 export default async function joinRoom(req: Request, res: Response) {
   if (!req.body.RoomID) {
@@ -41,7 +36,7 @@ export default async function joinRoom(req: Request, res: Response) {
   const { sub: userID, username } = access_token_payload;
   const RoomID = req.body.RoomID as string;
 
-  const fetchRoomResponse = await fetchRoom(RoomID);
+  const fetchRoomResponse = await roomManger.fetchRoom(RoomID);
   if ("error" in fetchRoomResponse) {
     if (fetchRoomResponse.error === "Bad Request") {
       res
@@ -56,7 +51,7 @@ export default async function joinRoom(req: Request, res: Response) {
     return;
   }
 
-  const roomMembersResponse = await fetchRoomMembers(RoomID);
+  const roomMembersResponse = await roomManger.fetchRoomMembers(RoomID);
   if ("error" in roomMembersResponse) {
     res
       .status(roomMembersResponse.statusCode)
@@ -72,22 +67,24 @@ export default async function joinRoom(req: Request, res: Response) {
     return;
   }
 
-  const joinRequestResponse = await fetchJoinRequests(RoomID);
-  if ("error" in joinRequestResponse) {
+  // change below to just fetch by user id
+  const joinRequestResponse = await roomManger.fetchJoinRequest(RoomID, userID);
+  if (
+    "error" in joinRequestResponse &&
+    joinRequestResponse.error !== "Bad Request"
+  ) {
     res
       .status(joinRequestResponse.statusCode)
       .json({ error: joinRequestResponse.error });
     return;
   }
 
-  const { joinRequests } = joinRequestResponse;
-  if (joinRequests.find((request) => request.fromUserID === userID)) {
-    res.status(400).json({ error: "You have already sent a join request" });
-    return;
+  if (joinRequestResponse.statusCode === 200) {
+    res.status(403).json({ error: "You have already sent a join Request" });
   }
 
   // fetch user info for profile colour
-  const userInfoResponse = await fetchUserInfo(userID);
+  const userInfoResponse = await userManager.fetchUserInfo(userID);
   if ("error" in userInfoResponse) {
     res
       .status(userInfoResponse.statusCode)
@@ -97,7 +94,7 @@ export default async function joinRoom(req: Request, res: Response) {
   const { profileColor } = userInfoResponse.userInfo;
 
   // send a join request to the room.
-  const joinRequest = await sendJoinRequest(
+  const joinRequest = await roomManger.sendJoinRequest(
     username,
     userID,
     roomName,

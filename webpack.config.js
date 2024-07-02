@@ -14,7 +14,8 @@ const config = {
     clientJoinRoom: "./src/public/ts/dashboard/clientRooms/clientJoinRoom.ts",
     chatRoom: "./src/public/ts/chatRoom/chatRoom.ts",
     roomInfoJoinRequest: "./src/public/ts/roomInfoPage/roomInfoJoinRequest.ts",
-    roomInfoAcceptJoin: "./src/public/ts/roomInfoPage/roomInfoAcceptJoin.ts",
+    clientAcceptOrReject:
+      "./src/public/ts/roomInfoPage/clientAcceptOrReject.ts",
     roomInfoKickUser: "./src/public/ts/roomInfoPage/roomInfoKickUser.ts",
   },
   output: {

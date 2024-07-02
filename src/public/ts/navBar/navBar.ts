@@ -53,11 +53,9 @@ if (preferedTheme) {
 
 const roomJoinRequests = document.getElementsByClassName("roomJoinRequests");
 const notification = document.getElementById("notification") as HTMLDivElement;
-
 const joinReqeustsRoomIDs = Array.from(roomJoinRequests).map((el) => {
   return el.getAttribute("data-roomid") as string;
 });
-
 const joinReqeustLocal = JSON.parse(
   localStorage.getItem("roomJoinRequests") || "{}"
 ) as { [index: string]: "NEW" | "SEEN" };

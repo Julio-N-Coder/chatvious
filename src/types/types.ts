@@ -55,19 +55,23 @@ type FetchUserInfoSuccess = {
 
 type FetchUserInfoReturn = Promise<BaseModelsError | FetchUserInfoSuccess>;
 
-type RoomMember = {
+interface BaseRoomMember {
   userID: string;
   userName: string;
   RoomID: string;
   RoomUserStatus: "MEMBER" | "ADMIN" | "OWNER";
-  joinedAt: string; // gsi sort key
   profileColor: string;
-};
+}
 
-type RoomMemberDB = RoomMember & {
+interface RoomMember extends BaseRoomMember {
+  joinedAt: string; // ISODate
+}
+
+interface RoomMemberDB extends BaseRoomMember {
   PartitionKey: `ROOM#${string}`; // RoomID // gsi partition key
   SortKey: `MEMBERS#USERID#${string}`;
-};
+  GSISortKey: `DATE#${string}`; // ISODate // gsi sort
+}
 
 type FetchRoomMemberSuccess = {
   roomMember: RoomMember;
@@ -105,24 +109,28 @@ type FetchRoomSuccessReturn = {
 
 type FetchRoomReturn = Promise<BaseModelsError | FetchRoomSuccessReturn>;
 
-type JoinRequests = {
+interface BaseJoinRequest {
   RoomID: string;
   fromUserID: string;
   fromUserName: string;
   roomName: string;
-  sentJoinRequestAt: string;
   profileColor: string;
-}[];
+}
 
-type JoinRequestsDB = JoinRequests &
-  {
-    PartitionKey: `ROOM#${string}`; // RoomID
-    SortKey: `JOIN_REQUESTS#DATE#${string}#USERID#${string}`;
-  }[];
+interface JoinRequest extends BaseJoinRequest {
+  sentJoinRequestAt: string;
+}
+
+interface JoinRequestDB extends BaseJoinRequest {
+  PartitionKey: `ROOM#${string}`; // RoomID
+  SortKey: `JOIN_REQUESTS#USERID#${string}`;
+  GSISortKey: `DATE#${string}`;
+}
+[];
 
 type FetchJoinRequestsSuccess = {
   message: string;
-  joinRequests: JoinRequests;
+  joinRequests: JoinRequest[] | [];
   statusCode: number;
 };
 
@@ -155,7 +163,8 @@ export {
   UserInfo,
   FetchUserInfoReturn,
   FetchRoomReturn,
-  JoinRequestsDB,
+  JoinRequest,
+  JoinRequestDB,
   FetchJoinRequestsReturn,
   FetchNavJoinRequestsReturn,
 };

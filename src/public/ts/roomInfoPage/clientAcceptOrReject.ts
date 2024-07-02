@@ -14,7 +14,6 @@ for (let i = 0; i < acceptJoinRequest.length; i++) {
     // get date data and userID from parent
     const mainParentContainer = (e.target as HTMLElement).parentElement
       ?.parentElement?.parentElement as HTMLDivElement;
-    const sentJoinRequestAt = mainParentContainer?.dataset?.date;
     const userID = mainParentContainer?.dataset?.userid;
 
     button.disabled = true;
@@ -26,7 +25,7 @@ for (let i = 0; i < acceptJoinRequest.length; i++) {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ sentJoinRequestAt, RoomID, userID }),
+        body: JSON.stringify({ RoomID, userID }),
       });
     } catch (error) {
       fixedStatusBox.classList.add("bg-error", "text-error-content");
@@ -72,7 +71,6 @@ for (let i = 0; i < rejectJoinRequest.length; i++) {
     // get date data from parent
     const mainParentContainer = (e.target as HTMLElement).parentElement
       ?.parentElement?.parentElement as HTMLDivElement;
-    const sentJoinRequestAt = mainParentContainer?.dataset?.date;
     const userID = mainParentContainer?.dataset?.userid;
 
     button.disabled = true;
@@ -84,7 +82,7 @@ for (let i = 0; i < rejectJoinRequest.length; i++) {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ sentJoinRequestAt, RoomID, userID }),
+        body: JSON.stringify({ RoomID, userID }),
       });
     } catch (error) {
       fixedStatusBox.classList.add("bg-error", "text-error-content");

@@ -2,8 +2,8 @@ import { Request, Response } from "express";
 import { CognitoJwtVerifier } from "aws-jwt-verify";
 import cognitoData from "../../cognitoData.js";
 import { CognitoAccessTokenPayload } from "aws-jwt-verify/jwt-model";
-import { removeJoinRequest, addRoomMember } from "../../models/rooms.js";
-import { fetchUserInfo, updateJoinedRooms } from "../../models/users.js";
+import { roomManger } from "../../models/rooms.js";
+import { userManager } from "../../models/users.js";
 
 // remove join_request from db and add them to members table as member status
 export default async function acceptJoinRequest(req: Request, res: Response) {
@@ -29,18 +29,17 @@ export default async function acceptJoinRequest(req: Request, res: Response) {
 
   // verify if they are the owner or an admin of room.
   const userID = payload.sub;
-  const { RoomID, sentJoinRequestAt } = req.body as {
+  const { RoomID } = req.body as {
     RoomID: string | undefined;
-    sentJoinRequestAt: string | undefined;
   };
   const requestUserID = req.body.userID as string | undefined;
 
-  if (!RoomID || !sentJoinRequestAt || !requestUserID) {
+  if (!RoomID || !requestUserID) {
     res.status(400).json({ error: "Bad Request" });
     return;
   }
 
-  const userInfoResponse = await fetchUserInfo(userID);
+  const userInfoResponse = await userManager.fetchUserInfo(userID);
   if ("error" in userInfoResponse) {
     res.status(500).json({
       error:
@@ -85,7 +84,9 @@ export default async function acceptJoinRequest(req: Request, res: Response) {
   }
 
   // request user info
-  const requestUserInfoResponse = await fetchUserInfo(requestUserID);
+  const requestUserInfoResponse = await userManager.fetchUserInfo(
+    requestUserID
+  );
   if ("error" in requestUserInfoResponse) {
     res.status(500).json({
       error:
@@ -96,9 +97,8 @@ export default async function acceptJoinRequest(req: Request, res: Response) {
   const requestUserName = requestUserInfoResponse.userInfo.userName;
   const requestUserProfileColor = requestUserInfoResponse.userInfo.profileColor;
 
-  const removeJoinRequestResponse = await removeJoinRequest(
+  const removeJoinRequestResponse = await roomManger.removeJoinRequest(
     RoomID,
-    sentJoinRequestAt,
     requestUserID
   );
   if ("error" in removeJoinRequestResponse) {
@@ -109,7 +109,7 @@ export default async function acceptJoinRequest(req: Request, res: Response) {
   }
 
   // add user as a member to room.
-  const addMemberResponse = await addRoomMember(
+  const addMemberResponse = await roomManger.addRoomMember(
     RoomID,
     requestUserID,
     requestUserName,
@@ -123,11 +123,14 @@ export default async function acceptJoinRequest(req: Request, res: Response) {
   }
 
   // update request user joined rooms.
-  const updateJoinedRoomsResponse = await updateJoinedRooms(requestUserID, {
-    RoomID,
-    isAdmin: false,
-    roomName,
-  });
+  const updateJoinedRoomsResponse = await userManager.updateJoinedRooms(
+    requestUserID,
+    {
+      RoomID,
+      isAdmin: false,
+      roomName,
+    }
+  );
   if ("error" in updateJoinedRoomsResponse) {
     res.status(updateJoinedRoomsResponse.statusCode).json({
       error: updateJoinedRoomsResponse.error,

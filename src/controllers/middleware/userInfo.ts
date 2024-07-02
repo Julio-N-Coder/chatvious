@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import { UserInfo, RoomsOnUser } from "../../types/types.js";
-import { fetchUserInfo, fetchNavJoinRequests } from "../../models/users.js";
+import { userManager } from "../../models/users.js";
 
 declare module "express" {
   interface Request {
@@ -28,7 +28,7 @@ export default async function navUserInfo(
     return;
   }
 
-  const userInfoResponse = await fetchUserInfo(userID);
+  const userInfoResponse = await userManager.fetchUserInfo(userID);
 
   if ("error" in userInfoResponse) {
     res.status(500).send({
@@ -38,7 +38,7 @@ export default async function navUserInfo(
     return;
   }
   const userInfo: UserInfo = userInfoResponse.userInfo;
-  const fetchNavJoinRequestsResponse = await fetchNavJoinRequests(
+  const fetchNavJoinRequestsResponse = await userManager.fetchNavJoinRequests(
     userInfo.ownedRooms,
     userInfo.joinedRooms
   );

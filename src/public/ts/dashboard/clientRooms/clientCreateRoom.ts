@@ -60,6 +60,7 @@ async function createRoom(e: SubmitEvent) {
 
     if (makeRoomResponse.ok === true) {
       window.location.href = `/dashboard`;
+      return;
     }
 
     const makeRoomResponseJson: BasicServerResponse =
@@ -75,6 +76,7 @@ async function createRoom(e: SubmitEvent) {
     createmodelError.innerText = "Something went wrong while making your room.";
 
     toggleSubmitButtonState();
+    return;
   }
 }
 

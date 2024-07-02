@@ -1,9 +1,5 @@
 import { Request, Response } from "express";
-import {
-  fetchRoom,
-  fetchRoomMembers,
-  fetchJoinRequests,
-} from "../../models/rooms.js";
+import { roomManger } from "../../models/rooms.js";
 import { RoomsOnUser } from "../../types/types.js";
 
 declare module "express" {
@@ -26,7 +22,7 @@ export default async function roomInfo(req: Request, res: Response) {
     return;
   }
   const userID = req.user.id;
-  const roomInfoResponse = await fetchRoom(RoomID);
+  const roomInfoResponse = await roomManger.fetchRoom(RoomID);
 
   if ("error" in roomInfoResponse) {
     res
@@ -36,7 +32,7 @@ export default async function roomInfo(req: Request, res: Response) {
   }
 
   // fetch RoomMembers to display
-  const roomMembersResponse = await fetchRoomMembers(RoomID);
+  const roomMembersResponse = await roomManger.fetchRoomMembers(RoomID);
   if ("error" in roomMembersResponse) {
     res.status(roomMembersResponse.statusCode).json({
       error: "Failed to Render Page. I am sorry for the inconvenience.",
@@ -74,7 +70,7 @@ export default async function roomInfo(req: Request, res: Response) {
   const navJoinRequest = req.user?.navJoinRequests;
 
   if (isOwner || isAdmin) {
-    const joinRequestResponse = await fetchJoinRequests(RoomID);
+    const joinRequestResponse = await roomManger.fetchJoinRequests(RoomID);
     if ("error" in joinRequestResponse) {
       res
         .status(joinRequestResponse.statusCode)
@@ -82,6 +78,8 @@ export default async function roomInfo(req: Request, res: Response) {
       return;
     }
     const { joinRequests } = joinRequestResponse;
+    console.log(joinRequests);
+    console.log("");
 
     console.log("rendering roomInfo page", "Owner");
     res.render("roomInfo", {

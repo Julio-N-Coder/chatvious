@@ -60,7 +60,6 @@
               <% joinRequests.map((joinRequest) => { %>
               <div
                 data-userid="<%= joinRequest.fromUserID %>"
-                data-date="<%= joinRequest.sentJoinRequestAt %>"
                 class="border-2 border-base-content rounded-xl p-2"
               >
                 <div class="flex items-center gap-1">
@@ -136,7 +135,7 @@
     <% if (isOwnerOrAdmin) { %>
     <script defer src="/ejs/roomInfoKickUser.js"></script>
     <% if (joinRequests.length > 0) { %>
-    <script defer src="/ejs/roomInfoAcceptJoin.js"></script>
+    <script defer src="/ejs/clientAcceptOrReject.js"></script>
     <% } %> <% } else { %>
     <script defer src="/ejs/roomInfoJoinRequest.js"></script>
     <% } %>
