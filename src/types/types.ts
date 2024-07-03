@@ -70,7 +70,7 @@ interface RoomMember extends BaseRoomMember {
 interface RoomMemberDB extends BaseRoomMember {
   PartitionKey: `ROOM#${string}`; // RoomID // gsi partition key
   SortKey: `MEMBERS#USERID#${string}`;
-  GSISortKey: `DATE#${string}`; // ISODate // gsi sort
+  GSISortKey: `MEMBERS#DATE#${string}`; // ISODate // gsi sort
 }
 
 type FetchRoomMemberSuccess = {
@@ -124,7 +124,7 @@ interface JoinRequest extends BaseJoinRequest {
 interface JoinRequestDB extends BaseJoinRequest {
   PartitionKey: `ROOM#${string}`; // RoomID
   SortKey: `JOIN_REQUESTS#USERID#${string}`;
-  GSISortKey: `DATE#${string}`;
+  GSISortKey: `JOIN_REQUESTS#DATE#${string}`;
 }
 [];
 

@@ -78,8 +78,6 @@ export default async function roomInfo(req: Request, res: Response) {
       return;
     }
     const { joinRequests } = joinRequestResponse;
-    console.log(joinRequests);
-    console.log("");
 
     console.log("rendering roomInfo page", "Owner");
     res.render("roomInfo", {

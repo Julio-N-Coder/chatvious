@@ -71,7 +71,7 @@ class RoomManager {
       userName: ownerName,
       RoomID,
       RoomUserStatus: "OWNER",
-      GSISortKey: `DATE#${madeDate}`,
+      GSISortKey: `MEMBERS#DATE#${madeDate}`,
       profileColor,
     };
 
@@ -156,14 +156,19 @@ class RoomManager {
     }
 
     const roomMembersDB = roomMembersResponse.Items as RoomMemberDB[];
-    const roomMembers: RoomMember[] = roomMembersDB.map((member) => ({
-      userName: member.userName,
-      userID: member.userID,
-      RoomID,
-      RoomUserStatus: member.RoomUserStatus,
-      joinedAt: member.GSISortKey,
-      profileColor: member.profileColor,
-    }));
+
+    const roomMembers: RoomMember[] = roomMembersDB.map((member) => {
+      const joinedAt = member.GSISortKey.split("#")[2] as string;
+
+      return {
+        userName: member.userName,
+        userID: member.userID,
+        RoomID,
+        RoomUserStatus: member.RoomUserStatus,
+        joinedAt,
+        profileColor: member.profileColor,
+      };
+    });
 
     if (roomMembersResponse.Count === 0) {
       return { roomMembers, message: "No Users", memberCount, statusCode: 200 };
@@ -196,13 +201,14 @@ class RoomManager {
     if (roomMemberDB == undefined) {
       return { error: "Bad Request", statusCode: 400 };
     }
+    const joinedAt = roomMemberDB.GSISortKey.split("#").pop() as string;
 
     const roomMember: RoomMember = {
       userName: roomMemberDB.userName,
       userID: roomMemberDB.userID,
       RoomID,
       RoomUserStatus: roomMemberDB.RoomUserStatus,
-      joinedAt: roomMemberDB.GSISortKey,
+      joinedAt,
       profileColor: roomMemberDB.profileColor,
     };
 
@@ -224,7 +230,7 @@ class RoomManager {
       userName: memberName,
       RoomID,
       RoomUserStatus: "MEMBER",
-      GSISortKey: `DATE#${madeDate}`,
+      GSISortKey: `MEMBERS#DATE#${madeDate}`,
       profileColor,
     };
 
@@ -320,11 +326,9 @@ class RoomManager {
       IndexName: "Generic-GSISort-Index",
       KeyConditionExpression:
         "PartitionKey = :roomsID AND begins_with(GSISortKey, :sortDate)",
-      // "PartitionKey = :roomsID AND begins_with(SortKey, :sortDate)",
       ExpressionAttributeValues: {
         ":roomsID": `ROOM#${RoomID}`,
-        ":sortDate": "DATE#",
-        // ":sortDate": "JOIN_REQUESTS#",
+        ":sortDate": "JOIN_REQUESTS#",
       },
     });
 
@@ -336,14 +340,18 @@ class RoomManager {
       return { message: "No Join Requests", joinRequests: [], statusCode: 200 };
     }
     const joinRequestsDB = joinRequestResponse.Items as JoinRequestDB[];
-    const joinRequests = joinRequestsDB?.map((request) => ({
-      RoomID: request.RoomID,
-      fromUserID: request.fromUserID,
-      fromUserName: request.fromUserName,
-      roomName: request.roomName,
-      sentJoinRequestAt: request.GSISortKey,
-      profileColor: request.profileColor,
-    }));
+    const joinRequests = joinRequestsDB?.map((request) => {
+      const sentJoinRequestAt = request.GSISortKey.split("#").pop() as string;
+
+      return {
+        RoomID: request.RoomID,
+        fromUserID: request.fromUserID,
+        fromUserName: request.fromUserName,
+        roomName: request.roomName,
+        sentJoinRequestAt,
+        profileColor: request.profileColor,
+      };
+    });
 
     return {
       message: `${joinRequests.length} Join Request Fetched`,
@@ -369,7 +377,7 @@ class RoomManager {
         fromUserID,
         fromUserName,
         roomName,
-        GSISortKey: `DATE#${sentJoinRequestAt}`,
+        GSISortKey: `JOIN_REQUESTS#DATE#${sentJoinRequestAt}`,
         profileColor,
       },
     });
