@@ -1,5 +1,5 @@
-import { saveUserData } from "../../handler/saveUserData";
-import testPostConfirmationEvent from "../../../events/saveUserDataEvent.json";
+import { handler } from "../../signUp-saveData/saveUserData";
+import testPostConfirmationEvent from "../../events/saveUserDataEvent.json";
 import { expect, describe, test } from "@jest/globals";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import {
@@ -13,7 +13,8 @@ const docClient = DynamoDBDocumentClient.from(client);
 
 describe("Test for saveUserData", () => {
   test("Verifies successful response", async () => {
-    const result = await saveUserData(testPostConfirmationEvent);
+    // check if it can run other package function
+    const result = await handler(testPostConfirmationEvent);
 
     expect(result).toEqual(testPostConfirmationEvent);
   });

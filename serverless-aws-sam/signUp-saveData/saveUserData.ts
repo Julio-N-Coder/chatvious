@@ -1,4 +1,4 @@
-import { PostConfirmationEvent } from "../types.js";
+import { PostConfirmationEvent } from "./types.js";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocumentClient, PutCommand } from "@aws-sdk/lib-dynamodb";
 
@@ -7,7 +7,7 @@ const getRandomColor = () => {
   return colors[Math.floor(Math.random() * colors.length)];
 };
 
-export const saveUserData = async (event: PostConfirmationEvent) => {
+export const handler = async (event: PostConfirmationEvent) => {
   if (event.triggerSource === "PostConfirmation_ConfirmSignUp") {
     const client = new DynamoDBClient({});
     const docClient = DynamoDBDocumentClient.from(client);

@@ -1,0 +1,19 @@
+{
+  // change ignore function to src file once made
+  "exclude": ["node_modules", ".aws-sam", "signUp-saveData"],
+  "compilerOptions": {
+    "target": "ESNext",
+    "strict": true,
+    "preserveConstEnums": true,
+    "noEmit": true,
+    "sourceMap": false,
+    // jest only works with es2015 and node settings for some reason.
+    "module": "ES2015",
+    "moduleResolution": "node",
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "removeComments": true
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "name": "lambda-functions",
+  "version": "1.0.0",
+  "description": "This Is mainly for testing code.",
+  "main": "index.js",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "unit": "jest",
+    "compile": "tsc",
+    "test": "npm run compile && npm run unit"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@aws-sdk/client-dynamodb": "^3.614.0",
+    "@aws-sdk/lib-dynamodb": "^3.614.0",
+    "@jest/globals": "^29.7.0",
+    "@types/node": "^20.14.11",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.2.2",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.5.3"
+  }
+}
