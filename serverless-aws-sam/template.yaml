@@ -4,7 +4,6 @@ Description: lambda-signUp-saveData
 
 Globals:
   Function:
-    Timeout: 3
     LoggingConfig:
       LogFormat: JSON
 
@@ -12,7 +11,7 @@ Resources:
   saveUserDataFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: signUp-saveData/
+      CodeUri: src/cognito/post-signUp-trigger/
       Handler: saveUserData.handler
       Runtime: nodejs20.x
       Architectures:
@@ -25,4 +24,16 @@ Resources:
         Minify: true
         Target: es2020
         Sourcemap: true
-      
+
+  dashboardPage:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: Chatvious:dashboardPage
+      Description: Renders dashboard Page for Chatvious
+      PackageType: Image
+      Architectures:
+        - x86_64
+    Metadata:
+      DockerContext: ./src/ejs-page-render/dashboard
+      Dockerfile: Dockerfile
+      DockerTag: latest

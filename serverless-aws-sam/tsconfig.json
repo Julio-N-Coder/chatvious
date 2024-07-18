@@ -1,6 +1,6 @@
 {
-  // change ignore function to src file once made
-  "exclude": ["node_modules", ".aws-sam", "signUp-saveData"],
+  // test might not work if I exclude src.
+  "exclude": ["node_modules", ".aws-sam", "src"],
   "compilerOptions": {
     "target": "ESNext",
     "strict": true,

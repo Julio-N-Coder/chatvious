@@ -1,4 +1,4 @@
-import { handler } from "../../signUp-saveData/saveUserData";
+import { handler } from "../../src/cognito/post-signUp-trigger/saveUserData";
 import testPostConfirmationEvent from "../../events/saveUserDataEvent.json";
 import { expect, describe, test } from "@jest/globals";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";

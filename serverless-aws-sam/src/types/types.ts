@@ -148,6 +148,28 @@ type FetchNavJoinRequestsReturn = Promise<
   BaseModelsError | FetchNavJoinRequestsSuccess
 >;
 
+interface FetchNavUserInfoSuccess {
+  userName: string;
+  profileColor: string;
+  ownedRooms: RoomsOnUser;
+  joinedRooms: RoomsOnUser;
+  navJoinRequests:
+    | []
+    | {
+        RoomID: string;
+        roomName: string;
+      }[];
+}
+
+interface FetchJoinRequestsError {
+  statusCode: number;
+  message: string;
+}
+
+type FetchNavUserInfoReturn = Promise<
+  FetchJoinRequestsError | FetchNavUserInfoSuccess
+>;
+
 export {
   AuthCodeTokenResponse,
   TokenRefresh,
@@ -167,4 +189,5 @@ export {
   JoinRequestDB,
   FetchJoinRequestsReturn,
   FetchNavJoinRequestsReturn,
+  FetchNavUserInfoReturn,
 };

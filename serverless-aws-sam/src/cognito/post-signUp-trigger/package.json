@@ -7,8 +7,7 @@
   "scripts": {
     "unit": "jest",
     "lint": "eslint '*.ts' --quiet --fix",
-    "compile": "tsc",
-    "test": "npm run compile && npm run unit"
+    "compile": "tsc"
   },
   "dependencies": {
     "@aws-sdk/client-dynamodb": "^3.598.0",
@@ -17,11 +16,6 @@
   },
   "devDependencies": {
     "@types/node": "^20.14.4",
-    "@typescript-eslint/eslint-plugin": "^5.62.0",
-    "@typescript-eslint/parser": "^5.62.0",
-    "eslint": "^8.57.0",
-    "eslint-config-prettier": "^8.10.0",
-    "eslint-plugin-prettier": "^4.2.1",
     "typescript": "^5.5.3"
   }
 }

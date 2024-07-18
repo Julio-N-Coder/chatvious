@@ -1,0 +1,17 @@
+{
+  "name": "dashboard",
+  "version": "1.0.0",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "build": "tsc"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "devDependencies": {
+    "@types/aws-lambda": "^8.10.141",
+    "typescript": "^5.5.3"
+  }
+}
