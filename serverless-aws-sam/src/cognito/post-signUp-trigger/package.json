@@ -1,9 +1,8 @@
 {
-  "name": "signup-savedata",
-  "version": "1.0.0",
   "description": "A lambda function to save data initial user data to dynamodb",
-  "main": "saveUserData.js",
+  "main": "saveUserData.ts",
   "type": "module",
+  "private": true,
   "scripts": {
     "unit": "jest",
     "lint": "eslint '*.ts' --quiet --fix",

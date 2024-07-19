@@ -33,7 +33,10 @@ Resources:
       PackageType: Image
       Architectures:
         - x86_64
+      Environment:
+        Variables:
+          NODE_ENV: production
     Metadata:
-      DockerContext: ./src/ejs-page-render/dashboard
-      Dockerfile: Dockerfile
+      DockerContext: ./src
+      Dockerfile: dashboardPage.Dockerfile
       DockerTag: latest

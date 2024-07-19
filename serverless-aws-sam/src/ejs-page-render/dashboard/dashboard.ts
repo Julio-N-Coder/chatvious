@@ -1,15 +1,29 @@
 import { APIGatewayProxyResult, APIGatewayEvent } from "aws-lambda";
-// import navUserInfo from "../../lib/navUserInfo.js";
+import ejs from "ejs";
+import fetchNavUserInfo from "../../lib/navUserInfo.js";
 
 export const handler = async (
   event: APIGatewayEvent
 ): Promise<APIGatewayProxyResult> => {
   console.log("Rendering Dashboard");
+  // const userID = event.requestContext.authorizer?.claims.sub as string;
+  // UNCOMMENT above line and remove hardcoded value below
 
+  const userID = "1959b93e-8061-706d-3b73-5f86ba878e9e";
+  const navUserInfoResponse = await fetchNavUserInfo(userID);
+  if ("error" in navUserInfoResponse) {
+    return {
+      headers: { "Content-Type": "application/json" },
+      statusCode: navUserInfoResponse.statusCode,
+      body: JSON.stringify({ error: navUserInfoResponse.error }),
+    };
+  }
+
+  const userInfo = navUserInfoResponse.data;
   return {
     isBase64Encoded: false,
     headers: { "Content-Type": "text/html" },
     statusCode: 200,
-    body: "<h1>test<h1>",
+    body: `<h1>test: ${userInfo.userName}<h1>`,
   };
 };

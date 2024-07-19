@@ -149,25 +149,24 @@ type FetchNavJoinRequestsReturn = Promise<
 >;
 
 interface FetchNavUserInfoSuccess {
-  userName: string;
-  profileColor: string;
-  ownedRooms: RoomsOnUser;
-  joinedRooms: RoomsOnUser;
-  navJoinRequests:
-    | []
-    | {
-        RoomID: string;
-        roomName: string;
-      }[];
-}
-
-interface FetchJoinRequestsError {
   statusCode: number;
   message: string;
+  data: {
+    userName: string;
+    profileColor: string;
+    ownedRooms: RoomsOnUser;
+    joinedRooms: RoomsOnUser;
+    navJoinRequests:
+      | []
+      | {
+          RoomID: string;
+          roomName: string;
+        }[];
+  };
 }
 
 type FetchNavUserInfoReturn = Promise<
-  FetchJoinRequestsError | FetchNavUserInfoSuccess
+  BaseModelsError | FetchNavUserInfoSuccess
 >;
 
 export {

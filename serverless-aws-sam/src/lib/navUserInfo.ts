@@ -2,7 +2,7 @@ import { UserInfo } from "../types/types.js";
 import { userManager } from "../models/users.js";
 import { FetchNavUserInfoReturn } from "../types/types.js";
 
-export default async function navUserInfo(
+export default async function fetchNavUserInfo(
   userID: string
 ): FetchNavUserInfoReturn {
   const userInfoResponse = await userManager.fetchUserInfo(userID);
@@ -10,7 +10,7 @@ export default async function navUserInfo(
   if ("error" in userInfoResponse) {
     return {
       statusCode: userInfoResponse.statusCode,
-      message:
+      error:
         "We're sorry for the inconviencence, there seems to be a problem with our servers",
     };
   }
@@ -23,16 +23,20 @@ export default async function navUserInfo(
   if ("error" in fetchNavJoinRequestsResponse) {
     return {
       statusCode: fetchNavJoinRequestsResponse.statusCode,
-      message:
+      error:
         "We're sorry for the inconviencence, there seems to be a problem with our servers",
     };
   }
 
   return {
-    userName: userInfo.userName,
-    profileColor: userInfo.profileColor,
-    ownedRooms: userInfo.ownedRooms,
-    joinedRooms: userInfo.joinedRooms,
-    navJoinRequests: fetchNavJoinRequestsResponse.navJoinRequest,
+    statusCode: 200,
+    message: "Successfully Fetched navUserInfo",
+    data: {
+      userName: userInfo.userName,
+      profileColor: userInfo.profileColor,
+      ownedRooms: userInfo.ownedRooms,
+      joinedRooms: userInfo.joinedRooms,
+      navJoinRequests: fetchNavJoinRequestsResponse.navJoinRequest,
+    },
   };
 }
