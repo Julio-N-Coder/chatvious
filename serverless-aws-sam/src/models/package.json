@@ -1,6 +1,7 @@
 {
   "description": "Packages from the models route to use",
   "private": true,
+  "type": "module",
   "scripts": {
     "build": "tsc"
   },

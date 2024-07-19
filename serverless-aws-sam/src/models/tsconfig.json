@@ -1,6 +1,8 @@
 {
   "extends": "../tsconfig.base.json",
+  "include": ["../types/**/*.ts", "./**/*.ts"],
+  "exclude": ["node_modules"],
   "compilerOptions": {
-    "outDir": "/app/dist/models"
+    "outDir": "/app/dist"
   }
 }

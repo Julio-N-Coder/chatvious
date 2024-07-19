@@ -24,29 +24,25 @@ RUN npm install
 COPY ${function_directory}/dashboard.ts ${function_directory}/tsconfig.json ./
 RUN npm run build
 
-# debug dist contents in builder stage
-RUN echo "the builder stage dist contents:" && ls -a /app/dist/
-RUN echo "contents of ejs-page-render" && ls -a /app/dist/ejs-page-render
-
 FROM public.ecr.aws/lambda/nodejs:20
 ARG function_directory
 ENV NODE_ENV=production
 WORKDIR ${LAMBDA_TASK_ROOT}
-COPY --from=builder /app/dist/* ./
-# remove types folder
+COPY --from=builder /app/dist/ ./
+RUN rm -rf ${LAMBDA_TASK_ROOT}/types/
 
-# Debug: List the contents of the directory
-RUN pwd
-RUN echo "the first contents of ${LAMBDA_TASK_ROOT}:" && ls -a ${LAMBDA_TASK_ROOT}
-RUN echo "contents of dashboard" && ls -a dashboard
+WORKDIR ${LAMBDA_TASK_ROOT}/models/
+COPY ./models/package*.json ./
+RUN npm install
+
+WORKDIR ${LAMBDA_TASK_ROOT}/lib/
+COPY ./lib/package*.json ./
+RUN npm install
 
 WORKDIR ${LAMBDA_TASK_ROOT}/ejs-page-render/dashboard
 COPY ${function_directory}/package*.json ./
 RUN npm install
 
-# Debug: List the contents of the directory
-RUN pwd
-RUN echo "seccond contents of ${LAMBDA_TASK_ROOT}:" && ls -a ${LAMBDA_TASK_ROOT}
+# copy views to use as well to render page
 
-# copy views to use as well
 CMD ["ejs-page-render/dashboard/dashboard.handler"]
