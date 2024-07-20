@@ -3,7 +3,7 @@ import ejs from "ejs";
 import { roomManger } from "../../models/rooms.js";
 import fetchNavUserInfo from "../../lib/navUserInfo.js";
 
-export async function roomInfo(
+export async function handler(
   event: APIGatewayEvent
 ): Promise<APIGatewayProxyResult> {
   const RoomID = event.pathParameters?.RoomID;
