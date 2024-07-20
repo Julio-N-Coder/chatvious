@@ -1,18 +1,18 @@
 {
-  "main": "dashboard.ts",
-  "description": "The route that renders the dashboard page for chatvious",
+  "main": "roomInfo.ts",
+  "description": "The route that renders the roomInfo for chatvious",
   "type": "module",
   "private": true,
   "scripts": {
     "build": "tsc"
+  },
+  "dependencies": {
+    "ejs": "^3.1.10"
   },
   "devDependencies": {
     "@types/aws-lambda": "^8.10.141",
     "@types/ejs": "^3.1.5",
     "@types/node": "^20.14.11",
     "typescript": "^5.5.3"
-  },
-  "dependencies": {
-    "ejs": "^3.1.10"
   }
 }

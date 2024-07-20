@@ -71,5 +71,6 @@ Resources:
               responses: {}
       # Below is the correct syntax. I don't know why it's erroring in VSCode.
       EndpointConfiguration: REGIONAL
+      # Set up domain configuration once I get a domain
       Cors:
         MaxAge: 5
