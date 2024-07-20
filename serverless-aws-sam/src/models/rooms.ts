@@ -279,8 +279,6 @@ class RoomManager {
     return { message: "Member Removed", statusCode: 200 };
   }
 
-  // add fetchJoinRequest
-
   async fetchJoinRequest(RoomID: string, userID: string) {
     const joinRequestCommand = new GetCommand({
       TableName: "chatvious",

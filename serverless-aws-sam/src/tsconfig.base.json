@@ -1,6 +1,7 @@
 {
   "exclude": ["node_modules", "dist"],
   "compilerOptions": {
+    "outDir": "/app/dist",
     "target": "ESNext",
     "module": "Node16",
     "moduleResolution": "Node16",
