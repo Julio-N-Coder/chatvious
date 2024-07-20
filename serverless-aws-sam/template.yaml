@@ -28,15 +28,48 @@ Resources:
   dashboardPage:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: Chatvious:dashboardPage
+      FunctionName: Chatvious_dashboardPage
       Description: Renders dashboard Page for Chatvious
       PackageType: Image
+      MemorySize: 256
+      Timeout: 10
       Architectures:
         - x86_64
       Environment:
         Variables:
           NODE_ENV: production
+          DYNAMODB_TABLE_NAME: chatvious
+      Policies:
+        - AmazonDynamoDBReadOnlyAccess
+      Events:
+        ChatviousRestApiGETdashboard:
+          Type: Api
+          Properties:
+            Path: /dashboard
+            Method: GET
+            RestApiId: !Ref ChatviousRestApi
     Metadata:
       DockerContext: ./src
       Dockerfile: dashboardPage.Dockerfile
       DockerTag: latest
+
+  ChatviousRestApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      Name: Chatvious_RestApi
+      StageName: Main
+      DefinitionBody:
+        openapi: '3.0'
+        info: {}
+        paths:
+          /dashboard:
+            get:
+              x-amazon-apigateway-integration:
+                httpMethod: GET
+                type: aws_proxy
+                uri: !Sub arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${dashboardPage.Arn}/invocations
+              responses: {}
+      # Below is the correct syntax. I don't know why it's erroring in VSCode.
+      EndpointConfiguration: REGIONAL
+      Cors:
+        MaxAge: 5

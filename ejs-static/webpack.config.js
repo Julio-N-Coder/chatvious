@@ -7,21 +7,25 @@ const stylesHandler = MiniCssExtractPlugin.loader;
 
 const config = {
   entry: {
-    navBar: "./src/public/ts/navBar/navBar.ts",
-    dashboard: "./src/public/ts/dashboard/script.ts",
-    clientCreateRoom:
-      "./src/public/ts/dashboard/clientRooms/clientCreateRoom.ts",
-    clientJoinRoom: "./src/public/ts/dashboard/clientRooms/clientJoinRoom.ts",
-    chatRoom: "./src/public/ts/chatRoom/chatRoom.ts",
-    roomInfoJoinRequest: "./src/public/ts/roomInfoPage/roomInfoJoinRequest.ts",
-    clientAcceptOrReject:
-      "./src/public/ts/roomInfoPage/clientAcceptOrReject.ts",
-    roomInfoKickUser: "./src/public/ts/roomInfoPage/roomInfoKickUser.ts",
+    navBar: "./public/ts/navBar/navBar.ts",
+    dashboard: "./public/ts/dashboard/script.ts",
+    clientCreateRoom: "./public/ts/dashboard/clientRooms/clientCreateRoom.ts",
+    clientJoinRoom: "./public/ts/dashboard/clientRooms/clientJoinRoom.ts",
+    chatRoom: "./public/ts/chatRoom/chatRoom.ts",
+    roomInfoJoinRequest: "./public/ts/roomInfoPage/roomInfoJoinRequest.ts",
+    clientAcceptOrReject: "./public/ts/roomInfoPage/clientAcceptOrReject.ts",
+    roomInfoKickUser: "./public/ts/roomInfoPage/roomInfoKickUser.ts",
   },
   output: {
     filename: "[name].js",
-    path: path.resolve("dist", "public", "ejs"),
+    path: path.resolve("..", "dist", "public", "ejs"),
     clean: true,
+  },
+  devServer: {
+    static: "../dist/public/ejs",
+    open: false,
+    port: 8000,
+    historyApiFallback: true,
   },
   devtool: "inline-source-map",
   plugins: [
@@ -47,7 +51,7 @@ const config = {
     ],
   },
   resolve: {
-    extensions: [".ts", ".jsx", ".js", "..."],
+    extensions: [".ts", ".js", "..."],
   },
   optimization: {
     runtimeChunk: "single",
@@ -61,6 +65,7 @@ export default () => {
   if (isProduction) {
     config.mode = "production";
     delete config.devtool;
+    delete config.devServer;
   } else {
     config.mode = "development";
   }

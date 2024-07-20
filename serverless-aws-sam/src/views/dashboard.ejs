@@ -3,10 +3,17 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <% if (isProduction) { %>
     <link rel="stylesheet" href="ejs/styles.css" />
     <script defer src="ejs/runtime.js"></script>
     <script defer src="ejs/navBar.js"></script>
     <script defer src="ejs/dashboard.js"></script>
+    <% } else { %>
+    <link rel="stylesheet" href="http://localhost:8000/styles.css" />
+    <script defer src="http://localhost:8000/runtime.js"></script>
+    <script defer src="http://localhost:8000/navBar.js"></script>
+    <script defer src="http://localhost:8000/dashboard.js"></script>
+    <% } %>
     <title>DashBoard</title>
   </head>
   <body class="min-h-screen bg-base-300">
@@ -44,7 +51,12 @@
     <!--prettier-ignore-->
     <%- include("./components/dashboard/make-join-room-model", { type: "create" }) %>
     <%- include("./components/dashboard/make-join-room-model", { type: "join" }) %>
+    <% if (isProduction) { %>
     <script defer src="ejs/clientCreateRoom.js"></script>
     <script defer src="ejs/clientJoinRoom.js"></script>
+    <% } else { %>
+    <script defer src="http://localhost:8000/clientCreateRoom.js"></script>
+    <script defer src="http://localhost:8000/clientJoinRoom.js"></script>
+    <% } %>
   </body>
 </html>

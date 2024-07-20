@@ -1,6 +1,6 @@
 {
-  "include": ["src/public/ts/**/*.ts"],
-  "exclude": ["node_modules", "dist", "client", "src/types/**/*.d.ts"],
+  "include": ["public/ts/**/*.ts"],
+  "exclude": ["node_modules"],
   "compilerOptions": {
     "sourceMap": true,
     "outDir": "./dist",
