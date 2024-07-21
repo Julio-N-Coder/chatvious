@@ -1,7 +1,7 @@
 import { APIGatewayEvent, APIGatewayProxyResult } from "aws-lambda";
 import { roomManger } from "../../models/rooms.js";
 
-export default async function handler(
+export async function handler(
   event: APIGatewayEvent
 ): Promise<APIGatewayProxyResult> {
   const userID = event.requestContext.authorizer?.claims.sub as string;

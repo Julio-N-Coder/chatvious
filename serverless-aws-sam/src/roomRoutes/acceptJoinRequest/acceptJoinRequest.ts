@@ -2,7 +2,7 @@ import { APIGatewayEvent, APIGatewayProxyResult } from "aws-lambda";
 import { roomManger } from "../../models/rooms.js";
 import { userManager } from "../../models/users.js";
 
-export default async function handler(
+export async function handler(
   event: APIGatewayEvent
 ): Promise<APIGatewayProxyResult> {
   const bodyValidation = validateBody(event);

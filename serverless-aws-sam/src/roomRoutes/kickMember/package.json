@@ -1,0 +1,14 @@
+{
+  "main": "kickMember.ts",
+  "description": "The route for an owner to kick a member/admin or for an admin to kick a member for a room",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "build": "tsc"
+  },
+  "devDependencies": {
+    "@types/aws-lambda": "^8.10.141",
+    "@types/node": "^20.14.11",
+    "typescript": "^5.5.3"
+  }
+}
