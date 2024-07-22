@@ -18,7 +18,7 @@ const config = {
   devServer: {
     static: "../dist/public",
     open: true,
-    port: 3000,
+    port: 5500,
     historyApiFallback: true,
   },
   devtool: "inline-source-map",

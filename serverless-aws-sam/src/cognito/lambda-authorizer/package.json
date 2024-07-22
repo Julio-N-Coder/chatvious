@@ -1,0 +1,17 @@
+{
+  "main": "lambda-authorizer.ts",
+  "description": "The Lambda Authorizer for Chatvious Api Gateway",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "build": "tsc"
+  },
+  "dependencies": {
+    "aws-jwt-verify": "^4.0.1"
+  },
+  "devDependencies": {
+    "@types/aws-lambda": "^8.10.141",
+    "@types/node": "^20.14.11",
+    "typescript": "^5.5.3"
+  }
+}

@@ -6,7 +6,7 @@ Globals:
   Function:
     LoggingConfig:
       LogFormat: JSON
-
+# Make sure to exclude the callback route from authentication
 Resources:
   saveUserDataFunction:
     Type: AWS::Serverless::Function
@@ -32,7 +32,7 @@ Resources:
       Description: Renders dashboard Page for Chatvious
       PackageType: Image
       MemorySize: 256
-      Timeout: 10
+      Timeout: 6
       Architectures:
         - x86_64
       Environment:
@@ -52,12 +52,12 @@ Resources:
       DockerContext: ./src
       Dockerfile: dashboardPage.Dockerfile
       DockerTag: latest
-
+  # Connect the lambda authorizer
   ChatviousRestApi:
     Type: AWS::Serverless::Api
     Properties:
       Name: Chatvious_RestApi
-      StageName: Main
+      StageName: prod
       DefinitionBody:
         openapi: '3.0'
         info: {}
