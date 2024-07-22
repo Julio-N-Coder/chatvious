@@ -1,0 +1,18 @@
+{
+  "main": "callback.ts",
+  "description": "The Callback route to exchange an authorization code for tokens",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "build": "tsc"
+  },
+  "dependencies": {
+    "cookie": "^0.6.0"
+  },
+  "devDependencies": {
+    "@types/aws-lambda": "^8.10.141",
+    "@types/cookie": "^0.6.0",
+    "@types/node": "^20.14.11",
+    "typescript": "^5.5.3"
+  }
+}
