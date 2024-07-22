@@ -4,9 +4,12 @@ Description: lambda-signUp-saveData
 
 Globals:
   Function:
+    Environment:
+      Variables:
+        NODE_ENV: production
     LoggingConfig:
       LogFormat: JSON
-# Make sure to exclude the callback route from authentication
+
 Resources:
   saveUserDataFunction:
     Type: AWS::Serverless::Function
@@ -37,7 +40,6 @@ Resources:
         - x86_64
       Environment:
         Variables:
-          NODE_ENV: production
           DYNAMODB_TABLE_NAME: chatvious
       Policies:
         - AmazonDynamoDBReadOnlyAccess
@@ -52,12 +54,71 @@ Resources:
       DockerContext: ./src
       Dockerfile: dashboardPage.Dockerfile
       DockerTag: latest
-  # Connect the lambda authorizer
+
+  # exclude the callback route from authentication
+  callback:
+    Type: AWS::Serverless::Function
+    Properties:
+      Description: Callback route to exchange cognito auth codes for tokens
+      FunctionName: Chatvious_callback
+      Architectures:
+        - x86_64
+      MemorySize: 128
+      Timeout: 10
+      PackageType: Image
+      Environment:
+        Variables:
+          COGNITO_DOMAIN: https://chatvious.auth.us-west-1.amazoncognito.com
+          CLIENT_ID: jet3kkqp4jnkm1v3ta7htu75g
+          CALLBACK_URL: http://localhost:3000/callback
+          # domain not set up yet
+          DOMAIN: chatvious.coding-wielder.com
+      Events:
+        ChatviousRestApiGETcallback:
+          Type: Api
+          Properties:
+            Path: /callback
+            Method: GET
+            RestApiId: !Ref ChatviousRestApi
+            Auth:
+              Authorizer: None
+    Metadata:
+      BuildProperties:
+        DockerContext: ./src
+        Dockerfile: callback.Dockerfile
+        DockerTag: latest
+
+  LambdaAuthorizer:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: Chatvious_LambdaAuthorizer
+      Description: The Lambda Authorizer for chatvious
+      MemorySize: 128
+      Timeout: 10
+      PackageType: Image
+      Architectures:
+        - x86_64
+      Environment:
+        Variables:
+          USER_POOL_ID: us-west-1_iJn1nk3N1
+          CLIENT_ID: jet3kkqp4jnkm1v3ta7htu75g
+          COGNITO_DOMAIN: https://chatvious.auth.us-west-1.amazoncognito.com
+    Metadata:
+      BuildProperties:
+        DockerContext: ./src
+        Dockerfile: LambdaAuthorizer.Dockerfile
+        DockerTag: latest
+
   ChatviousRestApi:
     Type: AWS::Serverless::Api
     Properties:
       Name: Chatvious_RestApi
       StageName: prod
+      Auth:
+        Authorizers:
+          LambdaAuthorizer:
+            FunctionArn: !GetAtt LambdaAuthorizer.Arn
+        DefaultAuthorizer: LambdaAuthorizer
       DefinitionBody:
         openapi: '3.0'
         info: {}
@@ -68,6 +129,13 @@ Resources:
                 httpMethod: GET
                 type: aws_proxy
                 uri: !Sub arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${dashboardPage.Arn}/invocations
+              responses: {}
+          /callback:
+            get:
+              x-amazon-apigateway-integration:
+                httpMethod: GET
+                type: aws_proxy
+                uri: !Sub arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${callback.Arn}/invocations
               responses: {}
       # Below is the correct syntax. I don't know why it's erroring in VSCode.
       EndpointConfiguration: REGIONAL

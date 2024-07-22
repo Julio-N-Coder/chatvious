@@ -3,8 +3,8 @@ import {
   APIGatewayAuthorizerResult,
 } from "aws-lambda";
 import { CognitoJwtVerifier } from "aws-jwt-verify";
-import { TokenRefresh } from "../../types/types.js";
 import { decomposeUnverifiedJwt } from "aws-jwt-verify/jwt";
+import { TokenRefresh } from "../../types/types.js";
 
 interface InputTokens {
   refresh_token?: string;
@@ -166,9 +166,6 @@ function decomposeTokensString(
 
     if (!("refresh_token" in tokens)) {
       return { error: "Missing refresh token" };
-    }
-    if (!("access_token" in tokens) && !("id_token" in tokens)) {
-      return { error: "Missing token" };
     }
 
     return tokens as Tokens;
