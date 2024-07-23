@@ -10,12 +10,8 @@ export const handler = async (
   event: APIGatewayEvent
 ): Promise<APIGatewayProxyResult> => {
   console.log("Rendering Dashboard");
-  // const userID = event.requestContext.authorizer?.claims.sub as string;
-  // UNCOMMENT above line and remove hardcoded value below.
-  // it's commented out because I don't have auth function set up yet to get tokens from.
+  const userID = event.requestContext.authorizer?.claims.sub as string;
 
-  // userID is a testUser
-  const userID = "1959b93e-8061-706d-3b73-5f86ba878e9e";
   const navUserInfoResponse = await fetchNavUserInfo(userID);
   if ("error" in navUserInfoResponse) {
     return {

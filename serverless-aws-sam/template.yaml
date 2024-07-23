@@ -81,12 +81,11 @@ Resources:
             Method: GET
             RestApiId: !Ref ChatviousRestApi
             Auth:
-              Authorizer: None
+              Authorizer: NONE
     Metadata:
-      BuildProperties:
-        DockerContext: ./src
-        Dockerfile: callback.Dockerfile
-        DockerTag: latest
+      DockerContext: ./src
+      Dockerfile: callback.Dockerfile
+      DockerTag: latest
 
   LambdaAuthorizer:
     Type: AWS::Serverless::Function
@@ -104,10 +103,9 @@ Resources:
           CLIENT_ID: jet3kkqp4jnkm1v3ta7htu75g
           COGNITO_DOMAIN: https://chatvious.auth.us-west-1.amazoncognito.com
     Metadata:
-      BuildProperties:
-        DockerContext: ./src
-        Dockerfile: LambdaAuthorizer.Dockerfile
-        DockerTag: latest
+      DockerContext: ./src
+      Dockerfile: LambdaAuthorizer.Dockerfile
+      DockerTag: latest
 
   ChatviousRestApi:
     Type: AWS::Serverless::Api

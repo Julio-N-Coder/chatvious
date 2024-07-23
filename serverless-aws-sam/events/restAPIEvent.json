@@ -104,15 +104,30 @@
     "requestTimeEpoch": 1428582896000,
     "identity": {
       "sourceIp": "127.0.0.1",
-      "userAgent": "Custom User Agent String"
+      "userAgent": "Custom User Agent String",
+      "accessKey": null,
+      "accountId": null,
+      "caller": null,
+      "clientCert": null,
+      "apiKey": null,
+      "apiKeyId": null,
+      "cognitoAuthenticationType": null,
+      "cognitoAuthenticationProvider": null,
+      "cognitoIdentityId": null,
+      "cognitoIdentityPoolId": null,
+      "principalOrgId": null,
+      "userArn": null,
+      "user": null
     },
     "authorizer": {
       "claims": {
         "sub": "12345678-abcd-1234-efgh-123456789012",
+        "username":"testUser",
         "email": "testuser@example.com",
         "email_verified": "true",
+        "phone_number": "+12345678901",
         "phone_number_verified": "false",
-        "phone_number": "+12345678901"
+        "token_use": "access"
       },
       "scopes": null
     },

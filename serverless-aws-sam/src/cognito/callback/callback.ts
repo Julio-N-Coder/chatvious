@@ -1,6 +1,5 @@
 import { APIGatewayEvent, APIGatewayProxyResult } from "aws-lambda";
 import cookie from "cookie";
-import { isProduction } from "../../lib/handyUtils.js";
 import { AuthCodeTokenResponse } from "../../types/types.js";
 
 export async function handler(
@@ -108,4 +107,8 @@ export async function handler(
     statusCode: 400,
     body: JSON.stringify({ error: "Error While trying to log in" }),
   };
+}
+
+function isProduction() {
+  return process.env.NODE_ENV === "production";
 }

@@ -5,6 +5,7 @@ import {
   UserInfoDBResponse,
   RoomsOnUser,
   FetchNavJoinRequestsReturn,
+  CreateUserInfoReturn,
 } from "../types/types.js";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import {
@@ -12,12 +13,98 @@ import {
   GetCommand,
   QueryCommand,
   UpdateCommand,
+  PutCommand,
+  PutCommandOutput,
+  DeleteCommand,
+  DeleteCommandOutput,
 } from "@aws-sdk/lib-dynamodb";
 
 const client = new DynamoDBClient({});
 const docClient = DynamoDBDocumentClient.from(client);
 
 class UserManager {
+  async createUser(
+    userID?: string,
+    userName?: string,
+    email?: string,
+    profileColor?: string
+  ): CreateUserInfoReturn {
+    const colors = [
+      "blue",
+      "green",
+      "orange",
+      "yellow",
+      "sky",
+      "purple",
+      "pink",
+    ];
+    const getRandomColor = () => {
+      if (profileColor) return profileColor;
+      return colors[Math.floor(Math.random() * colors.length)];
+    };
+
+    const usedUserID = userID ? userID : (crypto.randomUUID() as string);
+    const usedUserName = userName
+      ? userName
+      : `testUser${Math.floor(Math.random() * 100)}`;
+    const usedEmail = email ? email : `${usedUserName}@example.com`;
+
+    const newUser = {
+      PartitionKey: `USER#${usedUserID}`,
+      SortKey: "PROFILE",
+      userID: usedUserID,
+      userName: usedUserName,
+      email: usedEmail,
+      profileColor: getRandomColor(),
+      ownedRooms: [],
+      joinedRooms: [],
+    };
+
+    const createUserCommand = new PutCommand({
+      TableName: "chatvious",
+      Item: newUser,
+    });
+
+    let createUserResponse: PutCommandOutput;
+    try {
+      createUserResponse = await docClient.send(createUserCommand);
+    } catch (error) {
+      return { statusCode: 500, error: "Failed to create user" };
+    }
+
+    const statusCode = createUserResponse.$metadata.httpStatusCode;
+    if (statusCode !== 200) {
+      return { statusCode: 500, error: "Failed to create user" };
+    }
+
+    return {
+      statusCode: 200,
+      message: "User created successfully",
+      newUser,
+    };
+  }
+
+  async deleteUser(userID: string): BaseModelsReturnType {
+    const deleteUserCommand = new DeleteCommand({
+      TableName: "chatvious",
+      Key: { PartitionKey: `USER#${userID}`, SortKey: "PROFILE" },
+    });
+
+    let deleteUserResponse: DeleteCommandOutput;
+    try {
+      deleteUserResponse = await docClient.send(deleteUserCommand);
+    } catch (error) {
+      return { error: "Failed to Delete User", statusCode: 500 };
+    }
+    const statusCode = deleteUserResponse.$metadata.httpStatusCode as number;
+
+    if (statusCode !== 200) {
+      return { error: "Failed to Delete User", statusCode };
+    }
+
+    return { message: "User Deleted", statusCode: 200 };
+  }
+
   async fetchUserInfo(userID: string): FetchUserInfoReturn {
     const getUserInfo = new GetCommand({
       TableName: "chatvious",

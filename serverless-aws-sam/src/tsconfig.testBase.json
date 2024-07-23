@@ -1,15 +1,13 @@
 {
-  // test might not work if I exclude src.
-  "exclude": ["node_modules", ".aws-sam", "src"],
+  "exclude": ["node_modules"],
   "compilerOptions": {
     "target": "ESNext",
     "strict": true,
     "preserveConstEnums": true,
     "noEmit": true,
     "sourceMap": false,
-    // jest only works with es2015 and node settings for some reason.
-    "module": "ES2015",
-    "moduleResolution": "node",
+    "module": "Node16",
+    "moduleResolution": "Node16",
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,

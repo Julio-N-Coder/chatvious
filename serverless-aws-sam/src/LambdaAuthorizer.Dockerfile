@@ -10,7 +10,7 @@ COPY ./types/types.ts /app/src/types/
 WORKDIR /app/src/cognito/lambda-authorizer
 COPY ${function_directory}/package*.json ${function_directory}/tsconfig.json ./
 RUN npm install
-COPY ${function_directory}/callback.ts ./
+COPY ${function_directory}/lambda-authorizer.ts ./
 RUN npm run build
 
 FROM public.ecr.aws/lambda/nodejs:20

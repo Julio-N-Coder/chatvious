@@ -43,16 +43,23 @@ type UserInfo = {
   profileColor: string;
 };
 
-type UserInfoDBResponse = UserInfo & {
+interface UserInfoDBResponse extends UserInfo {
   PartitionKey: `USER#${string}`;
   SortKey: "PROFILE";
-};
+}
 
 type FetchUserInfoSuccess = {
   userInfo: UserInfo;
   statusCode: number;
 };
 
+interface CreateUserInfoSuccess {
+  message: string;
+  statusCode: number;
+  newUser: UserInfo;
+}
+
+type CreateUserInfoReturn = Promise<BaseModelsError | CreateUserInfoSuccess>;
 type FetchUserInfoReturn = Promise<BaseModelsError | FetchUserInfoSuccess>;
 
 interface BaseRoomMember {
@@ -182,6 +189,7 @@ export {
   FetchRoomMembersReturn,
   UserInfoDBResponse,
   UserInfo,
+  CreateUserInfoReturn,
   FetchUserInfoReturn,
   FetchRoomReturn,
   JoinRequest,
