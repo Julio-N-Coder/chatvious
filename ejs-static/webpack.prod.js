@@ -6,6 +6,7 @@ const isProduction = process.env.NODE_ENV == "production";
 const stylesHandler = MiniCssExtractPlugin.loader;
 
 const config = {
+  mode: "production",
   entry: {
     navBar: "./public/ts/navBar/navBar.ts",
     dashboard: "./public/ts/dashboard/script.ts",
@@ -21,13 +22,6 @@ const config = {
     path: path.resolve("..", "dist", "public", "ejs"),
     clean: true,
   },
-  devServer: {
-    static: "../dist/public/ejs",
-    open: false,
-    port: 8000,
-    historyApiFallback: true,
-  },
-  devtool: "inline-source-map",
   plugins: [
     new MiniCssExtractPlugin({
       filename: "styles.css",
@@ -61,13 +55,4 @@ const config = {
   },
 };
 
-export default () => {
-  if (isProduction) {
-    console.log("Production mode");
-    config.mode = "production";
-  } else {
-    console.log("Development mode");
-    config.mode = "development";
-  }
-  return config;
-};
+export default config;

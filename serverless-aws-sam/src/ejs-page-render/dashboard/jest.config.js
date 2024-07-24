@@ -5,7 +5,7 @@ export default {
   },
   extensionsToTreatAsEsm: [".ts"],
   transform: {
-    "^.+\\.(mt|t|cj|j)s$": [
+    "^.+\\.ts$": [
       "ts-jest",
       {
         useESM: true,

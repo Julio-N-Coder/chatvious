@@ -7,6 +7,10 @@ Globals:
     Environment:
       Variables:
         NODE_ENV: production
+        CLIENT_ID: jet3kkqp4jnkm1v3ta7htu75g
+        USER_POOL_ID: us-west-1_iJn1nk3N1
+        # domain not set up yet
+        DOMAIN: chatvious.coding-wielder.com/prod
     LoggingConfig:
       LogFormat: JSON
 
@@ -69,10 +73,7 @@ Resources:
       Environment:
         Variables:
           COGNITO_DOMAIN: https://chatvious.auth.us-west-1.amazoncognito.com
-          CLIENT_ID: jet3kkqp4jnkm1v3ta7htu75g
           CALLBACK_URL: http://localhost:3000/callback
-          # domain not set up yet
-          DOMAIN: chatvious.coding-wielder.com
       Events:
         ChatviousRestApiGETcallback:
           Type: Api
@@ -99,8 +100,6 @@ Resources:
         - x86_64
       Environment:
         Variables:
-          USER_POOL_ID: us-west-1_iJn1nk3N1
-          CLIENT_ID: jet3kkqp4jnkm1v3ta7htu75g
           COGNITO_DOMAIN: https://chatvious.auth.us-west-1.amazoncognito.com
     Metadata:
       DockerContext: ./src
@@ -116,6 +115,9 @@ Resources:
         Authorizers:
           LambdaAuthorizer:
             FunctionArn: !GetAtt LambdaAuthorizer.Arn
+            Identity:
+              Header: Cookie
+              ReauthorizeEvery: 0
         DefaultAuthorizer: LambdaAuthorizer
       DefinitionBody:
         openapi: '3.0'

@@ -10,7 +10,7 @@ COPY ./types/types.ts /app/src/types/
 WORKDIR /app/src/
 COPY ./models/package*.json ./models/users.ts ./models/tsconfig.json ./models/
 
-COPY ./lib/package*.json ./lib/tsconfig.json ./lib/navUserInfo.ts ./lib/
+COPY ./lib/package*.json ./lib/tsconfig.json ./lib/*.ts ./lib/
 
 # Build typescript code
 WORKDIR /app/src/models/
@@ -33,6 +33,8 @@ COPY --from=builder /app/dist/ ./
 RUN rm -rf ${LAMBDA_TASK_ROOT}/types/
 # copy views to render ejs pages
 COPY ./views ./views
+
+RUN echo "final stage directory output" && ls
 
 # Install packages
 WORKDIR ${LAMBDA_TASK_ROOT}/models/

@@ -5,7 +5,6 @@ import { AuthCodeTokenResponse } from "../../types/types.js";
 export async function handler(
   event: APIGatewayEvent
 ): Promise<APIGatewayProxyResult> {
-  // environment variables not set up yet
   const cognitoData = {
     COGNITO_DOMAIN: process.env.COGNITO_DOMAIN as string,
     CLIENT_ID: process.env.CLIENT_ID as string,
@@ -55,7 +54,6 @@ export async function handler(
     }: AuthCodeTokenResponse = await tokens.json();
     const refresh_token_expiration_days = 365;
 
-    // environment variables not set up yet
     const domain = process.env.DOMAIN;
 
     // Add check to make tokens secure true in production

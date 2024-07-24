@@ -1,10 +1,7 @@
 import { APIGatewayProxyResult, APIGatewayEvent } from "aws-lambda";
 import ejs from "ejs";
 import fetchNavUserInfo from "../../lib/navUserInfo.js";
-
-function isProduction() {
-  return process.env.NODE_ENV === "production";
-}
+import { isProduction, addSetCookieHeaders } from "../../lib/handyUtils.js";
 
 export const handler = async (
   event: APIGatewayEvent
@@ -31,10 +28,15 @@ export const handler = async (
     isProduction: isProduction() ? true : false,
   });
 
-  return {
+  // seperate into function to be used in every lambda function
+  const baseSuccess: APIGatewayProxyResult = {
     isBase64Encoded: false,
     headers: { "Content-Type": "text/html" },
     statusCode: 200,
     body: dashboardHTML,
   };
+
+  const baseSuccessWCookies = await addSetCookieHeaders(event, baseSuccess);
+
+  return baseSuccessWCookies;
 };

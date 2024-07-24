@@ -4,18 +4,13 @@ import {
 } from "aws-lambda";
 import { CognitoJwtVerifier } from "aws-jwt-verify";
 import { decomposeUnverifiedJwt } from "aws-jwt-verify/jwt";
+import cookie from "cookie";
 import { TokenRefresh } from "../../types/types.js";
-
-interface InputTokens {
-  refresh_token?: string;
-  access_token?: string;
-  id_token?: string;
-}
 
 interface Tokens {
   refresh_token: string;
-  access_token?: string;
-  id_token?: string;
+  access_token: string | undefined;
+  id_token: string | undefined;
 }
 
 export const handler = async (
@@ -28,7 +23,6 @@ export const handler = async (
     return buildPolicy("Unauthorized", "Deny", methodArn);
   }
 
-  // env's not set up yet. Make sure to do so
   const cognitoData = {
     USER_POOL_ID: process.env.USER_POOL_ID as string,
     CLIENT_ID: process.env.CLIENT_ID as string,
@@ -36,7 +30,7 @@ export const handler = async (
   };
 
   // just working with access token for now
-  if ("access_token" in tokens) {
+  if (tokens.access_token) {
     const verifier = CognitoJwtVerifier.create({
       userPoolId: cognitoData.USER_POOL_ID as string,
       tokenUse: "access",
@@ -65,9 +59,9 @@ export const handler = async (
     } catch (err) {
       return buildPolicy("Unauthorized", "Deny", methodArn);
     }
-  } else {
+  } else if (tokens.refresh_token) {
     // refreshes tokens and passes them to lambdas to set as cookies
-    const refresh_token = tokens.refresh_token as string;
+    const refresh_token = tokens.refresh_token;
 
     try {
       const tokenResponse = await fetch(
@@ -113,6 +107,7 @@ export const handler = async (
       return buildPolicy("Unauthorized", "Deny", methodArn);
     }
   }
+  return buildPolicy("Unauthorized", "Deny", methodArn);
 };
 
 function buildPolicy(
@@ -158,17 +153,24 @@ function buildPolicy(
   }
 }
 
+// I need to parse tokens with cookie
 function decomposeTokensString(
-  tokensString: string
+  cookieString: string
 ): Tokens | { error: string } {
   try {
-    const tokens: InputTokens = JSON.parse(tokensString);
+    const cookiesWithTokens = cookie.parse(cookieString);
 
-    if (!("refresh_token" in tokens)) {
+    if (!("refresh_token" in cookiesWithTokens)) {
       return { error: "Missing refresh token" };
     }
 
-    return tokens as Tokens;
+    const tokens = {
+      refresh_token: cookiesWithTokens.refresh_token,
+      access_token: cookiesWithTokens.access_token || undefined,
+      id_token: cookiesWithTokens.id_token || undefined,
+    };
+
+    return tokens;
   } catch (err) {
     return {
       error: "Invalid token format",
