@@ -32,7 +32,7 @@ async function addSetCookieHeaders(
     return returnSuccessObject;
   }
 
-  const expires_in = new Date(Date.now() + payload.exp * 1000);
+  const expires_in = new Date(payload.exp * 1000);
   // Add check to make tokens secure true in production
   const access_token_cookie = cookie.serialize("access_token", access_token, {
     httpOnly: false,

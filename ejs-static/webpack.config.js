@@ -22,7 +22,7 @@ const config = {
     clean: true,
   },
   devServer: {
-    static: "../dist/public/ejs",
+    static: "../dist/public",
     open: false,
     port: 8000,
     historyApiFallback: true,

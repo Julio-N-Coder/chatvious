@@ -1,9 +1,6 @@
 import updateTheme from "./updateTheme";
 import { signOut } from "../dashboard/token-checker";
 
-// for some reason, scripts are not running
-console.log("test");
-
 const darkModeMediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
 let isOSDefaultDarkMode = darkModeMediaQuery.matches;
 let preferedTheme = localStorage.getItem("theme");

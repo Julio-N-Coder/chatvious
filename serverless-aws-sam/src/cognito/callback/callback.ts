@@ -55,21 +55,23 @@ export async function handler(
     const refresh_token_expiration_days = 365;
 
     const domain = process.env.DOMAIN;
+    const domainURL = process.env.DOMAIN_URL;
 
     // Add check to make tokens secure true in production
+    const cookieExpires = new Date(Date.now() + expires_in * 1000);
     const access_token_cookie = cookie.serialize("access_token", access_token, {
       httpOnly: false,
       secure: false,
       path: "/",
       domain,
-      expires: new Date(Date.now() + expires_in * 1000),
+      expires: cookieExpires,
     });
     const id_token_cookie = cookie.serialize("id_token", id_token, {
       httpOnly: false,
       secure: false,
       path: "/",
       domain,
-      expires: new Date(Date.now() + expires_in * 1000),
+      expires: cookieExpires,
     });
     const refresh_token_cookie = cookie.serialize(
       "refresh_token",
@@ -78,6 +80,7 @@ export async function handler(
         httpOnly: false,
         secure: false,
         path: "/",
+        domain,
         expires: new Date(
           Date.now() + refresh_token_expiration_days * 86400000
         ),
@@ -94,7 +97,7 @@ export async function handler(
       },
       headers: {
         // need to handle api gateway stage
-        Location: `${domain}/dashboard`,
+        Location: `${domainURL}/dashboard`,
       },
       statusCode: 302,
       body: "",

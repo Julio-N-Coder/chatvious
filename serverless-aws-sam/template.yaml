@@ -10,7 +10,10 @@ Globals:
         CLIENT_ID: jet3kkqp4jnkm1v3ta7htu75g
         USER_POOL_ID: us-west-1_iJn1nk3N1
         # domain not set up yet
-        DOMAIN: chatvious.coding-wielder.com/prod
+        DOMAIN: chatvious.coding-wielder.com
+        DOMAIN_URL: https://chatvious.coding-wielder.com/main
+        SUB_DOMAIN: main.chatvious.coding-wielder.com
+        SUB_DOMAIN_URL: https://main.chatvious.coding-wielder.com
     LoggingConfig:
       LogFormat: JSON
 
@@ -110,7 +113,7 @@ Resources:
     Type: AWS::Serverless::Api
     Properties:
       Name: Chatvious_RestApi
-      StageName: prod
+      StageName: main
       Auth:
         Authorizers:
           LambdaAuthorizer:
@@ -141,4 +144,8 @@ Resources:
       EndpointConfiguration: REGIONAL
       # Set up domain configuration once I get a domain
       Cors:
+        AllowMethods: "'OPTIONS, POST, GET'"
+        AllowHeaders: "'Content-Type,Cookie'"
+        AllowOrigin: "'*'"
+        AllowCredentials: true
         MaxAge: 5
