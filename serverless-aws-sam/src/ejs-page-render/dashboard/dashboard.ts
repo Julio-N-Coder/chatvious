@@ -28,17 +28,14 @@ export const handler = async (
     isProduction: isProduction() ? true : false,
   });
 
-  // having a problem with js not running in browser. try to set cors to own localhost port and 8000 port
-  // cors not set up yet
   const baseSuccess: APIGatewayProxyResult = {
     isBase64Encoded: false,
     headers: {
       "Content-Type": "text/html",
-      // "Access-Control-Allow-Origin": process.env.SUB_DOMAIN as string,
+      // "Access-Control-Allow-Origin": process.env.SUB_DOMAIN_URL as string,
       "Access-Control-Allow-Origin": "*",
       "Access-Control-Allow-Headers": "Content-Type,Cookie",
       "Access-Control-Allow-Methods": "OPTIONS,POST,GET",
-      "Access-Control-Allow-Credentials": "true",
     },
     statusCode: 200,
     body: dashboardHTML,

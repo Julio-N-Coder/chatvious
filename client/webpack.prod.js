@@ -8,6 +8,7 @@ const isProduction = process.env.NODE_ENV == "production";
 const stylesHandler = MiniCssExtractPlugin.loader;
 
 const config = {
+  mode: "production",
   entry: "./src/index.tsx",
   output: {
     // filename: "[name]main.js",
@@ -16,13 +17,6 @@ const config = {
       keep: /ejs\//,
     },
   },
-  devServer: {
-    static: "../dist/public",
-    open: true,
-    port: 5500,
-    historyApiFallback: true,
-  },
-  devtool: "inline-source-map",
   plugins: [
     new MiniCssExtractPlugin(),
     new HtmlWebpackPlugin({
@@ -30,7 +24,7 @@ const config = {
       // filename: "./index.html",
     }),
     new webpack.DefinePlugin({
-      "process.env.IS_DEV_SERVER": JSON.stringify(true),
+      "process.env.IS_DEV_SERVER": JSON.stringify(false),
       "process.env.DOMAIN": JSON.stringify("chatvious.coding-wielder.com"),
       "process.env.DOMAIN_URL": JSON.stringify(
         "https://chatvious.coding-wielder.com/main"
@@ -71,11 +65,4 @@ const config = {
   },
 };
 
-export default () => {
-  if (isProduction) {
-    config.mode = "production";
-  } else {
-    config.mode = "development";
-  }
-  return config;
-};
+export default config;

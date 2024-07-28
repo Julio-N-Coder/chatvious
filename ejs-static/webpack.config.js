@@ -1,5 +1,6 @@
 import path from "path";
 import MiniCssExtractPlugin from "mini-css-extract-plugin";
+import webpack from "webpack";
 
 const isProduction = process.env.NODE_ENV == "production";
 
@@ -31,6 +32,19 @@ const config = {
   plugins: [
     new MiniCssExtractPlugin({
       filename: "styles.css",
+    }),
+    new webpack.DefinePlugin({
+      "process.env.IS_DEV_SERVER": JSON.stringify(true),
+      "process.env.DOMAIN": JSON.stringify("chatvious.coding-wielder.com"),
+      "process.env.DOMAIN_URL": JSON.stringify(
+        "https://chatvious.coding-wielder.com/main"
+      ),
+      "process.env.SUB_DOMAIN": JSON.stringify(
+        "main.chatvious.coding-wielder.com"
+      ),
+      "process.env.SUB_DOMAIN_URL": JSON.stringify(
+        "https://main.chatvious.coding-wielder.com"
+      ),
     }),
   ],
   module: {

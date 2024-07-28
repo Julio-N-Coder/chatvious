@@ -26,7 +26,11 @@ async function signOut() {
       document.cookie =
         "refresh_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
 
-      window.location.href = "http://localhost:3000/";
+      const redirect_uri = process.env.IS_DEV_SERVER
+        ? "http://localhost:8000/"
+        : (process.env.SUB_DOMAIN_URL as string);
+
+      window.location.href = redirect_uri;
     }
   } catch (error) {
     // handle error and display it to ui
@@ -64,7 +68,6 @@ setInterval(async () => {
       );
       const tokenData: TokenRefresh = await tokenResponse.json();
 
-      // alert("Tokens Refreshed");
       setCookie("access_token", tokenData.access_token, tokenData.expires_in);
       setCookie("id_token", tokenData.id_token, tokenData.expires_in);
     } catch (error) {

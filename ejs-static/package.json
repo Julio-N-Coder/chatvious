@@ -9,9 +9,11 @@
     "fullBuild": "npm --prefix ../client run build && npm run build",
     "fullBuild:prod": "npm --prefix ../client run build:prod && npm run build:prod",
     "serve:prod": "webpack serve --mode=production --node-env=production",
-    "serve": "webpack serve"
+    "serve": "webpack serve",
+    "dev": "node script.js"
   },
   "dependencies": {
+    "express": "^4.19.2",
     "socket.io-client": "^4.7.5"
   },
   "devDependencies": {

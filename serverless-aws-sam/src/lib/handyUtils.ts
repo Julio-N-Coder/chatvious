@@ -32,18 +32,19 @@ async function addSetCookieHeaders(
     return returnSuccessObject;
   }
 
+  const secure = !process.env.IS_LOCAL_SERVER;
   const expires_in = new Date(payload.exp * 1000);
   // Add check to make tokens secure true in production
   const access_token_cookie = cookie.serialize("access_token", access_token, {
     httpOnly: false,
-    secure: false,
+    secure,
     path: "/",
     domain,
     expires: expires_in,
   });
   const id_token_cookie = cookie.serialize("id_token", id_token, {
     httpOnly: false,
-    secure: false,
+    secure,
     path: "/",
     domain,
     expires: expires_in,

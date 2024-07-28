@@ -39,7 +39,13 @@ export async function handler(
     if (!tokens.ok) {
       console.log(tokens);
       return {
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Allow-Headers": "Content-Type",
+          "Access-Control-Allow-Methods": "OPTIONS,POST,GET",
+          "Access-Control-Allow-Credentials": "true",
+        },
         statusCode: 400,
         body: JSON.stringify({ error: "Error While trying to log in" }),
       };
@@ -58,17 +64,19 @@ export async function handler(
     const domainURL = process.env.DOMAIN_URL;
 
     // Add check to make tokens secure true in production
+    const secure = !process.env.IS_LOCAL_SERVER;
     const cookieExpires = new Date(Date.now() + expires_in * 1000);
+
     const access_token_cookie = cookie.serialize("access_token", access_token, {
       httpOnly: false,
-      secure: false,
+      secure,
       path: "/",
       domain,
       expires: cookieExpires,
     });
     const id_token_cookie = cookie.serialize("id_token", id_token, {
       httpOnly: false,
-      secure: false,
+      secure,
       path: "/",
       domain,
       expires: cookieExpires,
@@ -78,7 +86,7 @@ export async function handler(
       refresh_token,
       {
         httpOnly: false,
-        secure: false,
+        secure,
         path: "/",
         domain,
         expires: new Date(
@@ -98,13 +106,21 @@ export async function handler(
       headers: {
         // need to handle api gateway stage
         Location: `${domainURL}/dashboard`,
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Headers": "Content-Type",
+        "Access-Control-Allow-Methods": "OPTIONS,POST,GET",
       },
       statusCode: 302,
       body: "",
     };
   }
   return {
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Headers": "Content-Type",
+      "Access-Control-Allow-Methods": "OPTIONS,POST,GET",
+    },
     statusCode: 400,
     body: JSON.stringify({ error: "Error While trying to log in" }),
   };

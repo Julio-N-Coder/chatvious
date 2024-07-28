@@ -3,9 +3,15 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <% if (isProduction) { %>
     <link rel="stylesheet" href="/ejs/styles.css" />
     <script defer src="/ejs/runtime.js"></script>
     <script defer src="/ejs/navBar.js"></script>
+    <% } else { %>
+    <link rel="stylesheet" href="http://localhost:8000/ejs/styles.css" />
+    <script defer src="http://localhost:8000/ejs/runtime.js"></script>
+    <script defer src="http://localhost:8000/ejs/navBar.js"></script>
+    <% } %>
     <title>Document</title>
   </head>
   <body class="min-h-screen bg-base-300">
@@ -132,12 +138,24 @@
         </div>
       </div>
     </div>
-    <% if (isOwnerOrAdmin) { %>
+    <% if (isProduction) { %> <% if (isOwnerOrAdmin) { %>
     <script defer src="/ejs/roomInfoKickUser.js"></script>
     <% if (joinRequests.length > 0) { %>
     <script defer src="/ejs/clientAcceptOrReject.js"></script>
     <% } %> <% } else { %>
     <script defer src="/ejs/roomInfoJoinRequest.js"></script>
-    <% } %>
+    <% } %> <% } else { %> <% if (isOwnerOrAdmin) { %>
+    <script defer src="http://localhost:8000/ejs/roomInfoKickUser.js"></script>
+    <% if (joinRequests.length > 0) { %>
+    <script
+      defer
+      src="http://localhost:8000/ejs/clientAcceptOrReject.js"
+    ></script>
+    <% } %> <% } else { %>
+    <script
+      defer
+      src="http://localhost:8000/ejs/roomInfoJoinRequest.js"
+    ></script>
+    <% } %> <% } %>
   </body>
 </html>

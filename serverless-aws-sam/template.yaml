@@ -14,6 +14,7 @@ Globals:
         DOMAIN_URL: https://chatvious.coding-wielder.com/main
         SUB_DOMAIN: main.chatvious.coding-wielder.com
         SUB_DOMAIN_URL: https://main.chatvious.coding-wielder.com
+        IS_LOCAL_SERVER: false
     LoggingConfig:
       LogFormat: JSON
 
@@ -62,7 +63,6 @@ Resources:
       Dockerfile: dashboardPage.Dockerfile
       DockerTag: latest
 
-  # exclude the callback route from authentication
   callback:
     Type: AWS::Serverless::Function
     Properties:
@@ -144,8 +144,7 @@ Resources:
       EndpointConfiguration: REGIONAL
       # Set up domain configuration once I get a domain
       Cors:
-        AllowMethods: "'OPTIONS, POST, GET'"
-        AllowHeaders: "'Content-Type,Cookie'"
-        AllowOrigin: "'*'"
-        AllowCredentials: true
+        AllowMethods: '''OPTIONS, POST, GET'''
+        AllowHeaders: '''Content-Type,Cookie'''
+        AllowOrigin: '''*'''
         MaxAge: 5

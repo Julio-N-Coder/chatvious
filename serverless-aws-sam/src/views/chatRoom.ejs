@@ -3,6 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <% if (isProduction) { %>
     <link rel="stylesheet" href="/ejs/styles.css" />
     <script defer src="/ejs/runtime.js"></script>
     <script defer src="/ejs/navBar.js"></script>
@@ -11,6 +12,16 @@
       defer
       src="/ejs/vendors-node_modules_socket_io-client_build_esm_index_js.js"
     ></script>
+    <% } else { %>
+    <link rel="stylesheet" href="http://localhost:8000/ejs/styles.css" />
+    <script defer src="http://localhost:8000/ejs/runtime.js"></script>
+    <script defer src="http://localhost:8000/ejs/navBar.js"></script>
+    <script defer src="http://localhost:8000/ejs/chatRoom.js"></script>
+    <script
+      defer
+      src="http://localhost:8000/ejs/vendors-node_modules_socket_io-client_build_esm_index_js.js"
+    ></script>
+    <% } %>
     <title>Room Page</title>
   </head>
   <body>

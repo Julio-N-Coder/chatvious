@@ -38,7 +38,11 @@ async function signOut() {
       document.cookie =
         "refresh_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
 
-      window.location.href = "http://localhost:3000/";
+      const redirect_uri = process.env.IS_DEV_SERVER
+        ? "http://localhost:8000/"
+        : (process.env.SUB_DOMAIN_URL as string);
+
+      window.location.href = redirect_uri;
     }
   } catch (error) {
     // handle error and display it to ui
