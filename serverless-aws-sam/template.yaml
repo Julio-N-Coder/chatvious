@@ -27,6 +27,8 @@ Resources:
       CodeUri: src/cognito/post-signUp-trigger/
       Handler: saveUserData.handler
       Runtime: nodejs20.x
+      MemorySize: 128
+      Timeout: 4
       Architectures:
         - x86_64
       Policies:
