@@ -14,6 +14,7 @@ Globals:
         DOMAIN_URL: https://chatvious.coding-wielder.com/main
         SUB_DOMAIN: main.chatvious.coding-wielder.com
         SUB_DOMAIN_URL: https://main.chatvious.coding-wielder.com
+        DYNAMODB_TABLE_NAME: chatvious
         IS_LOCAL_SERVER: false
     LoggingConfig:
       LogFormat: JSON
@@ -46,9 +47,6 @@ Resources:
       Timeout: 6
       Architectures:
         - x86_64
-      Environment:
-        Variables:
-          DYNAMODB_TABLE_NAME: chatvious
       Policies:
         - AmazonDynamoDBReadOnlyAccess
       Events:
@@ -61,6 +59,54 @@ Resources:
     Metadata:
       DockerContext: ./src
       Dockerfile: dashboardPage.Dockerfile
+      DockerTag: latest
+
+  roomInfoPage:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: Chatvious_roomInfoPage
+      Description: Renders roomInfo Page for Chatvious
+      PackageType: Image
+      MemorySize: 256
+      Timeout: 6
+      Architectures:
+        - x86_64
+      Policies:
+        - AmazonDynamoDBReadOnlyAccess
+      Events:
+        ChatviousRestApiGETroomsRoomID:
+          Type: Api
+          Properties:
+            Path: /rooms/{RoomID}
+            Method: GET
+            RestApiId: !Ref ChatviousRestApi
+    Metadata:
+      DockerContext: ./src
+      Dockerfile: roomInfoPage.Dockerfile
+      DockerTag: latest
+
+  chatRoom:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: Chatvious_chatRoom
+      Description: Renders chatRoom Page for Chatvious
+      PackageType: Image
+      MemorySize: 256
+      Timeout: 6
+      Architectures:
+        - x86_64
+      Policies:
+        - AmazonDynamoDBReadOnlyAccess
+      Events:
+        ChatviousRestApiGETchatroomRoomID:
+          Type: Api
+          Properties:
+            Path: /chat-room/{RoomID}
+            Method: GET
+            RestApiId: !Ref ChatviousRestApi
+    Metadata:
+      DockerContext: ./src
+      Dockerfile: chatRoom.Dockerfile
       DockerTag: latest
 
   callback:
@@ -139,6 +185,41 @@ Resources:
                 httpMethod: GET
                 type: aws_proxy
                 uri: !Sub arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${callback.Arn}/invocations
+              responses: {}
+          /rooms/createRoom:
+            post:
+              responses: {}
+          /rooms/joinRoom:
+            post:
+              responses: {}
+          /rooms/{RoomID}:
+            get:
+              x-amazon-apigateway-integration:
+                httpMethod: POST
+                type: aws_proxy
+                uri: !Sub arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${roomInfoPage.Arn}/invocations
+              responses: {}
+          /rooms/acceptJoinRequest:
+            post:
+              responses: {}
+          /rooms/rejectJoinRequest:
+            post:
+              responses: {}
+          /rooms/kickMember:
+            post:
+              responses: {}
+          /rooms/leaveRoom:
+            post:
+              responses: {}
+          /rooms/deleteRoom:
+            post:
+              responses: {}
+          /chat-room/{RoomID}:
+            get:
+              x-amazon-apigateway-integration:
+                httpMethod: POST
+                type: aws_proxy
+                uri: !Sub arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${chatRoom.Arn}/invocations
               responses: {}
       # Below is the correct syntax. I don't know why it's erroring in VSCode.
       EndpointConfiguration: REGIONAL
