@@ -1,5 +1,5 @@
 import { APIGatewayEvent, APIGatewayProxyResult } from "aws-lambda";
-import { roomManger } from "../../models/rooms.js";
+import { roomManager } from "../../models/rooms.js";
 import { userManager } from "../../models/users.js";
 
 export async function handler(
@@ -14,7 +14,7 @@ export async function handler(
   const userName = event.requestContext.authorizer?.claims.username as string;
   const RoomID = bodyValidation.body.RoomID;
 
-  const fetchRoomResponse = await roomManger.fetchRoom(RoomID);
+  const fetchRoomResponse = await roomManager.fetchRoom(RoomID);
   if ("error" in fetchRoomResponse) {
     if (fetchRoomResponse.error === "Bad Request") {
       return {
@@ -30,7 +30,7 @@ export async function handler(
     };
   }
 
-  const roomMembersResponse = await roomManger.fetchRoomMembers(RoomID);
+  const roomMembersResponse = await roomManager.fetchRoomMembers(RoomID);
   if ("error" in roomMembersResponse) {
     return {
       headers: { "Content-Type": "application/json" },
@@ -50,7 +50,10 @@ export async function handler(
     };
   }
 
-  const joinRequestResponse = await roomManger.fetchJoinRequest(RoomID, userID);
+  const joinRequestResponse = await roomManager.fetchJoinRequest(
+    RoomID,
+    userID
+  );
   if (
     "error" in joinRequestResponse &&
     joinRequestResponse.error !== "Bad Request"
@@ -81,7 +84,7 @@ export async function handler(
   const { profileColor } = userInfoResponse.userInfo;
 
   // send a join request to the room.
-  const joinRequest = await roomManger.sendJoinRequest(
+  const joinRequest = await roomManager.sendJoinRequest(
     userName,
     userID,
     roomName,

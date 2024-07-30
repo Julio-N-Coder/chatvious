@@ -424,6 +424,6 @@ class RoomManager {
   }
 }
 
-const roomManger = new RoomManager();
+const roomManager = new RoomManager();
 
-export { roomManger };
+export { roomManager };

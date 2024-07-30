@@ -9,7 +9,7 @@ COPY ./types/types.ts /app/src/types/
 WORKDIR /app/src/
 COPY ./models/package*.json ./models/users.ts ./models/rooms.ts ./models/tsconfig.json ./models/
 
-COPY ./lib/package*.json ./lib/tsconfig.json ./lib/navUserInfo.ts ./lib/
+COPY ./lib/package*.json ./lib/tsconfig.json ./lib/*.ts ./lib/
 
 WORKDIR /app/src/models/
 RUN npm install && npm run build

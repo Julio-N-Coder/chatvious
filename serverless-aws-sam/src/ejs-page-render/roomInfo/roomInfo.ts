@@ -1,7 +1,8 @@
 import { APIGatewayProxyResult, APIGatewayEvent } from "aws-lambda";
 import ejs from "ejs";
-import { roomManger } from "../../models/rooms.js";
+import { roomManager } from "../../models/rooms.js";
 import fetchNavUserInfo from "../../lib/navUserInfo.js";
+import { isProduction, addSetCookieHeaders } from "../../lib/handyUtils.js";
 
 export async function handler(
   event: APIGatewayEvent
@@ -17,7 +18,7 @@ export async function handler(
 
   const userID = event.requestContext.authorizer?.claims.sub as string;
 
-  const roomInfoResponse = await roomManger.fetchRoom(RoomID);
+  const roomInfoResponse = await roomManager.fetchRoom(RoomID);
   if ("error" in roomInfoResponse) {
     return {
       headers: { "Content-Type": "application/json" },
@@ -27,7 +28,7 @@ export async function handler(
   }
 
   // fetch RoomMembers to display
-  const roomMembersResponse = await roomManger.fetchRoomMembers(RoomID);
+  const roomMembersResponse = await roomManager.fetchRoomMembers(RoomID);
   if ("error" in roomMembersResponse) {
     return {
       headers: { "Content-Type": "application/json" },
@@ -81,7 +82,7 @@ export async function handler(
   const navJoinRequest = navUserInfo.navJoinRequests;
 
   if (isOwner || isAdmin) {
-    const joinRequestResponse = await roomManger.fetchJoinRequests(RoomID);
+    const joinRequestResponse = await roomManager.fetchJoinRequests(RoomID);
     if ("error" in joinRequestResponse) {
       return {
         headers: { "Content-Type": "application/json" },
@@ -91,7 +92,7 @@ export async function handler(
     }
     const { joinRequests } = joinRequestResponse;
 
-    console.log("rendering roomInfo page", "Owner");
+    console.log("rendering roomInfo page", "Owner/Admin");
     const roomInfoHTML = await ejs.renderFile("../../views/roomInfo.ejs", {
       roomInfo,
       roomOwner,
@@ -102,12 +103,16 @@ export async function handler(
       navJoinRequest,
       profileColor,
       username: userName,
+      isProduction: isProduction(),
     });
-    return {
+
+    const ownerAdminSucess = {
       headers: { "Content-Type": "text/html" },
       statusCode: 200,
       body: roomInfoHTML,
     };
+
+    return await addSetCookieHeaders(event, ownerAdminSucess);
   }
 
   console.log("rendering roomInfo page");
@@ -121,11 +126,14 @@ export async function handler(
     navJoinRequest,
     profileColor,
     username: userName,
+    isProduction: isProduction(),
   });
 
-  return {
+  const memberVisitorSuccess = {
     headers: { "Content-Type": "text/html" },
     statusCode: 200,
     body: roomInfoHTML,
   };
+
+  return await addSetCookieHeaders(event, memberVisitorSuccess);
 }

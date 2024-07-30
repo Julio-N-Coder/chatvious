@@ -1,5 +1,5 @@
 import { APIGatewayEvent, APIGatewayProxyResult } from "aws-lambda";
-import { roomManger } from "../../models/rooms.js";
+import { roomManager } from "../../models/rooms.js";
 import { userManager } from "../../models/users.js";
 
 export async function handler(
@@ -14,7 +14,7 @@ export async function handler(
   const memberUserID = bodyValidation.body.userID;
   const userID = event.requestContext.authorizer?.claims.sub as string;
 
-  const fetchRoomMemberResponse = await roomManger.fetchRoomMember(
+  const fetchRoomMemberResponse = await roomManager.fetchRoomMember(
     RoomID,
     userID
   );
@@ -36,7 +36,10 @@ export async function handler(
   }
 
   // check whether user is a lower status then kicker
-  const memberUserInfo = await roomManger.fetchRoomMember(RoomID, memberUserID);
+  const memberUserInfo = await roomManager.fetchRoomMember(
+    RoomID,
+    memberUserID
+  );
   if ("error" in memberUserInfo) {
     return {
       headers: { "Content-Type": "application/json" },
@@ -65,7 +68,7 @@ export async function handler(
     }
   }
 
-  const removeRoomMemberResponse = roomManger.removeRoomMember(
+  const removeRoomMemberResponse = roomManager.removeRoomMember(
     RoomID,
     memberUserID
   );

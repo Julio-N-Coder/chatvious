@@ -1,5 +1,5 @@
 import { APIGatewayEvent, APIGatewayProxyResult } from "aws-lambda";
-import { roomManger } from "../../models/rooms.js";
+import { roomManager } from "../../models/rooms.js";
 import { userManager } from "../../models/users.js";
 
 export async function handler(
@@ -27,7 +27,7 @@ export async function handler(
 
   const { profileColor } = userInfoResponse.userInfo;
 
-  const makeRoomResponse = await roomManger.makeRoom(
+  const makeRoomResponse = await roomManager.makeRoom(
     userID,
     userName,
     roomName,

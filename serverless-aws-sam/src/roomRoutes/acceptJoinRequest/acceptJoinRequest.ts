@@ -1,5 +1,5 @@
 import { APIGatewayEvent, APIGatewayProxyResult } from "aws-lambda";
-import { roomManger } from "../../models/rooms.js";
+import { roomManager } from "../../models/rooms.js";
 import { userManager } from "../../models/users.js";
 
 export async function handler(
@@ -85,7 +85,7 @@ export async function handler(
   const requestUserName = requestUserInfoResponse.userInfo.userName;
   const requestUserProfileColor = requestUserInfoResponse.userInfo.profileColor;
 
-  const removeJoinRequestResponse = await roomManger.removeJoinRequest(
+  const removeJoinRequestResponse = await roomManager.removeJoinRequest(
     RoomID,
     requestUserID
   );
@@ -98,7 +98,7 @@ export async function handler(
   }
 
   // add user as a member to room.
-  const addMemberResponse = await roomManger.addRoomMember(
+  const addMemberResponse = await roomManager.addRoomMember(
     RoomID,
     requestUserID,
     requestUserName,
