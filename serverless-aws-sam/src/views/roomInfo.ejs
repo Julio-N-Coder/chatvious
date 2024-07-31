@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <% if (isProduction) { %>
+    <link rel="stylesheet" href="/ejs/styles.css" />
+    <script defer src="/ejs/runtime.js"></script>
+    <script defer src="/ejs/navBar.js"></script>
+    <% } else { %>
+    <link rel="stylesheet" href="http://localhost:8000/ejs/styles.css" />
+    <script defer src="http://localhost:8000/ejs/runtime.js"></script>
+    <script defer src="http://localhost:8000/ejs/navBar.js"></script>
+    <% } %>
+    <title>Document</title>
+  </head>
+  <body class="min-h-screen bg-base-300">
+    <div class="roboto antialiased">
+      <%- include("./components/navBar", {profileColor, username,
+      anyJoinRequest: false, navJoinRequest }) %> <%# Fixed Status box %>
+      <div id="fixedStatusBox" class="fixed rounded-r-lg px-1 max-w-52"></div>
+      <div
+        class="container mx-auto mt-4 border-2 border-base-content rounded-2xl shadow-lg shadow-base-content/30"
+      >
+        <h1
+          class="font-bold text-7xl text-center border-base-content border-b-2"
+        >
+          <%= roomInfo.roomName %>
+        </h1>
+        <div class="m-2 space-y-2">
+          <%# onwerName and createdAt %>
+          <div class="text-2xl flex justify-evenly items-center">
+            <div>
+              <div class="m-2 flex gap-2 items-center">
+                <span>Room Owner:</span>
+                <%- include("./components/profileIcon", {username:
+                roomOwner.userName, profileColor: roomOwner.profileColor,
+                forNav: false}) %>
+                <span><%= roomOwner.userName %></span>
+              </div>
+            </div>
+            <div>
+              <div class="m-2 flex gap-2">
+                <span>Created At:</span>
+                <span><%= roomInfo.createdAt.split("T")[0] %></span>
+              </div>
+            </div>
+          </div>
+          <div class="text-2xl text-center">
+            Room ID: <%= roomInfo.RoomID %>
+          </div>
+          <% if (isOwner || isOwnerOrAdmin || isMember) { %>
+          <div class="flex justify-center items-center gap-1">
+            <span class="text-xl">Join Chat Room</span>
+            <a
+              href="/chat-room/<%= roomInfo.RoomID %>"
+              class="btn btn-accent btn-sm"
+              >Join</a
+            >
+          </div>
+          <% } %> <%# Join Request %> <% if (isOwnerOrAdmin) { %>
+          <div class="border-base-content border-2 rounded-xl text-xl p-1">
+            <div class="text-3xl text-center">Join Requests</div>
+            <% if (joinRequests.length > 0) { %>
+            <div class="max-h-72 overflow-y-auto flex flex-wrap justify-evenly">
+              <% joinRequests.map((joinRequest) => { %>
+              <div
+                data-userid="<%= joinRequest.fromUserID %>"
+                class="border-2 border-base-content rounded-xl p-2"
+              >
+                <div class="flex items-center gap-1">
+                  <%- include("./components/profileIcon", {forNav: false,
+                  username: joinRequest.fromUserName, profileColor:
+                  joinRequest.profileColor }) %>
+                  <div class=""><%= joinRequest.fromUserName %></div>
+                  <div class="ml-4">
+                    <button class="acceptJoinRequest btn btn-accent btn-sm">
+                      Accept Request
+                    </button>
+                    <button class="rejectJoinRequest btn btn-accent btn-sm">
+                      Reject Request
+                    </button>
+                  </div>
+                </div>
+              </div>
+              <% }) %>
+            </div>
+            <% } else { %>
+            <div class="text-center">Currently No Join Request</div>
+            <% } %>
+          </div>
+          <% } else if (!isMember) { %>
+          <div class="text-lg flex justify-center">
+            <div class="flex gap-1 justify-center">
+              <div>Send Join Request to Room?</div>
+              <button id="joinRequestButton" class="btn btn-accent btn-sm">
+                Send
+                <span
+                  id="joinRoomLoader"
+                  class="hidden -translate-x-2 translate-y-1 loading loading-dots loading-sm"
+                ></span>
+              </button>
+            </div>
+          </div>
+          <div id="statusContainer" class="flex justify-center hidden">
+            <span
+              id="statusTextBox"
+              class="text-center text-lg rounded-lg px-1"
+            ></span>
+          </div>
+          <% } %> <%# joined users %>
+          <div class="border-base-content border-2 rounded-xl text-xl">
+            <div class="m-2">
+              <div class="text-center text-3xl">Members</div>
+              <div class="divide-y">
+                <% if (roomMembers.length > 1) { %> <% for (let i = 0; i <
+                roomMembers.length; i++) { %> <% const member = roomMembers[i]
+                %> <% if (member.RoomUserStatus === "OWNER") continue %>
+                <div data-userid="<%= member.userID %>" class="text-2xl py-2">
+                  <%- include("./components/profileIcon", {username:
+                  member.userName, profileColor: member.profileColor, forNav:
+                  false}) %>
+                  <span class=""><%= member.userName %></span>
+                  <span class="text-lg"><%= member.RoomUserStatus %></span>
+                  <% if (isOwnerOrAdmin && member.RoomUserStatus === "MEMBER") {
+                  %> <%# Not implemented yet %>
+                  <button class="kick ml-3 btn btn-accent btn-sm">Kick</button>
+                  <% } else if (isOwner) {%>
+                  <button class="kick ml-3 btn btn-accent btn-sm">Kick</button>
+                  <% } %>
+                </div>
+                <% } %> <% } else { %>
+                <div class="text-center text-2xl">There are no Members yet</div>
+                <% } %>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <% if (isProduction) { %> <% if (isOwnerOrAdmin) { %>
+    <script defer src="/ejs/roomInfoKickUser.js"></script>
+    <% if (joinRequests.length > 0) { %>
+    <script defer src="/ejs/clientAcceptOrReject.js"></script>
+    <% } %> <% } else { %>
+    <script defer src="/ejs/roomInfoJoinRequest.js"></script>
+    <% } %> <% } else { %> <% if (isOwnerOrAdmin) { %>
+    <script defer src="http://localhost:8000/ejs/roomInfoKickUser.js"></script>
+    <% if (joinRequests.length > 0) { %>
+    <script
+      defer
+      src="http://localhost:8000/ejs/clientAcceptOrReject.js"
+    ></script>
+    <% } %> <% } else { %>
+    <script
+      defer
+      src="http://localhost:8000/ejs/roomInfoJoinRequest.js"
+    ></script>
+    <% } %> <% } %>
+  </body>
+</html>

@@ -3,3 +3,4 @@ Notes.md
 dist
 .env
 .aws-sam
+coverage

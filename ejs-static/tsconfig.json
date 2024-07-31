@@ -1,0 +1,17 @@
+{
+  "include": ["public/ts/**/*.ts"],
+  "exclude": ["node_modules"],
+  "compilerOptions": {
+    "sourceMap": true,
+    "outDir": "./dist",
+    "target": "ES6",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "resolveJsonModule": true,
+    "allowJs": true,
+    "removeComments": true,
+    "forceConsistentCasingInFileNames": true,
+    "strict": true,
+    "skipLibCheck": true
+  }
+}

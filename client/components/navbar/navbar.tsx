@@ -111,7 +111,15 @@ export default function Navbar({ isDarkMode, setIsDarkMode }: NavbarProps) {
               </NavLink>
             </li>
             <li>
-              <a href="/dashboard">Dashboard</a>
+              <a
+                href={`${
+                  process.env.IS_DEV_SERVER
+                    ? "http://localhost:3000"
+                    : process.env.DOMAIN_URL
+                }/dashboard`}
+              >
+                Dashboard
+              </a>
             </li>
           </ul>
         </details>
@@ -129,7 +137,14 @@ export default function Navbar({ isDarkMode, setIsDarkMode }: NavbarProps) {
         >
           About
         </NavLink>
-        <a href="/dashboard" className="nav-tabs-lg hidden md:block">
+        <a
+          href={`${
+            process.env.IS_DEV_SERVER
+              ? "http://localhost:3000"
+              : process.env.DOMAIN_URL
+          }/dashboard`}
+          className="nav-tabs-lg hidden md:block"
+        >
           DashBoard
         </a>
       </div>

@@ -1,0 +1,374 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: lambda-signUp-saveData
+
+Globals:
+  Function:
+    Environment:
+      Variables:
+        NODE_ENV: production
+        CLIENT_ID: jet3kkqp4jnkm1v3ta7htu75g
+        USER_POOL_ID: us-west-1_iJn1nk3N1
+        # domain not set up yet
+        DOMAIN: chatvious.coding-wielder.com
+        DOMAIN_URL: https://chatvious.coding-wielder.com/main
+        SUB_DOMAIN: main.chatvious.coding-wielder.com
+        SUB_DOMAIN_URL: https://main.chatvious.coding-wielder.com
+        DYNAMODB_TABLE_NAME: chatvious
+        IS_LOCAL_SERVER: false
+    LoggingConfig:
+      LogFormat: JSON
+
+# change AmazonDynamoDBFullAccess to just crud access. the one provided by sam.
+Resources:
+  saveUserDataFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/cognito/post-signUp-trigger/
+      Handler: saveUserData.handler
+      Runtime: nodejs20.x
+      MemorySize: 128
+      Timeout: 4
+      Architectures:
+        - x86_64
+      Policies:
+        - AmazonDynamoDBFullAccess
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        Minify: true
+        Target: es2020
+        Sourcemap: true
+
+  dashboardPage:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: Chatvious_dashboardPage
+      Description: Renders dashboard Page for Chatvious
+      PackageType: Image
+      MemorySize: 256
+      Timeout: 6
+      Architectures:
+        - x86_64
+      Policies:
+        - AmazonDynamoDBReadOnlyAccess
+      Events:
+        ChatviousRestApiGETdashboard:
+          Type: Api
+          Properties:
+            Path: /dashboard
+            Method: GET
+            RestApiId: !Ref ChatviousRestApi
+    Metadata:
+      DockerContext: ./src
+      Dockerfile: dashboardPage.Dockerfile
+      DockerTag: latest
+
+  roomInfoPage:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: Chatvious_roomInfoPage
+      Description: Renders roomInfo Page for Chatvious
+      PackageType: Image
+      MemorySize: 256
+      Timeout: 6
+      Architectures:
+        - x86_64
+      Policies:
+        - AmazonDynamoDBReadOnlyAccess
+      Events:
+        ChatviousRestApiGETroomsRoomID:
+          Type: Api
+          Properties:
+            Path: /rooms/{RoomID}
+            Method: GET
+            RestApiId: !Ref ChatviousRestApi
+    Metadata:
+      DockerContext: ./src
+      Dockerfile: roomInfoPage.Dockerfile
+      DockerTag: latest
+
+  chatRoom:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: Chatvious_chatRoom
+      Description: Renders chatRoom Page for Chatvious
+      PackageType: Image
+      MemorySize: 256
+      Timeout: 6
+      Architectures:
+        - x86_64
+      Policies:
+        - AmazonDynamoDBReadOnlyAccess
+      Events:
+        ChatviousRestApiGETchatroomRoomID:
+          Type: Api
+          Properties:
+            Path: /chat-room/{RoomID}
+            Method: GET
+            RestApiId: !Ref ChatviousRestApi
+    Metadata:
+      DockerContext: ./src
+      Dockerfile: chatRoom.Dockerfile
+      DockerTag: latest
+
+  createRoom:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: Chatvious_createRoom
+      Description: Creates a new chat room
+      PackageType: Image
+      MemorySize: 128
+      Timeout: 6
+      Architectures:
+        - x86_64
+      Policies:
+        - AmazonDynamoDBFullAccess
+      Events:
+        ChatviousRestApiPOSTroomscreateRoom:
+          Type: Api
+          Properties:
+            Path: /rooms/createRoom
+            Method: POST
+            RestApiId: !Ref ChatviousRestApi
+    Metadata:
+      DockerContext: ./src
+      Dockerfile: createRoom.Dockerfile
+      DockerTag: latest
+
+  joinRoom:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: Chatvious_joinRoom
+      Description: A user can join a chat room
+      PackageType: Image
+      MemorySize: 128
+      Timeout: 6
+      Architectures:
+        - x86_64
+      Policies:
+        - AmazonDynamoDBFullAccess
+      Events:
+        ChatviousRestApiPOSTroomsjoinRoom:
+          Type: Api
+          Properties:
+            Path: /rooms/joinRoom
+            Method: POST
+            RestApiId: !Ref ChatviousRestApi
+    Metadata:
+      DockerContext: ./src
+      Dockerfile: joinRoom.Dockerfile
+      DockerTag: latest
+
+  acceptJoinRequest:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: Chatvious_acceptJoinRequest
+      Description: Accepts a join request for a user to join a chat room
+      PackageType: Image
+      MemorySize: 128
+      Timeout: 6
+      Architectures:
+        - x86_64
+      Policies:
+        - AmazonDynamoDBFullAccess
+      Events:
+        ChatviousRestApiPOSTroomsacceptJoinRequest:
+          Type: Api
+          Properties:
+            Path: /rooms/acceptJoinRequest
+            Method: POST
+            RestApiId: !Ref ChatviousRestApi
+    Metadata:
+      DockerContext: ./src
+      Dockerfile: acceptJoinRequest.Dockerfile
+      DockerTag: latest
+
+  rejectJoinRequest:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: Chatvious_rejectJoinRequest
+      Description: Rejects a join request for a chat room
+      PackageType: Image
+      MemorySize: 128
+      Timeout: 6
+      Architectures:
+        - x86_64
+      Policies:
+        - AmazonDynamoDBFullAccess
+      Events:
+        ChatviousRestApiPOSTroomsrejectJoinRequest:
+          Type: Api
+          Properties:
+            Path: /rooms/rejectJoinRequest
+            Method: POST
+            RestApiId: !Ref ChatviousRestApi
+    Metadata:
+      DockerContext: ./src
+      Dockerfile: rejectJoinRequest.Dockerfile
+      DockerTag: latest
+
+  kickMember:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: Chatvious_kickMember
+      Description: Kicks a member from a chat room
+      PackageType: Image
+      MemorySize: 128
+      Timeout: 6
+      Architectures:
+        - x86_64
+      Policies:
+        - AmazonDynamoDBFullAccess
+      Events:
+        ChatviousRestApiPOSTroomskickMember:
+          Type: Api
+          Properties:
+            Path: /rooms/kickMember
+            Method: POST
+            RestApiId: !Ref ChatviousRestApi
+    Metadata:
+      DockerContext: ./src
+      Dockerfile: kickMember.Dockerfile
+      DockerTag: latest
+
+  callback:
+    Type: AWS::Serverless::Function
+    Properties:
+      Description: Callback route to exchange cognito auth codes for tokens
+      FunctionName: Chatvious_callback
+      Architectures:
+        - x86_64
+      MemorySize: 128
+      Timeout: 10
+      PackageType: Image
+      Environment:
+        Variables:
+          COGNITO_DOMAIN: https://chatvious.auth.us-west-1.amazoncognito.com
+          CALLBACK_URL: http://localhost:3000/callback
+      Events:
+        ChatviousRestApiGETcallback:
+          Type: Api
+          Properties:
+            Path: /callback
+            Method: GET
+            RestApiId: !Ref ChatviousRestApi
+            Auth:
+              Authorizer: NONE
+    Metadata:
+      DockerContext: ./src
+      Dockerfile: callback.Dockerfile
+      DockerTag: latest
+
+  LambdaAuthorizer:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: Chatvious_LambdaAuthorizer
+      Description: The Lambda Authorizer for chatvious
+      MemorySize: 128
+      Timeout: 10
+      PackageType: Image
+      Architectures:
+        - x86_64
+      Environment:
+        Variables:
+          COGNITO_DOMAIN: https://chatvious.auth.us-west-1.amazoncognito.com
+    Metadata:
+      DockerContext: ./src
+      Dockerfile: LambdaAuthorizer.Dockerfile
+      DockerTag: latest
+
+  ChatviousRestApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      Name: Chatvious_RestApi
+      StageName: main
+      Auth:
+        Authorizers:
+          LambdaAuthorizer:
+            FunctionArn: !GetAtt LambdaAuthorizer.Arn
+            Identity:
+              Header: Cookie
+              ReauthorizeEvery: 0
+        DefaultAuthorizer: LambdaAuthorizer
+      DefinitionBody:
+        openapi: '3.0'
+        info: {}
+        paths:
+          /dashboard:
+            get:
+              x-amazon-apigateway-integration:
+                httpMethod: GET
+                type: aws_proxy
+                uri: !Sub arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${dashboardPage.Arn}/invocations
+              responses: {}
+          /callback:
+            get:
+              x-amazon-apigateway-integration:
+                httpMethod: GET
+                type: aws_proxy
+                uri: !Sub arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${callback.Arn}/invocations
+              responses: {}
+          /rooms/createRoom:
+            post:
+              x-amazon-apigateway-integration:
+                httpMethod: POST
+                type: aws_proxy
+                uri: !Sub arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${createRoom.Arn}/invocations
+              responses: {}
+          /rooms/joinRoom:
+            post:
+              x-amazon-apigateway-integration:
+                httpMethod: POST
+                type: aws_proxy
+                uri: !Sub arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${joinRoom.Arn}/invocations
+              responses: {}
+          /rooms/{RoomID}:
+            get:
+              x-amazon-apigateway-integration:
+                httpMethod: GET
+                type: aws_proxy
+                uri: !Sub arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${roomInfoPage.Arn}/invocations
+              responses: {}
+          /rooms/acceptJoinRequest:
+            post:
+              x-amazon-apigateway-integration:
+                httpMethod: POST
+                type: aws_proxy
+                uri: !Sub arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${acceptJoinRequest.Arn}/invocations
+              responses: {}
+          /rooms/rejectJoinRequest:
+            post:
+              x-amazon-apigateway-integration:
+                httpMethod: POST
+                type: aws_proxy
+                uri: !Sub arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${rejectJoinRequest.Arn}/invocations
+              responses: {}
+          /rooms/kickMember:
+            post:
+              x-amazon-apigateway-integration:
+                httpMethod: POST
+                type: aws_proxy
+                uri: !Sub arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${kickMember.Arn}/invocations
+              responses: {}
+          /rooms/leaveRoom:
+            post:
+              responses: {}
+          /rooms/deleteRoom:
+            post:
+              responses: {}
+          /chat-room/{RoomID}:
+            get:
+              x-amazon-apigateway-integration:
+                httpMethod: GET
+                type: aws_proxy
+                uri: !Sub arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${chatRoom.Arn}/invocations
+              responses: {}
+      # Below is the correct syntax. I don't know why it's erroring in VSCode.
+      EndpointConfiguration: REGIONAL
+      # Set up domain configuration once I get a domain
+      Cors:
+        AllowMethods: '''OPTIONS, POST, GET'''
+        AllowHeaders: '''Content-Type,Cookie'''
+        AllowOrigin: '''*'''
+        MaxAge: 5
