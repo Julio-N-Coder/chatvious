@@ -81,15 +81,15 @@ export async function handler(
   }
 
   // remove joinedRooms on kicked user.
-  const removeJoinedRoomResponse = userManager.removeJoinedRoom(
+  const removeRoomOnUserResponse = userManager.removeRoomOnUser(
     memberUserID,
     RoomID
   );
-  if ("error" in removeJoinedRoomResponse) {
+  if ("error" in removeRoomOnUserResponse) {
     return {
       headers: { "Content-Type": "application/json" },
       statusCode: 400,
-      body: JSON.stringify({ error: removeJoinedRoomResponse.error }),
+      body: JSON.stringify({ error: removeRoomOnUserResponse.error }),
     };
   }
 

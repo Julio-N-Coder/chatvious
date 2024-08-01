@@ -8,6 +8,7 @@ import {
   QueryCommand,
   GetCommandOutput,
 } from "@aws-sdk/lib-dynamodb";
+import { userManager } from "./users.js";
 import {
   BaseModelsReturnType,
   RoomInfoDBType,
@@ -31,7 +32,7 @@ class RoomManager {
     ownerName: string,
     roomName: string,
     profileColor: string
-  ): BaseModelsReturnType {
+  ): FetchRoomReturn {
     const RoomID = crypto.randomUUID() as string;
 
     const madeDate = new Date().toISOString() as string;
@@ -110,7 +111,55 @@ class RoomManager {
       };
     }
 
-    return { message: "Room Created", statusCode: 201 };
+    return {
+      roomInfo: {
+        RoomID,
+        roomName,
+        createdAt: madeDate,
+      },
+      message: "Room Created",
+      statusCode: 201,
+    };
+  }
+
+  async deleteRoom(RoomID: string): BaseModelsReturnType {
+    // fetch all members and loop through them deleting the rooms on them
+    const membersResponse = await this.fetchRoomMembers(RoomID, true);
+    if ("error" in membersResponse) {
+      return {
+        error: membersResponse.error,
+        statusCode: membersResponse.statusCode,
+      };
+    }
+    if (membersResponse.memberCount > 0) {
+      const members = membersResponse.roomMembers;
+      for (const member of members) {
+        const memberID = member.userID;
+        const removeRoomOnUserResponse = await userManager.removeRoomOnUser(
+          memberID,
+          RoomID
+        );
+        if ("error" in removeRoomOnUserResponse) {
+          return {
+            error: removeRoomOnUserResponse.error,
+            statusCode: removeRoomOnUserResponse.statusCode,
+          };
+        }
+      }
+    }
+
+    const deleteRoomCommand = new DeleteCommand({
+      TableName: "chatvious",
+      Key: { PartitionKey: `ROOM#${RoomID}`, SortKey: "METADATA" },
+    });
+    const deleteRoomResponse = await docClient.send(deleteRoomCommand);
+    const statusCode = deleteRoomResponse.$metadata.httpStatusCode as number;
+
+    if (statusCode !== 200) {
+      return { error: "Failed to Delete Room", statusCode };
+    }
+
+    return { message: "Room Deleted", statusCode: 200 };
   }
 
   async fetchRoom(RoomID: string): FetchRoomReturn {
@@ -135,10 +184,13 @@ class RoomManager {
       roomName: roomInfoDB.roomName,
       createdAt: roomInfoDB.createdAt,
     };
-    return { roomInfo, statusCode: 200 };
+    return { roomInfo, message: "Room Found", statusCode: 200 };
   }
 
-  async fetchRoomMembers(RoomID: string): FetchRoomMembersReturn {
+  async fetchRoomMembers(
+    RoomID: string,
+    ConsistentRead?: boolean
+  ): FetchRoomMembersReturn {
     const roomMembersCommand = new QueryCommand({
       TableName: "chatvious",
       KeyConditionExpression:
@@ -147,6 +199,7 @@ class RoomManager {
         ":partitionKey": `ROOM#${RoomID}`,
         ":RoomMembersPrefix": "MEMBERS#",
       },
+      ConsistentRead: ConsistentRead ? true : false,
     });
 
     const roomMembersResponse = await docClient.send(roomMembersCommand);

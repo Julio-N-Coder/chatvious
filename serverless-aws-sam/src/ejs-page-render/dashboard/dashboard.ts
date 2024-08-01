@@ -32,7 +32,6 @@ export const handler = async (
     isBase64Encoded: false,
     headers: {
       "Content-Type": "text/html",
-      // "Access-Control-Allow-Origin": process.env.SUB_DOMAIN_URL as string,
       "Access-Control-Allow-Origin": "*",
       "Access-Control-Allow-Headers": "Content-Type,Cookie",
       "Access-Control-Allow-Methods": "OPTIONS,POST,GET",

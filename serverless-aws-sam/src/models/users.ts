@@ -161,11 +161,11 @@ class UserManager {
     return { message: "Joined Rooms Updated", statusCode: 200 };
   }
 
-  async removeJoinedRoom(userID: string, RoomID: string): BaseModelsReturnType {
+  async removeRoomOnUser(userID: string, RoomID: string): BaseModelsReturnType {
     const fetchUserInfoCommand = new GetCommand({
       TableName: "chatvious",
       Key: { PartitionKey: `USER#${userID}`, SortKey: "PROFILE" },
-      ProjectionExpression: "joinedRooms",
+      ProjectionExpression: "joinedRooms, ownedRooms",
     });
 
     const fetchUserInfoResponse = await docClient.send(fetchUserInfoCommand);
@@ -180,6 +180,9 @@ class UserManager {
       return { error: "User not found", statusCode: 404 };
     }
 
+    let roomType: string;
+    let index: number;
+
     const joinedRooms = fetchUserInfoResponse.Item.joinedRooms as RoomsOnUser;
     let joinedRoomIndex = -1;
     const joinedRoom = joinedRooms.find((room) => {
@@ -188,26 +191,40 @@ class UserManager {
     });
 
     if (!joinedRoom) {
-      return { error: "User has not joined this room", statusCode: 400 };
+      const ownedRooms = fetchUserInfoResponse.Item.ownedRooms as RoomsOnUser;
+      let ownedRoomsIndex = -1;
+      const ownedRoom = ownedRooms.find((room) => {
+        ownedRoomsIndex++;
+        return room.RoomID === RoomID;
+      });
+
+      if (!ownedRoom) {
+        return { error: "User has not joined this room", statusCode: 400 };
+      }
+      roomType = "ownedRooms";
+      index = ownedRoomsIndex;
+    } else {
+      roomType = "joinedRooms";
+      index = joinedRoomIndex;
     }
 
-    const removeJoinedRoomCommand = new UpdateCommand({
+    const removeRoomOnUserCommand = new UpdateCommand({
       TableName: "chatvious",
       Key: { PartitionKey: `USER#${userID}`, SortKey: "PROFILE" },
-      UpdateExpression: `REMOVE joinedRooms[${joinedRoomIndex}]`,
+      UpdateExpression: `REMOVE ${roomType}[${index}]`,
     });
 
-    const removeJoinedRoomResponse = await docClient.send(
-      removeJoinedRoomCommand
+    const removeRoomOnUserResponse = await docClient.send(
+      removeRoomOnUserCommand
     );
-    const statusCode = removeJoinedRoomResponse.$metadata
+    const statusCode = removeRoomOnUserResponse.$metadata
       .httpStatusCode as number;
 
     if (statusCode !== 200) {
-      return { error: "Failed to remove Join Room", statusCode };
+      return { error: "Failed to remove Room on user", statusCode };
     }
 
-    return { message: "Join Room Removed", statusCode: 200 };
+    return { message: "Room on user Removed", statusCode: 200 };
   }
 
   // fetching only 5 join request.

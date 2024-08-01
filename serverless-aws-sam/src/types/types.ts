@@ -26,11 +26,10 @@ type BaseModelsSuccess = {
 type BaseModelsReturnType = Promise<BaseModelsError | BaseModelsSuccess>;
 
 type RoomsOnUser =
-  | { roomName: string; RoomID: string }[]
   | {
       roomName: string;
       RoomID: string;
-      isAdmin: boolean;
+      isAdmin?: boolean;
     }[]
   | [];
 
@@ -111,6 +110,7 @@ type RoomInfoDBType = RoomInfoType & {
 
 type FetchRoomSuccessReturn = {
   roomInfo: RoomInfoType;
+  message: string;
   statusCode: number;
 };
 
