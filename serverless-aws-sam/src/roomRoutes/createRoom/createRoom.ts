@@ -44,7 +44,10 @@ export async function handler(
   return {
     headers: { "Content-Type": "application/json" },
     statusCode: 201,
-    body: JSON.stringify({ message: makeRoomResponse.message }),
+    body: JSON.stringify({
+      message: makeRoomResponse.message,
+      roomInfo: makeRoomResponse.roomInfo,
+    }),
   };
 }
 

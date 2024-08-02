@@ -112,7 +112,7 @@ afterEach(async () => {
   restAPIEvent = JSON.parse(JSON.stringify(restAPIEventCopy));
 });
 
-// cleanups (after first test, move user deletes before room deletes (this is just to test if it works))
+// cleanups
 afterAll(async () => {
   // delete the sent join request
   const removeJoinRequestResponse = await roomManager.removeJoinRequest(
