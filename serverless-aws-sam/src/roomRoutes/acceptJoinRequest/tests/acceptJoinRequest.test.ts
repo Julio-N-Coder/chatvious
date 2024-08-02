@@ -1,9 +1,21 @@
 import { handler } from "../acceptJoinRequest.js";
-import restAPIEvent from "../../../../events/restAPIEvent.json";
-import { describe, test, expect, beforeAll, afterAll } from "@jest/globals";
+import restAPIEventBase from "../../../../events/restAPIEvent.json";
+import {
+  describe,
+  test,
+  expect,
+  beforeAll,
+  afterAll,
+  afterEach,
+} from "@jest/globals";
 import { userManager } from "../../../models/users.js";
 import { roomManager } from "../../../models/rooms.js";
 import { UserInfo, RoomInfoType } from "../../../types/types.js";
+
+let restAPIEvent: typeof restAPIEventBase = JSON.parse(
+  JSON.stringify(restAPIEventBase)
+);
+let restAPIEventCopy: typeof restAPIEventBase;
 
 const userID = restAPIEvent.requestContext.authorizer.claims.sub;
 const userName = restAPIEvent.requestContext.authorizer.claims.username;
@@ -92,6 +104,12 @@ beforeAll(async () => {
   });
   restAPIEvent.path = "/rooms/acceptJoinRequest";
   restAPIEvent.resource = "/rooms/acceptJoinRequest";
+
+  restAPIEventCopy = JSON.parse(JSON.stringify(restAPIEvent));
+});
+
+afterEach(async () => {
+  restAPIEvent = JSON.parse(JSON.stringify(restAPIEventCopy));
 });
 
 // cleanups (after first test, move user deletes before room deletes (this is just to test if it works))
@@ -162,5 +180,23 @@ describe("Test to see if accepting the join request works", () => {
 
     const body = JSON.parse(response.body);
     expect(body.message).toBe("Join request accepted successfully");
+  });
+
+  test("Incorrect Content-Type header should return the correct Error", async () => {
+    restAPIEvent.headers["Content-Type"] = "text/html"; // correct header is application/json
+    const response = await handler(restAPIEvent);
+    expect(response.statusCode).toBe(400);
+
+    const body = JSON.parse(response.body);
+    expect(body.error).toBe("Invalid Content Type");
+  });
+
+  test("Body without RoomID and userID should return the correct Error", async () => {
+    restAPIEvent.body = JSON.stringify({ random: "someRandomText" });
+    const response = await handler(restAPIEvent);
+    expect(response.statusCode).toBe(400);
+
+    const body = JSON.parse(response.body);
+    expect(body.error).toBe("Bad Request");
   });
 });
