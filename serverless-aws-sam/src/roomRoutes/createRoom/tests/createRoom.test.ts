@@ -19,7 +19,7 @@ let restAPIEventCopy: typeof restAPIEventBase;
 const userID = restAPIEvent.requestContext.authorizer.claims.sub;
 const userName = restAPIEvent.requestContext.authorizer.claims.username;
 
-const roomName = "acceptJoinRequestRoom";
+const roomName = "createRoomTestRoom";
 let RoomID: string;
 
 beforeAll(async () => {
@@ -119,7 +119,7 @@ describe("A test suite to see if the createRoom route works correctly", () => {
     expect(body.error).toBe("Room Name is required");
   });
 
-  test("roomName should return the correct Error when it's less than 3 characters", async () => {
+  test("createRoom should return the correct Error when roomName is less than 3 characters", async () => {
     restAPIEvent.body = JSON.stringify({ roomName: "ab" });
     const response = await handler(restAPIEvent);
     expect(response.statusCode).toBe(400);
@@ -128,7 +128,7 @@ describe("A test suite to see if the createRoom route works correctly", () => {
     expect(body.error).toBe("Room Name must be at least 3 characters");
   });
 
-  test("roomName should return the correct Error when it's greater than 25 characters", async () => {
+  test("createRoom should return the correct Error when roomName is greater than 25 characters", async () => {
     restAPIEvent.body = JSON.stringify({
       roomName: "someRandomTextGreaterThan25",
     });

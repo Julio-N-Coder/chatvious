@@ -41,7 +41,6 @@ export async function handler(
 
   const { roomName } = fetchRoomResponse.roomInfo;
   const { roomMembers } = roomMembersResponse;
-
   if (roomMembers.find((member) => member.userID === userID)) {
     return {
       headers: { "Content-Type": "application/json" },
@@ -99,11 +98,9 @@ export async function handler(
     };
   }
 
-  console.log("Sent Join Request");
-
   return {
     headers: { "Content-Type": "application/json" },
-    statusCode: joinRequest.statusCode,
+    statusCode: 200,
     body: JSON.stringify({ message: joinRequest.message }),
   };
 }
