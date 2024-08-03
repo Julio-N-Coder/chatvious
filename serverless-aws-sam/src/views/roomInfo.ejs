@@ -148,7 +148,7 @@
               ></span>
             </button>
           </div>
-          <% } else { %>
+          <% } else if (isMember) { %>
           <div id="leaveRoom" class="flex justify-end">
             <button class="btn btn-error text-error-content hover:bg-red-400">
               Leave Room
@@ -170,7 +170,7 @@
     <script defer src="/ejs/roomInfoJoinRequest.js"></script>
     <% } %> <% if (isOwner) { %>
     <script defer src="/ejs/deleteRoom.js"></script>
-    <% } else { %>
+    <% } else if (isMember) { %>
     <script defer src="/ejs/leaveRoom.js"></script>
     <% } %> <% } else { %> <% if (isOwnerOrAdmin) { %>
     <script defer src="http://localhost:8000/ejs/roomInfoKickUser.js"></script>
@@ -186,7 +186,7 @@
     ></script>
     <% } %> <% if (isOwner) { %>
     <script defer src="http://localhost:8000/ejs/deleteRoom.js"></script>
-    <% } else { %>
+    <% } else if (isMember) { %>
     <script defer src="http://localhost:8000/ejs/leaveRoom.js"></script>
     <% } %> <% } %>
   </body>

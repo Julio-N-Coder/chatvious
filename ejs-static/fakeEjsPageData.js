@@ -10,6 +10,12 @@ const joinedRoomInfo = {
   createdAt: "2024-08-02T21:34:22.328Z",
 };
 
+const randomRoomIfo = {
+  roomName: "fakeRandomRoomName",
+  RoomID: "fakeRandomRoomID",
+  createdAt: "2024-08-02T21:34:22.328Z",
+};
+
 const fakeUserInfo = {
   userID: "fd24d28c-ef01-45dc-a1ee-2bf8f3e92540",
   userName: "TestUserRender",
@@ -40,30 +46,30 @@ const fakeDashboardData = {
 };
 
 const fakeJoinRoomInfoPage = {
-  roomInfo: joinedRoomInfo,
+  roomInfo: randomRoomIfo,
   roomOwner: {
     userID: "FakeOwnerID",
     userName: "FakeRoomOwner",
-    RoomID: joinedRoomInfo.RoomID,
+    RoomID: randomRoomIfo.RoomID,
     RoomUserStatus: "OWNER",
-    profileColor: "orange",
+    profileColor: "yellow",
     joinedAt: "2024-08-02T21:34:22.328Z",
   },
   roomMembers: [
     {
       userID: "FakeOwnerID",
       userName: "FakeRoomOwner",
-      RoomID: joinedRoomInfo.RoomID,
+      RoomID: randomRoomIfo.RoomID,
       RoomUserStatus: "OWNER",
-      profileColor: "orange",
+      profileColor: "yellow",
       joinedAt: "2024-08-02T21:34:22.328Z",
     },
     {
-      userID: fakeUserInfo.userID,
-      userName: fakeUserInfo.userName,
-      RoomID: joinedRoomInfo.RoomID,
+      userID: "FakeMemberID",
+      userName: "FakeMemberName",
+      RoomID: randomRoomIfo.RoomID,
       RoomUserStatus: "MEMBER",
-      profileColor: fakeUserInfo.profileColor,
+      profileColor: "green",
       joinedAt: "2024-08-02T21:34:22.328Z",
     },
   ],
@@ -163,6 +169,7 @@ export {
   fakeDashboardData,
   ownedRoomInfo,
   joinedRoomInfo,
+  fakeJoinRoomInfoPage,
   fakeJoinRoomInfoPageMember,
   fakeJoinRoomInfoPageOwner,
 };

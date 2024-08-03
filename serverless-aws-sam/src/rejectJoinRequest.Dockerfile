@@ -7,7 +7,7 @@ COPY ./tsconfig.base.json /app/src/
 COPY ./types/types.ts /app/src/types/
 
 WORKDIR /app/src/
-COPY ./models/package*.json ./models/rooms.ts ./models/tsconfig.json ./models/
+COPY ./models/package*.json ./models/rooms.ts ./models/users.ts ./models/tsconfig.json ./models/
 
 WORKDIR /app/src/models/
 RUN npm install && npm run build

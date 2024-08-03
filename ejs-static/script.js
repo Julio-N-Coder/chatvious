@@ -4,6 +4,7 @@ import {
   fakeDashboardData,
   ownedRoomInfo,
   joinedRoomInfo,
+  fakeJoinRoomInfoPage,
   fakeJoinRoomInfoPageOwner,
   fakeJoinRoomInfoPageMember,
 } from "./fakeEjsPageData.js";
@@ -34,6 +35,13 @@ app.get(`/rooms/${joinedRoomInfo.RoomID}`, (req, res) => {
   res.render(
     path.resolve("..", "serverless-aws-sam", "src", "views", "roomInfo"),
     fakeJoinRoomInfoPageMember
+  );
+});
+
+app.get("/rooms/randomRoom", (req, res) => {
+  res.render(
+    path.resolve("..", "serverless-aws-sam", "src", "views", "roomInfo"),
+    fakeJoinRoomInfoPage
   );
 });
 
