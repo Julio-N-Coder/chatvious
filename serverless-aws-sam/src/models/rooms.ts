@@ -123,7 +123,31 @@ class RoomManager {
   }
 
   async deleteRoom(RoomID: string): BaseModelsReturnType {
-    // fetch all members and loop through them deleting the rooms on them
+    // delete all join request the room has
+    const fetchJoinRequestsResponse = await this.fetchJoinRequests(RoomID);
+    if ("error" in fetchJoinRequestsResponse) {
+      return {
+        error: fetchJoinRequestsResponse.error,
+        statusCode: fetchJoinRequestsResponse.statusCode,
+      };
+    }
+    const joinRequests = fetchJoinRequestsResponse.joinRequests;
+    if (joinRequests.length > 0) {
+      for (const joinRequest of joinRequests) {
+        const deleteJoinRequestResponse = await this.removeJoinRequest(
+          RoomID,
+          joinRequest.fromUserID
+        );
+        if ("error" in deleteJoinRequestResponse) {
+          return {
+            error: deleteJoinRequestResponse.error,
+            statusCode: deleteJoinRequestResponse.statusCode,
+          };
+        }
+      }
+    }
+
+    // fetch all members and loop through them deleting the room on them
     const membersResponse = await this.fetchRoomMembers(RoomID, true);
     if ("error" in membersResponse) {
       return {
@@ -145,18 +169,33 @@ class RoomManager {
             statusCode: removeRoomOnUserResponse.statusCode,
           };
         }
+
+        // delete room member data as well
+        const removeRoomMemberResponse = await this.removeRoomMember(
+          RoomID,
+          memberID
+        );
+        if ("error" in removeRoomMemberResponse) {
+          return {
+            error: removeRoomMemberResponse.error,
+            statusCode: removeRoomMemberResponse.statusCode,
+          };
+        }
       }
     }
 
     const deleteRoomCommand = new DeleteCommand({
       TableName: "chatvious",
       Key: { PartitionKey: `ROOM#${RoomID}`, SortKey: "METADATA" },
+      ReturnValues: "ALL_OLD",
     });
     const deleteRoomResponse = await docClient.send(deleteRoomCommand);
     const statusCode = deleteRoomResponse.$metadata.httpStatusCode as number;
 
     if (statusCode !== 200) {
       return { error: "Failed to Delete Room", statusCode };
+    } else if (deleteRoomResponse.Attributes == undefined) {
+      return { error: "Bad Request", statusCode: 400 };
     }
 
     return { message: "Room Deleted", statusCode: 200 };
@@ -321,11 +360,13 @@ class RoomManager {
     const removeMemberResponse = await docClient.send(removeMemberCommand);
     const StatusCode = removeMemberResponse.$metadata.httpStatusCode as number;
     if (StatusCode !== 200) {
+      console.log("Failed to remove Member");
       return {
         error: "Failed to remove Member",
         statusCode: StatusCode,
       };
     } else if (removeMemberResponse.Attributes == undefined) {
+      console.log("Bad Request");
       return { error: "Bad Request", statusCode: 400 };
     }
 

@@ -12,8 +12,6 @@ import { userManager } from "../../../models/users.js";
 import { roomManager } from "../../../models/rooms.js";
 import { UserInfo, RoomInfoType } from "../../../types/types.js";
 
-// DELETE ROOM ROUTE NOT MADE YET
-
 let restAPIEvent: typeof restAPIEventBase = JSON.parse(
   JSON.stringify(restAPIEventBase)
 );
@@ -77,4 +75,67 @@ beforeAll(async () => {
 
 afterEach(async () => {
   restAPIEvent = JSON.parse(JSON.stringify(restAPIEventCopy));
+});
+
+// cleanups
+afterAll(async () => {
+  // delete the user room member entries
+  const removeRoomMemberResponse = await roomManager.removeRoomMember(
+    RoomID,
+    userID
+  );
+  if (
+    "error" in removeRoomMemberResponse &&
+    removeRoomMemberResponse.error !== "Bad Request"
+  ) {
+    throw new Error(
+      `Failed to clean up RoomMember after test. Error: ${removeRoomMemberResponse.error}`
+    );
+  }
+
+  // delete the user we created
+  const deleteUserResponse = await userManager.deleteUser(userID);
+  if ("error" in deleteUserResponse) {
+    throw new Error(
+      `Failed to clean up user after test. Error: ${deleteUserResponse.error}`
+    );
+  }
+
+  // remove the created room
+  const deleteRoomResponse = await roomManager.deleteRoom(RoomID);
+  if (
+    "error" in deleteRoomResponse &&
+    deleteRoomResponse.error !== "Bad Request"
+  ) {
+    throw new Error(
+      `Failed to clean up Room after test. Error: ${deleteRoomResponse.error}`
+    );
+  }
+});
+
+describe("A Test for The deleteRoom Route", () => {
+  test("Should return a successfull response with correct input", async () => {
+    const response = await handler(restAPIEvent);
+    expect(response.statusCode).toBe(200);
+
+    expect(JSON.parse(response.body).message).toBe("Room Deleted successfully");
+  });
+
+  test("Incorrect Content-Type header should return the correct Error", async () => {
+    restAPIEvent.headers["Content-Type"] = "text/html"; // correct header is application/json
+    const response = await handler(restAPIEvent);
+    expect(response.statusCode).toBe(400);
+
+    const body = JSON.parse(response.body);
+    expect(body.error).toBe("Invalid Content Type");
+  });
+
+  test("Body without RoomID should return the correct Error", async () => {
+    restAPIEvent.body = JSON.stringify({ random: "someRandomText" });
+    const response = await handler(restAPIEvent);
+    expect(response.statusCode).toBe(400);
+
+    const body = JSON.parse(response.body);
+    expect(body.error).toBe("Bad Request");
+  });
 });
