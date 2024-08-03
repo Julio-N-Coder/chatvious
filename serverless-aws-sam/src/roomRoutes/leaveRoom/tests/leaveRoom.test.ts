@@ -97,6 +97,16 @@ beforeAll(async () => {
     );
   }
 
+  const updateJoinedRoomsResponse = await userManager.updateJoinedRooms(
+    userID,
+    { RoomID, isAdmin: false, roomName }
+  );
+  if ("error" in updateJoinedRoomsResponse) {
+    throw new Error(
+      `Failed to update joined rooms. Error: ${updateJoinedRoomsResponse.error}`
+    );
+  }
+
   restAPIEvent.body = JSON.stringify({
     RoomID,
   });

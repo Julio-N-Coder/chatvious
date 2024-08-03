@@ -1,5 +1,5 @@
 import "../../css/styles.css";
-// remove to use a normal websocket client like ws to it can work with api gateway
+// remove to use the built in websocket client so it can work with api gateway
 import { io } from "socket.io-client";
 
 const socket = io();

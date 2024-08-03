@@ -256,7 +256,6 @@ class UserManager {
         .httpStatusCode as number;
 
       if (statusCode !== 200 || !joinRequestsResponse.Items) {
-        console.log("Failed to Get Join Requests");
         return { error: "Failed to Get Join Requests", statusCode };
       }
       if (joinRequestsResponse.Count === 1) {

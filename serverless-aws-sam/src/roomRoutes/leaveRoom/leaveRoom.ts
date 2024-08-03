@@ -1,5 +1,6 @@
 import { APIGatewayEvent, APIGatewayProxyResult } from "aws-lambda";
 import { roomManager } from "../../models/rooms.js";
+import { userManager } from "../../models/users.js";
 
 export async function handler(
   event: APIGatewayEvent
@@ -29,6 +30,14 @@ export async function handler(
           "Cannot leave room as owner. If you wish to leave, appoint someone else as owner or delete the room",
       }),
     };
+  } else if (roomMember.userID !== userID) {
+    return {
+      headers: { "Content-Type": "application/json" },
+      statusCode: 403,
+      body: JSON.stringify({
+        error: "Forbiden",
+      }),
+    };
   }
 
   const leaveRoomResponse = await roomManager.removeRoomMember(RoomID, userID);
@@ -41,6 +50,21 @@ export async function handler(
       }),
     };
   }
+
+  const removeRoomOnUserResponse = await userManager.removeRoomOnUser(
+    userID,
+    RoomID
+  );
+  if ("error" in removeRoomOnUserResponse) {
+    return {
+      headers: { "Content-Type": "application/json" },
+      statusCode: removeRoomOnUserResponse.statusCode,
+      body: JSON.stringify({
+        error: "Sorry, there seems to be a problem with our servers",
+      }),
+    };
+  }
+
   return {
     headers: { "Content-Type": "application/json" },
     statusCode: 200,
