@@ -19,7 +19,7 @@ leaveRoomButton.addEventListener("click", async () => {
 
   let deleteRoomStatus: Response;
   try {
-    deleteRoomStatus = await fetch("/rooms/deleteRoom", {
+    deleteRoomStatus = await fetch("/rooms/leaveRoom", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

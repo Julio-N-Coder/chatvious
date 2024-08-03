@@ -366,7 +366,6 @@ class RoomManager {
         statusCode: StatusCode,
       };
     } else if (removeMemberResponse.Attributes == undefined) {
-      console.log("Bad Request");
       return { error: "Bad Request", statusCode: 400 };
     }
 

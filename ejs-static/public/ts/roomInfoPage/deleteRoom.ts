@@ -27,10 +27,10 @@ deleteRoomButton.addEventListener("click", async () => {
       body: JSON.stringify({ RoomID: roomID }),
     });
   } catch (error) {
-    console.log("failed to deleteRoom");
     fixedMainStatusBox.textContent = "Something went wrong";
     fixedMainStatusBox.classList.add("bg-error", "text-error-content");
     toggleSubmitButtonState();
+    console.error("failed to deleteRoom");
     return;
   }
 

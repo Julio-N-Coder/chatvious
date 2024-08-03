@@ -232,6 +232,56 @@ Resources:
       Dockerfile: kickMember.Dockerfile
       DockerTag: latest
 
+  # docker file not set up yet
+  leaveRoom:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: Chatvious_leaveRoom
+      Description: A route for a user to leave a chat room
+      PackageType: Image
+      MemorySize: 128
+      Timeout: 6
+      Architectures:
+        - x86_64
+      Policies:
+        - AmazonDynamoDBFullAccess
+      Events:
+        ChatviousRestApiPOSTroomsleaveRoom:
+          Type: Api
+          Properties:
+            Path: /rooms/leaveRoom
+            Method: POST
+            RestApiId: !Ref ChatviousRestApi
+    Metadata:
+      DockerContext: ./src
+      Dockerfile: leaveRoom.Dockerfile
+      DockerTag: latest
+
+  # docker file not set up yet
+  deleteRoom:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: Chatvious_deleteRoom
+      Description: Deletes a chat room
+      PackageType: Image
+      MemorySize: 128
+      Timeout: 6
+      Architectures:
+        - x86_64
+      Policies:
+        - AmazonDynamoDBFullAccess
+      Events:
+        ChatviousRestApiPOSTroomsdeleteRoom:
+          Type: Api
+          Properties:
+            Path: /rooms/deleteRoom
+            Method: POST
+            RestApiId: !Ref ChatviousRestApi
+    Metadata:
+      DockerContext: ./src
+      Dockerfile: deleteRoom.Dockerfile
+      DockerTag: latest
+
   callback:
     Type: AWS::Serverless::Function
     Properties:
@@ -353,9 +403,17 @@ Resources:
               responses: {}
           /rooms/leaveRoom:
             post:
+              x-amazon-apigateway-integration:
+                httpMethod: POST
+                type: aws_proxy
+                uri: !Sub arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${leaveRoom.Arn}/invocations
               responses: {}
           /rooms/deleteRoom:
             post:
+              x-amazon-apigateway-integration:
+                httpMethod: POST
+                type: aws_proxy
+                uri: !Sub arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${deleteRoom.Arn}/invocations
               responses: {}
           /chat-room/{RoomID}:
             get:

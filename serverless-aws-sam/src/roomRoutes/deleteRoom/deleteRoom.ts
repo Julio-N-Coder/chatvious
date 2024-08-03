@@ -1,7 +1,6 @@
 import { APIGatewayEvent, APIGatewayProxyResult } from "aws-lambda";
 import { roomManager } from "../../models/rooms.js";
 
-// Route not set up yet
 export async function handler(
   event: APIGatewayEvent
 ): Promise<APIGatewayProxyResult> {
