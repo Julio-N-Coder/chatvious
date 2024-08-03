@@ -16,6 +16,8 @@ const config = {
     roomInfoJoinRequest: "./public/ts/roomInfoPage/roomInfoJoinRequest.ts",
     clientAcceptOrReject: "./public/ts/roomInfoPage/clientAcceptOrReject.ts",
     roomInfoKickUser: "./public/ts/roomInfoPage/roomInfoKickUser.ts",
+    leaveRoom: "./public/ts/roomInfoPage/leaveRoom.ts",
+    deleteRoom: "./public/ts/roomInfoPage/deleteRoom.ts",
   },
   output: {
     filename: "[name].js",

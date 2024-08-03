@@ -135,6 +135,30 @@
               </div>
             </div>
           </div>
+          <% if (isOwner) { %>
+          <div class="flex justify-end">
+            <button
+              id="deleteRoom"
+              class="btn btn-error text-error-content hover:bg-red-400"
+            >
+              Delete Room
+              <span
+                id="deleteRoomLoader"
+                class="hidden -translate-x-2 translate-y-1 loading loading-dots loading-sm"
+              ></span>
+            </button>
+          </div>
+          <% } else { %>
+          <div id="leaveRoom" class="flex justify-end">
+            <button class="btn btn-error text-error-content hover:bg-red-400">
+              Leave Room
+              <span
+                id="leaveRoomLoader"
+                class="hidden -translate-x-2 translate-y-1 loading loading-dots loading-sm"
+              ></span>
+            </button>
+          </div>
+          <% } %>
         </div>
       </div>
     </div>
@@ -144,6 +168,10 @@
     <script defer src="/ejs/clientAcceptOrReject.js"></script>
     <% } %> <% } else { %>
     <script defer src="/ejs/roomInfoJoinRequest.js"></script>
+    <% } %> <% if (isOwner) { %>
+    <script defer src="/ejs/deleteRoom.js"></script>
+    <% } else { %>
+    <script defer src="/ejs/leaveRoom.js"></script>
     <% } %> <% } else { %> <% if (isOwnerOrAdmin) { %>
     <script defer src="http://localhost:8000/ejs/roomInfoKickUser.js"></script>
     <% if (joinRequests.length > 0) { %>
@@ -156,6 +184,10 @@
       defer
       src="http://localhost:8000/ejs/roomInfoJoinRequest.js"
     ></script>
+    <% } %> <% if (isOwner) { %>
+    <script defer src="http://localhost:8000/ejs/deleteRoom.js"></script>
+    <% } else { %>
+    <script defer src="http://localhost:8000/ejs/leaveRoom.js"></script>
     <% } %> <% } %>
   </body>
 </html>
