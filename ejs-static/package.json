@@ -13,9 +13,6 @@
     "static": "concurrently 'node static.js' 'webpack watch'",
     "dev": "node script.js"
   },
-  "dependencies": {
-    "socket.io-client": "^4.7.5"
-  },
   "devDependencies": {
     "@types/node": "^20.14.11",
     "@webpack-cli/generators": "^3.0.7",

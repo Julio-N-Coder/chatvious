@@ -176,6 +176,74 @@ type FetchNavUserInfoReturn = Promise<
   BaseModelsError | FetchNavUserInfoSuccess
 >;
 
+interface APIGatewayWebSocketConnectEvent {
+  headers: {
+    [key: string]: string;
+  };
+  multiValueHeaders: {
+    [key: string]: string[];
+  };
+  requestContext: {
+    routeKey: string;
+    eventType: "CONNECT";
+    extendedRequestId: string;
+    requestTime: string;
+    messageDirection: string;
+    stage: string;
+    connectedAt: number;
+    requestTimeEpoch: number;
+    identity: {
+      sourceIp: string;
+    };
+    requestId: string;
+    domainName: string;
+    connectionId: string;
+    apiId: string;
+    authorizer?: {
+      claims: {
+        sub: string;
+        username: string;
+        email: string;
+        email_verified: boolean;
+        phone_number: string;
+        phone_number_verified: boolean;
+        token_use: "access" | "id";
+      };
+      scopes: null;
+    };
+  };
+  isBase64Encoded: boolean;
+}
+
+interface APIGatewayWebSocketDisconnectEvent {
+  headers: {
+    [key: string]: string;
+  };
+  multiValueHeaders: {
+    [key: string]: string[];
+  };
+  requestContext: {
+    routeKey: string;
+    disconnectStatusCode: number;
+    eventType: "DISCONNECT";
+    extendedRequestId: string;
+    requestTime: string;
+    messageDirection: string;
+    disconnectReason: string;
+    stage: string;
+    connectedAt: number;
+    requestTimeEpoch: number;
+    identity: {
+      sourceIp: string;
+    };
+    requestId: string;
+    domainName: string;
+    connectionId: string;
+    apiId: string;
+  };
+  isBase64Encoded: boolean;
+}
+
 export {
   AuthCodeTokenResponse,
   TokenRefresh,
@@ -197,4 +265,6 @@ export {
   FetchJoinRequestsReturn,
   FetchNavJoinRequestsReturn,
   FetchNavUserInfoReturn,
+  APIGatewayWebSocketConnectEvent,
+  APIGatewayWebSocketDisconnectEvent,
 };

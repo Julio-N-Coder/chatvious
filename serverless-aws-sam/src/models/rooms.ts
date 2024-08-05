@@ -360,7 +360,6 @@ class RoomManager {
     const removeMemberResponse = await docClient.send(removeMemberCommand);
     const StatusCode = removeMemberResponse.$metadata.httpStatusCode as number;
     if (StatusCode !== 200) {
-      console.log("Failed to remove Member");
       return {
         error: "Failed to remove Member",
         statusCode: StatusCode,

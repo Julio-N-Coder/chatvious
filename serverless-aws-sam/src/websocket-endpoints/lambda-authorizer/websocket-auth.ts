@@ -3,9 +3,7 @@ import {
   APIGatewayAuthorizerResult,
 } from "aws-lambda";
 import { CognitoJwtVerifier } from "aws-jwt-verify";
-import { decomposeUnverifiedJwt } from "aws-jwt-verify/jwt";
 import cookie from "cookie";
-import { TokenRefresh } from "../../types/types.js";
 
 interface Tokens {
   refresh_token: string;
@@ -59,53 +57,6 @@ export const handler = async (
     } catch (err) {
       return buildPolicy("Unauthorized", "Deny", methodArn);
     }
-  } else if (tokens.refresh_token) {
-    // refreshes tokens and passes them to lambdas to set as cookies
-    const refresh_token = tokens.refresh_token;
-
-    try {
-      const tokenResponse = await fetch(
-        `${cognitoData.COGNITO_DOMAIN}/oauth2/token`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/x-www-form-urlencoded",
-          },
-          body: `grant_type=refresh_token&client_id=jet3kkqp4jnkm1v3ta7htu75g&refresh_token=${refresh_token}`,
-        }
-      );
-
-      if (!tokenResponse.ok) {
-        return buildPolicy("Unauthorized", "Deny", methodArn);
-      }
-      const tokenData: TokenRefresh = await tokenResponse.json();
-      const access_token = tokenData.access_token;
-      const id_token = tokenData.id_token;
-
-      const { payload } = decomposeUnverifiedJwt(access_token);
-
-      const context = {
-        claims: {
-          sub: payload.sub,
-          username: payload.username,
-          iss: payload.iss,
-          client_id: payload.client_id,
-          origin_jti: payload.origin_jti,
-          event_id: payload.event_id,
-          token_use: payload.token_use,
-          auth_time: payload.auth_time,
-          exp: payload.exp,
-          iat: payload.iat,
-          jti: payload.jti,
-        },
-        access_token,
-        id_token,
-      };
-
-      return buildPolicy(payload.sub as string, "Allow", methodArn, context);
-    } catch (err) {
-      return buildPolicy("Unauthorized", "Deny", methodArn);
-    }
   }
   return buildPolicy("Unauthorized", "Deny", methodArn);
 };
@@ -117,8 +68,6 @@ function buildPolicy(
   context?: {
     claims: any;
     scopes?: any;
-    access_token?: string;
-    id_token?: string;
   }
 ): APIGatewayAuthorizerResult {
   if (context) {

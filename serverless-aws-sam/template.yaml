@@ -430,3 +430,37 @@ Resources:
         AllowHeaders: '''Content-Type,Cookie'''
         AllowOrigin: '''*'''
         MaxAge: 5
+
+  WebSocketManageConnectionsPolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      ManagedPolicyName: Chatvious_WebSocketManageConnectionsPolicy
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action:
+              - execute-api:ManageConnections
+            # Once api gateway websocket resource is made, change this policy to the api gateway arn to be more specific
+            Resource:
+              - arn:aws:execute-api:*:*:*
+
+  # If I don't import other code, change this to a zip package type
+  sendMessageWebSocket:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: Chatvious_sendMessageWebSocket
+      Description: A Websocket route for a user to join a chat room
+      PackageType: Image
+      MemorySize: 128
+      Timeout: 6
+      Architectures:
+        - x86_64
+      Policies:
+        - AmazonDynamoDBFullAccess
+        - Name: Chatvious_WebSocketManageConnectionsPolicy
+          PolicyArn: !GetAtt WebSocketManageConnectionsPolicy.Arn
+    Metadata:
+      DockerContext: ./src
+      Dockerfile: sendMessageWebSocket.Dockerfile
+      DockerTag: latest

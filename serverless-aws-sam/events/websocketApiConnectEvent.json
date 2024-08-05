@@ -1,0 +1,50 @@
+{
+  "headers": {
+    "Host": "abcd123.execute-api.us-east-1.amazonaws.com",
+    "Sec-WebSocket-Extensions": "permessage-deflate; client_max_window_bits",
+    "Sec-WebSocket-Key": "...",
+    "Sec-WebSocket-Version": "13",
+    "X-Amzn-Trace-Id": "...",
+    "X-Forwarded-For": "192.0.2.1",
+    "X-Forwarded-Port": "443",
+    "X-Forwarded-Proto": "https"
+  },
+  "multiValueHeaders": {
+    "Host": [ "abcd123.execute-api.us-east-1.amazonaws.com" ],
+    "Sec-WebSocket-Extensions": [ "permessage-deflate; client_max_window_bits" ],
+    "Sec-WebSocket-Key": [ "..." ],
+    "Sec-WebSocket-Version": [ "13" ],
+    "X-Amzn-Trace-Id": [ "..." ],
+    "X-Forwarded-For": [ "192.0.2.1" ],
+    "X-Forwarded-Port": [ "443" ],
+    "X-Forwarded-Proto": [ "https" ]
+  },
+  "requestContext": {
+    "routeKey": "$connect",
+    "eventType": "CONNECT",
+    "extendedRequestId": "ABCD1234=",
+    "requestTime": "09/Feb/2024:18:11:43 +0000",
+    "messageDirection": "IN",
+    "stage": "prod",
+    "connectedAt": 1707502303419,
+    "requestTimeEpoch": 1707502303420,
+    "identity": { "sourceIp": "192.0.2.1" },
+    "requestId": "ABCD1234=",
+    "domainName": "abcd1234.execute-api.us-east-1.amazonaws.com",
+    "connectionId": "AAAA1234=",
+    "apiId": "abcd1234",
+    "authorizer": {
+      "claims": {
+        "sub": "12345678-abcd-1234-efgh-123456789012",
+        "username":"testUser",
+        "email": "testuser@example.com",
+        "email_verified": "true",
+        "phone_number": "+12345678901",
+        "phone_number_verified": "false",
+        "token_use": "access"
+      },
+      "scopes": null
+    }
+  },
+  "isBase64Encoded": false
+}

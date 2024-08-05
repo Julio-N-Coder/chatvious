@@ -1,8 +1,13 @@
 import "../../css/styles.css";
 // remove to use the built in websocket client so it can work with api gateway
-import { io } from "socket.io-client";
+console.log("test");
+// urls not decided yet (temp for now)
+const websocketURL = process.env.IS_DEV_SERVER
+  ? "ws://localhost:3000"
+  : "apigateway websocket url(not set up yet)";
 
-const socket = io();
+const socket = new WebSocket(websocketURL);
+
 const messageBox = document.getElementById("message") as HTMLElement;
 const input = document.getElementById("input") as HTMLInputElement;
 const button = document.getElementById("button") as HTMLButtonElement;
@@ -10,19 +15,18 @@ const button = document.getElementById("button") as HTMLButtonElement;
 function sendMessage() {
   const message = input.value;
   if (message) {
-    socket.emit("message", message);
+    socket.send("message");
     input.value = "";
   }
 }
 button.addEventListener("click", sendMessage);
 
-console.log("test");
-socket.on("connect", () => {
+socket.addEventListener("open", () => {
   console.log("Connected to server");
-  socket.emit("message", "Hello from the client");
+  socket.send("Hello from the client");
+});
 
-  socket.on("chat message", (msg) => {
-    console.log(msg);
-    messageBox.innerText = msg;
-  });
+socket.addEventListener("message", (event) => {
+  console.log(event.data);
+  messageBox.innerText = event.data;
 });
