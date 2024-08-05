@@ -257,8 +257,10 @@ interface InitialConnection {
   connectionId: string; // sort key
 }
 
-interface InitialConnectionDB extends InitialConnection {
-  connection: "INITIAL_CONNECTION"; // part key
+interface InitialConnectionDB {
+  PartitionKey: "INITIAL_CONNECTION"; // part key
+  SortKey: string; // (sort key) connectionId
+  userID: string;
 }
 
 type FetchInitialConnectionReturn = BaseModelsReturnTypeData<InitialConnection>;

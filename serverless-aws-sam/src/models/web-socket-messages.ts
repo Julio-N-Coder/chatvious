@@ -24,8 +24,8 @@ class WSMessagesDBManager {
     userID: string
   ): BaseModelsReturnType {
     const initialConnectionData: InitialConnectionDB = {
-      connection: "INITIAL_CONNECTION",
-      connectionId,
+      PartitionKey: "INITIAL_CONNECTION",
+      SortKey: connectionId,
       userID,
     };
 
@@ -59,9 +59,10 @@ class WSMessagesDBManager {
     const command = new GetCommand({
       TableName: "chatvious",
       Key: {
-        connection: "INITIAL_CONNECTION",
-        connectionId,
+        PartitionKey: "INITIAL_CONNECTION",
+        SortKey: connectionId,
       },
+      ConsistentRead: true,
     });
 
     let initialConnectionResponse: GetCommandOutput;
@@ -85,7 +86,7 @@ class WSMessagesDBManager {
     const initialConnectionDataDB =
       initialConnectionResponse.Item as InitialConnectionDB;
     const initialConnectionData: InitialConnection = {
-      connectionId: initialConnectionDataDB.connectionId,
+      connectionId: initialConnectionDataDB.SortKey,
       userID: initialConnectionDataDB.userID,
     };
 
@@ -100,8 +101,8 @@ class WSMessagesDBManager {
     const command = new DeleteCommand({
       TableName: "chatvious",
       Key: {
-        connection: "INITIAL_CONNECTION",
-        connectionId,
+        PartitionKey: "INITIAL_CONNECTION",
+        SortKey: connectionId,
       },
       ReturnValues: "ALL_OLD",
     });
