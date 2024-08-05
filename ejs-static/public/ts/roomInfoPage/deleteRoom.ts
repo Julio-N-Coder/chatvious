@@ -17,9 +17,12 @@ deleteRoomButton.addEventListener("click", async () => {
   }
   toggleSubmitButtonState();
 
+  const deleteRoomURL = process.env.IS_DEV_SERVER
+    ? "/rooms/deleteRoom"
+    : "/main/rooms/deleteRoom";
   let deleteRoomStatus: Response;
   try {
-    deleteRoomStatus = await fetch("/rooms/deleteRoom", {
+    deleteRoomStatus = await fetch(deleteRoomURL, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -73,5 +76,8 @@ deleteRoomButton.addEventListener("click", async () => {
     return;
   }
 
-  window.location.href = "/dashboard";
+  const dashboardURL = process.env.IS_DEV_SERVER
+    ? "/dashboard"
+    : "/main/dashboard";
+  window.location.href = dashboardURL;
 });

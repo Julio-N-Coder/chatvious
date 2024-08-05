@@ -18,9 +18,12 @@ for (let i = 0; i < acceptJoinRequest.length; i++) {
 
     button.disabled = true;
 
+    const acceptJoinRequestURL = process.env.IS_DEV_SERVER
+      ? "/rooms/acceptJoinRequest"
+      : "/main/rooms/acceptJoinRequest";
     let acceptJoinRequestResponse: Response;
     try {
-      acceptJoinRequestResponse = await fetch("/rooms/acceptJoinRequest", {
+      acceptJoinRequestResponse = await fetch(acceptJoinRequestURL, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -75,9 +78,12 @@ for (let i = 0; i < rejectJoinRequest.length; i++) {
 
     button.disabled = true;
 
-    let acceptJoinRequestResponse: Response;
+    const rejectJoinRequestURL = process.env.IS_DEV_SERVER
+      ? "/rooms/rejectJoinRequest"
+      : "/main/rooms/rejectJoinRequest";
+    let rejectJoinRequestResponse: Response;
     try {
-      acceptJoinRequestResponse = await fetch("/rooms/rejectJoinRequest", {
+      rejectJoinRequestResponse = await fetch(rejectJoinRequestURL, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -91,9 +97,9 @@ for (let i = 0; i < rejectJoinRequest.length; i++) {
       return;
     }
 
-    if (!acceptJoinRequestResponse.ok) {
+    if (!rejectJoinRequestResponse.ok) {
       const errorResponse: BasicServerError =
-        await acceptJoinRequestResponse.json();
+        await rejectJoinRequestResponse.json();
 
       fixedStatusBox.classList.add("bg-error", "text-error-content");
       fixedStatusBox.innerText = errorResponse.error;
@@ -103,7 +109,7 @@ for (let i = 0; i < rejectJoinRequest.length; i++) {
 
     // display status and if successful,
     const joinRequestAccepted: BasicServerSuccess =
-      await acceptJoinRequestResponse.json();
+      await rejectJoinRequestResponse.json();
     fixedStatusBox.classList.add("bg-success", "text-success-content");
     fixedStatusBox.innerText = joinRequestAccepted.message;
     button.disabled = false;

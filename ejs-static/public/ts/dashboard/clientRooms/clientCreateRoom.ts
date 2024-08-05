@@ -49,8 +49,11 @@ async function createRoom(e: SubmitEvent) {
     return;
   }
 
+  const createRoomURL = process.env.IS_DEV_SERVER
+    ? "/rooms/createRoom"
+    : "/main/rooms/createRoom";
   try {
-    const makeRoomResponse = await fetch("rooms/createRoom", {
+    const makeRoomResponse = await fetch(createRoomURL, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -59,7 +62,10 @@ async function createRoom(e: SubmitEvent) {
     });
 
     if (makeRoomResponse.ok === true) {
-      window.location.href = `/dashboard`;
+      const dashboardURL = process.env.IS_DEV_SERVER
+        ? "/dashboard"
+        : "/main/dashboard";
+      window.location.href = dashboardURL;
       return;
     }
 

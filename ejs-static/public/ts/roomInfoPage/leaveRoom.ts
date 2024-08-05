@@ -17,9 +17,12 @@ leaveRoomButton.addEventListener("click", async () => {
   }
   toggleSubmitButtonState();
 
-  let deleteRoomStatus: Response;
+  const leaveRoomURL = process.env.IS_DEV_SERVER
+    ? "/rooms/leaveRoom"
+    : "/main/rooms/leaveRoom";
+  let leaveRoomStatus: Response;
   try {
-    deleteRoomStatus = await fetch("/rooms/leaveRoom", {
+    leaveRoomStatus = await fetch(leaveRoomURL, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -33,10 +36,10 @@ leaveRoomButton.addEventListener("click", async () => {
     return;
   }
 
-  if (!deleteRoomStatus.ok) {
-    let deleteRoomError;
+  if (!leaveRoomStatus.ok) {
+    let leaveRoomError;
     try {
-      deleteRoomError = await deleteRoomStatus.json();
+      leaveRoomError = await leaveRoomStatus.json();
     } catch (error) {
       fixedStatusBox.textContent = "Something went wrong";
       fixedStatusBox.classList.add("bg-error", "text-error-content");
@@ -54,8 +57,7 @@ leaveRoomButton.addEventListener("click", async () => {
       return;
     }
 
-    fixedStatusBox.textContent =
-      deleteRoomError.error || "Something went wrong";
+    fixedStatusBox.textContent = leaveRoomError.error || "Something went wrong";
     fixedStatusBox.classList.add("bg-error", "text-error-content");
     toggleSubmitButtonState();
 
@@ -71,5 +73,8 @@ leaveRoomButton.addEventListener("click", async () => {
     return;
   }
 
-  window.location.href = "/dashboard";
+  const dashboardURL = process.env.IS_DEV_SERVER
+    ? "/dashboard"
+    : "/main/dashboard";
+  window.location.href = dashboardURL;
 });

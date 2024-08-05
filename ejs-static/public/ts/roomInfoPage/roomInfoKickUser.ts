@@ -17,9 +17,12 @@ for (let i = 0; i < kickButtons.length; i++) {
 
     kickButton.disabled = true;
 
+    const kickMemberURL = process.env.IS_DEV_SERVER
+      ? "/rooms/kickMember"
+      : "/main/rooms/kickMember";
     let kickMemberResponse: Response;
     try {
-      kickMemberResponse = await fetch("/rooms/kickMember", {
+      kickMemberResponse = await fetch(kickMemberURL, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
