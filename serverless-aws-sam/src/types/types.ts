@@ -23,7 +23,15 @@ type BaseModelsSuccess = {
   statusCode: number;
 };
 
+interface BaseModelsSuccessData<Data> extends BaseModelsSuccess {
+  data: Data;
+}
+
 type BaseModelsReturnType = Promise<BaseModelsError | BaseModelsSuccess>;
+
+type BaseModelsReturnTypeData<Data> = Promise<
+  BaseModelsError | BaseModelsSuccessData<Data>
+>;
 
 type RoomsOnUser =
   | {
@@ -244,6 +252,17 @@ interface APIGatewayWebSocketDisconnectEvent {
   isBase64Encoded: boolean;
 }
 
+interface InitialConnection {
+  userID: string;
+  connectionId: string; // sort key
+}
+
+interface InitialConnectionDB extends InitialConnection {
+  connection: "INITIAL_CONNECTION"; // part key
+}
+
+type FetchInitialConnectionReturn = BaseModelsReturnTypeData<InitialConnection>;
+
 export {
   AuthCodeTokenResponse,
   TokenRefresh,
@@ -267,4 +286,7 @@ export {
   FetchNavUserInfoReturn,
   APIGatewayWebSocketConnectEvent,
   APIGatewayWebSocketDisconnectEvent,
+  InitialConnection,
+  InitialConnectionDB,
+  FetchInitialConnectionReturn,
 };
