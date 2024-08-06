@@ -19,6 +19,9 @@ let roomInfo: RoomInfoType;
 const roomName = "SendMessageTestRoom";
 let RoomID: string;
 
+let messageId: string;
+let messageDate: string;
+
 beforeAll(async () => {
   // make a test user
   const makeUserResponse = await userManager.createUser();
@@ -116,6 +119,7 @@ afterAll(async () => {
 });
 describe("A test for the custom joinRoom route on the api gateway websocket", () => {
   test("Should return a successfull response and correctly store message information correclty", async () => {
+    // get the message id and date from the response
     const response = await handler(restAPIEvent);
   });
 });

@@ -36,7 +36,7 @@ class BaseModels {
 
   protected async getItem(
     key: Record<string, any>,
-    ConsistentRead: boolean
+    ConsistentRead?: boolean
   ): Promise<GetCommandOutput> {
     const command = new GetCommand({
       TableName: this.tableName,
@@ -63,7 +63,7 @@ class BaseModels {
   protected async queryItems(
     keyConditionExpression: string,
     expressionAttributeValues: Record<string, any>,
-    ConsistentRead: boolean
+    ConsistentRead?: boolean
   ): Promise<QueryCommandOutput> {
     const command = new QueryCommand({
       TableName: this.tableName,

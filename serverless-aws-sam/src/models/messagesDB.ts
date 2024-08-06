@@ -1,6 +1,7 @@
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import {
   DynamoDBDocumentClient,
+  GetCommandOutput,
   PutCommandOutput,
   QueryCommand,
   QueryCommandOutput,
@@ -8,9 +9,11 @@ import {
 import { BaseModels } from "./baseModels.js";
 import {
   Message,
+  MessageKeys,
   MessageDB,
-  BaseModelsReturnType,
+  FetchMessageReturn,
   FetchAllMessagesReturn,
+  BaseModelsReturnTypeData,
 } from "../types/types.js";
 
 const client = new DynamoDBClient({});
@@ -26,7 +29,10 @@ class MessagesManagerDB extends BaseModels {
     RoomID: string,
     message: string,
     messageIdArg?: string
-  ): BaseModelsReturnType {
+  ): BaseModelsReturnTypeData<{
+    messageId: string;
+    sentAt: string;
+  }> {
     const currentTimestamp = new Date().toISOString();
     const messageId = messageIdArg ? messageIdArg : crypto.randomUUID();
 
@@ -37,6 +43,7 @@ class MessagesManagerDB extends BaseModels {
       messageId,
       userID,
       RoomID,
+      sentAt: currentTimestamp,
     };
 
     let saveMessageResponse: PutCommandOutput;
@@ -45,7 +52,7 @@ class MessagesManagerDB extends BaseModels {
     } catch (error) {
       return {
         statusCode: 500,
-        message: "Server Error storing message",
+        error: "Server Error storing message",
       };
     }
 
@@ -56,11 +63,49 @@ class MessagesManagerDB extends BaseModels {
 
     return {
       message: "Message stored successfully",
+      data: {
+        messageId,
+        sentAt: currentTimestamp,
+      },
       statusCode: 200,
     };
   }
 
-  async fetchMessage(RoomID: string, messageDate: string, messageId: string) {}
+  async fetchMessage(
+    RoomID: string,
+    messageDate: string,
+    messageId: string
+  ): FetchMessageReturn {
+    const messageKeys: MessageKeys = {
+      PartitionKey: `ROOM#${RoomID}`,
+      SortKey: `MESSAGES#DATE#${messageDate}#MESSAGEID#${messageId}`,
+    };
+
+    let messageResponse: GetCommandOutput;
+    try {
+      messageResponse = await this.getItem(messageKeys);
+    } catch (error) {
+      return {
+        statusCode: 500,
+        error: "Server Error fetching message",
+      };
+    }
+
+    const statusCode = messageResponse.$metadata.httpStatusCode as number;
+    if (statusCode !== 200) {
+      return { error: "Something Went wrong while fetching data", statusCode };
+    } else if (!messageResponse.Item) {
+      return { error: "No data found", statusCode: 404 };
+    }
+
+    const message: Message = messageResponse.Item as Message;
+
+    return {
+      message: "Message fetched successfully",
+      data: message,
+      statusCode: 200,
+    };
+  }
 
   async fetchAllMessages(RoomID: string): FetchAllMessagesReturn {
     const params = {
@@ -101,6 +146,7 @@ class MessagesManagerDB extends BaseModels {
         messageId: item.messageId,
         userID: item.userID,
         RoomID: item.RoomID,
+        sentAt: item.sentAt,
       };
     });
 
@@ -111,7 +157,7 @@ class MessagesManagerDB extends BaseModels {
     };
   }
 
-  async deleteMessage() {}
+  async deleteMessage(RoomID: string, messageDate: string, messageId: string) {}
 }
 
 const messagesManagerDB = new MessagesManagerDB(

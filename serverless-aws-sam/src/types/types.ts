@@ -285,19 +285,25 @@ interface Message {
   messageId: string;
   userID: string;
   RoomID: string;
+  sentAt: string;
 }
 
-interface MessageDB extends Message {
+interface MessageKeys {
   PartitionKey: `ROOM#${string}`; // RoomID
   SortKey: `MESSAGES#DATE#${string}#MESSAGEID#${string}`;
 }
 
-type FetchAllMessagesReturn = BaseModelsReturnTypeData<Message[]>;
+type MessageDB = Message & MessageKeys;
+
+type FetchMessageReturn = BaseModelsReturnTypeData<Message>;
+
+type FetchAllMessagesReturn = BaseModelsReturnTypeData<Message[] | []>;
 
 export {
   AuthCodeTokenResponse,
   TokenRefresh,
   BaseModelsReturnType,
+  BaseModelsReturnTypeData,
   RoomsOnUser,
   RoomInfoDBType,
   RoomInfoType,
@@ -324,6 +330,8 @@ export {
   FetchRoomConnectionReturn,
   FetchAllRoomConnectionsReturn,
   Message,
+  MessageKeys,
   MessageDB,
+  FetchMessageReturn,
   FetchAllMessagesReturn,
 };
