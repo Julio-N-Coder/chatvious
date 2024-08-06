@@ -7,6 +7,8 @@ import {
   GetCommandOutput,
   DeleteCommand,
   DeleteCommandOutput,
+  QueryCommand,
+  QueryCommandOutput,
 } from "@aws-sdk/lib-dynamodb";
 import {
   InitialConnectionDB,
@@ -15,6 +17,7 @@ import {
   FetchInitialConnectionReturn,
   RoomConnectionDB,
   FetchRoomConnectionReturn,
+  FetchAllRoomConnectionsReturn,
 } from "../types/types.js";
 
 const client = new DynamoDBClient({});
@@ -207,6 +210,51 @@ class WSMessagesDBManager {
       userID: fetchRoomConnectionResponse.Item.userID,
     };
 
+    return {
+      message: "Data fetched successfully",
+      data: roomConnectionData,
+      statusCode: 200,
+    };
+  }
+
+  async fetchAllRoomConnections(RoomID: string): FetchAllRoomConnectionsReturn {
+    const command = new QueryCommand({
+      TableName: "chatvious",
+      KeyConditionExpression:
+        "PartitionKey = :pk AND begins_with(SortKey, :connectionIdPrefix)",
+      ExpressionAttributeValues: {
+        ":pk": `ROOM#${RoomID}`,
+        ":connectionIdPrefix": "CONNECTIONID#",
+      },
+      ConsistentRead: true,
+    });
+
+    let fetchAllRoomConnectionsResponse: QueryCommandOutput;
+    try {
+      fetchAllRoomConnectionsResponse = await docClient.send(command);
+    } catch (err) {
+      return {
+        error: "Something Went wrong while fetching data",
+        statusCode: 500,
+      };
+    }
+
+    const statusCode = fetchAllRoomConnectionsResponse.$metadata
+      .httpStatusCode as number;
+    if (statusCode !== 200) {
+      return {
+        error: "Something Went wrong while fetching data",
+        statusCode,
+      };
+    } else if (
+      !fetchAllRoomConnectionsResponse.Items ||
+      fetchAllRoomConnectionsResponse.Items.length > 0
+    ) {
+      return { error: "No data found", statusCode: 404 };
+    }
+
+    const roomConnectionData =
+      fetchAllRoomConnectionsResponse.Items as RoomConnectionDB[];
     return {
       message: "Data fetched successfully",
       data: roomConnectionData,

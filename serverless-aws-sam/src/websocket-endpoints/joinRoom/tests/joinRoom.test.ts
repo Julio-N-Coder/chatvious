@@ -3,14 +3,7 @@ import restAPIEventBase from "../../../../events/websocketApiCustomEvent.json";
 import { wsMessagesDBManager } from "../../../models/web-socket-messages.js";
 import { userManager } from "../../../models/users.js";
 import { roomManager } from "../../../models/rooms.js";
-import {
-  describe,
-  test,
-  expect,
-  beforeAll,
-  afterAll,
-  afterEach,
-} from "@jest/globals";
+import { describe, test, expect, beforeAll, afterAll } from "@jest/globals";
 import { APIGatewayProxyWebsocketEventV2 } from "aws-lambda";
 import { RoomInfoType } from "../../../types/types.js";
 

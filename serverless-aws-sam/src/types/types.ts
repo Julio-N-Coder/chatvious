@@ -278,6 +278,22 @@ interface RoomConnectionDB extends RoomConnection {
 
 type FetchRoomConnectionReturn = BaseModelsReturnTypeData<RoomConnection>;
 
+type FetchAllRoomConnectionsReturn = BaseModelsReturnTypeData<RoomConnection[]>;
+
+interface Message {
+  message: string;
+  messageId: string;
+  userID: string;
+  RoomID: string;
+}
+
+interface MessageDB extends Message {
+  PartitionKey: `ROOM#${string}`; // RoomID
+  SortKey: `MESSAGES#DATE#${string}#MESSAGEID#${string}`;
+}
+
+type FetchAllMessagesReturn = BaseModelsReturnTypeData<Message[]>;
+
 export {
   AuthCodeTokenResponse,
   TokenRefresh,
@@ -306,4 +322,8 @@ export {
   FetchInitialConnectionReturn,
   RoomConnectionDB,
   FetchRoomConnectionReturn,
+  FetchAllRoomConnectionsReturn,
+  Message,
+  MessageDB,
+  FetchAllMessagesReturn,
 };

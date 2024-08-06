@@ -1,5 +1,4 @@
 import "../../css/styles.css";
-// remove to use the built in websocket client so it can work with api gateway
 console.log("test");
 // urls not decided yet (temp for now)
 const websocketURL = process.env.IS_DEV_SERVER
@@ -11,7 +10,7 @@ const socket = new WebSocket(websocketURL);
 const messageBox = document.getElementById("message") as HTMLElement;
 const input = document.getElementById("input") as HTMLInputElement;
 const button = document.getElementById("button") as HTMLButtonElement;
-
+// send a joinroom chat message to join the room first
 function sendMessage() {
   const message = input.value;
   if (message) {
