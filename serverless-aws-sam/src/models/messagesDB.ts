@@ -1,5 +1,6 @@
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import {
+  DeleteCommandOutput,
   DynamoDBDocumentClient,
   GetCommandOutput,
   PutCommandOutput,
@@ -11,6 +12,7 @@ import {
   Message,
   MessageKeys,
   MessageDB,
+  BaseModelsReturnType,
   FetchMessageReturn,
   FetchAllMessagesReturn,
   BaseModelsReturnTypeData,
@@ -157,7 +159,38 @@ class MessagesManagerDB extends BaseModels {
     };
   }
 
-  async deleteMessage(RoomID: string, messageDate: string, messageId: string) {}
+  async deleteMessage(
+    RoomID: string,
+    messageDate: string,
+    messageId: string
+  ): BaseModelsReturnType {
+    const messageKeys: MessageKeys = {
+      PartitionKey: `ROOM#${RoomID}`,
+      SortKey: `MESSAGES#DATE#${messageDate}#MESSAGEID#${messageId}`,
+    };
+
+    let deleteMessageResponse: DeleteCommandOutput;
+    try {
+      deleteMessageResponse = await this.deleteItem(messageKeys, true);
+    } catch (error) {
+      return {
+        statusCode: 500,
+        error: "Server Error deleting message",
+      };
+    }
+
+    const statusCode = deleteMessageResponse.$metadata.httpStatusCode as number;
+    if (statusCode !== 200) {
+      return { error: "Something Went wrong while deleting data", statusCode };
+    } else if (!deleteMessageResponse.Attributes) {
+      return { error: "No data found", statusCode: 404 };
+    }
+
+    return {
+      message: "Message deleted successfully",
+      statusCode: 200,
+    };
+  }
 }
 
 const messagesManagerDB = new MessagesManagerDB(
