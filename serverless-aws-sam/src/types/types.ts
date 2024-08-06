@@ -265,6 +265,19 @@ interface InitialConnectionDB {
 
 type FetchInitialConnectionReturn = BaseModelsReturnTypeData<InitialConnection>;
 
+interface RoomConnection {
+  RoomID: string;
+  connectionId: string;
+  userID: string;
+}
+
+interface RoomConnectionDB extends RoomConnection {
+  PartitionKey: `ROOM#${string}`; // roomID
+  SortKey: `CONNECTIONID#${string}`; // connectionID
+}
+
+type FetchRoomConnectionReturn = BaseModelsReturnTypeData<RoomConnection>;
+
 export {
   AuthCodeTokenResponse,
   TokenRefresh,
@@ -291,4 +304,6 @@ export {
   InitialConnection,
   InitialConnectionDB,
   FetchInitialConnectionReturn,
+  RoomConnectionDB,
+  FetchRoomConnectionReturn,
 };

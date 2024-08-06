@@ -13,6 +13,8 @@ import {
   InitialConnection,
   BaseModelsReturnType,
   FetchInitialConnectionReturn,
+  RoomConnectionDB,
+  FetchRoomConnectionReturn,
 } from "../types/types.js";
 
 const client = new DynamoDBClient({});
@@ -122,6 +124,124 @@ class WSMessagesDBManager {
     if (statusCode !== 200) {
       return { error: "Something Went wrong while deleting data", statusCode };
     } else if (!initialConnectionResponse.Attributes) {
+      return { error: "No data found", statusCode: 404 };
+    }
+
+    return { message: "Data deleted successfully", statusCode: 200 };
+  }
+
+  async storeRoomConnection(
+    connectionId: string,
+    userID: string,
+    RoomID: string
+  ) {
+    const roomConnectionData: RoomConnectionDB = {
+      PartitionKey: `ROOM#${RoomID}`,
+      SortKey: `CONNECTIONID#${connectionId}`,
+      connectionId,
+      userID,
+      RoomID,
+    };
+
+    const command = new PutCommand({
+      TableName: "chatvious",
+      Item: roomConnectionData,
+    });
+
+    let storeRoomConnectionResponse: PutCommandOutput;
+    try {
+      storeRoomConnectionResponse = await docClient.send(command);
+    } catch (err) {
+      return {
+        error: "Something Went wrong while storing data",
+        statusCode: 500,
+      };
+    }
+
+    const statusCode = storeRoomConnectionResponse.$metadata
+      .httpStatusCode as number;
+    if (statusCode !== 200) {
+      return { error: "Something Went wrong while storing data", statusCode };
+    }
+
+    return {
+      message: "Room Connection Data stored successfully",
+      statusCode: 200,
+    };
+  }
+
+  async fetchRoomConnection(
+    RoomID: string,
+    connectionId: string
+  ): FetchRoomConnectionReturn {
+    const command = new GetCommand({
+      TableName: "chatvious",
+      Key: {
+        PartitionKey: `ROOM#${RoomID}`,
+        SortKey: `CONNECTIONID#${connectionId}`,
+      },
+      ConsistentRead: true,
+    });
+
+    let fetchRoomConnectionResponse: GetCommandOutput;
+    try {
+      fetchRoomConnectionResponse = await docClient.send(command);
+    } catch (err) {
+      return {
+        error: "Something Went wrong while fetching data",
+        statusCode: 500,
+      };
+    }
+
+    const statusCode = fetchRoomConnectionResponse.$metadata
+      .httpStatusCode as number;
+    if (statusCode !== 200) {
+      return { error: "Something Went wrong while fetching data", statusCode };
+    } else if (!fetchRoomConnectionResponse.Item) {
+      return { error: "No data found", statusCode: 404 };
+    }
+
+    const roomConnectionData = {
+      RoomID: fetchRoomConnectionResponse.Item.RoomID,
+      connectionId: fetchRoomConnectionResponse.Item.connectionId,
+      userID: fetchRoomConnectionResponse.Item.userID,
+    };
+
+    return {
+      message: "Data fetched successfully",
+      data: roomConnectionData,
+      statusCode: 200,
+    };
+  }
+
+  async deleteRoomConnection(
+    RoomID: string,
+    connectionId: string
+  ): BaseModelsReturnType {
+    const command = new DeleteCommand({
+      TableName: "chatvious",
+      Key: {
+        PartitionKey: `ROOM#${RoomID}`,
+        SortKey: `CONNECTIONID#${connectionId}`,
+      },
+      ReturnValues: "ALL_OLD",
+    });
+
+    let deleteRoomConnectionResponse: DeleteCommandOutput;
+    try {
+      deleteRoomConnectionResponse = await docClient.send(command);
+    } catch (error) {
+      return {
+        error: "Something Went wrong while deleting data",
+        statusCode: 500,
+      };
+    }
+
+    const statusCode = deleteRoomConnectionResponse.$metadata
+      .httpStatusCode as number;
+    if (statusCode !== 200) {
+      return { error: "Something Went wrong while deleting data", statusCode };
+    } else if (!deleteRoomConnectionResponse.Attributes) {
       return { error: "No data found", statusCode: 404 };
     }
 

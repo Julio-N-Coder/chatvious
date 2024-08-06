@@ -9,9 +9,13 @@ export const handler = async (
   const initialConnectionResponse =
     await wsMessagesDBManager.deleteInitialConnection(connectionId);
   if ("error" in initialConnectionResponse) {
-    return {
-      statusCode: initialConnectionResponse.statusCode,
-    };
+    if (initialConnectionResponse.error !== "No data found") {
+      return {
+        statusCode: initialConnectionResponse.statusCode,
+      };
+    } else if (initialConnectionResponse.error == "No data found") {
+      // once joinRoom is up, delete that connection here
+    }
   }
 
   return { statusCode: 200 };

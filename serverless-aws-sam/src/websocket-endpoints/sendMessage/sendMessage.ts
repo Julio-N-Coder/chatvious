@@ -22,11 +22,16 @@ export const handler = async (event: APIGatewayProxyWebsocketEventV2) => {
   }
   const body = JSON.parse(event.body);
 
+  if (!body.message) {
+    return { statusCode: 400, body: "Missing Message" };
+  } else if (typeof body.message !== "string") {
+    return { statusCode: 400, body: "Invalid Message" };
+  } // add check for max message length as well
+
   const client = new ApiGatewayManagementApiClient({ endpoint: callbackUrl });
 
   const requestParams = {
     ConnectionId: connectionId,
-    // make sure to check if message has a value and is a string
     Data: body.message,
   };
 
