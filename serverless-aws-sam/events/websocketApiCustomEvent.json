@@ -9,7 +9,7 @@
     "eventType": "MESSAGE",
     "extendedRequestId": "randomRequestId",
     "messageDirection": "IN",
-    "messageId": "message1",
+    "messageId": "fakeMessageId1",
     "requestId": "cdef1234",
     "requestTime": "01/Jan/2022:12:34:56 +0000",
     "requestTimeEpoch": 1641033296000,

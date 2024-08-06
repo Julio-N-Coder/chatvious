@@ -137,7 +137,7 @@ class WSMessagesDBManager {
     connectionId: string,
     userID: string,
     RoomID: string
-  ) {
+  ): BaseModelsReturnType {
     const roomConnectionData: RoomConnectionDB = {
       PartitionKey: `ROOM#${RoomID}`,
       SortKey: `CONNECTIONID#${connectionId}`,
@@ -248,7 +248,7 @@ class WSMessagesDBManager {
       };
     } else if (
       !fetchAllRoomConnectionsResponse.Items ||
-      fetchAllRoomConnectionsResponse.Items.length > 0
+      fetchAllRoomConnectionsResponse.Items.length <= 0
     ) {
       return { error: "No data found", statusCode: 404 };
     }

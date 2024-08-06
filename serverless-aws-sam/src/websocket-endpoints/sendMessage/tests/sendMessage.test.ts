@@ -4,11 +4,31 @@ import { wsMessagesDBManager } from "../../../models/web-socket-messages.js";
 import { userManager } from "../../../models/users.js";
 import { roomManager } from "../../../models/rooms.js";
 import { messagesManagerDB } from "../../../models/messagesDB.js";
-import { describe, test, expect, beforeAll, afterAll } from "@jest/globals";
+import {
+  jest,
+  describe,
+  test,
+  expect,
+  beforeAll,
+  afterAll,
+  afterEach,
+} from "@jest/globals";
 import { APIGatewayProxyWebsocketEventV2 } from "aws-lambda";
 import { UserInfo, RoomInfoType } from "../../../types/types.js";
 
-const restAPIEvent = restAPIEventBase as APIGatewayProxyWebsocketEventV2;
+jest.mock("@aws-sdk/client-apigatewaymanagementapi", () => {
+  return {
+    ApiGatewayManagementApiClient: jest.fn().mockImplementation(() => {
+      return {
+        send: jest.fn(),
+      };
+    }),
+    PostToConnectionCommand: jest.fn(),
+  };
+});
+
+let restAPIEvent = restAPIEventBase as APIGatewayProxyWebsocketEventV2;
+let restAPIEventCopy: APIGatewayProxyWebsocketEventV2;
 const connectionId = restAPIEvent.requestContext.connectionId;
 
 let userInfo: UserInfo;
@@ -21,6 +41,7 @@ let RoomID: string;
 
 let messageId: string;
 let messageDate: string;
+const message = "This is a test message";
 
 beforeAll(async () => {
   // make a test user
@@ -63,15 +84,29 @@ beforeAll(async () => {
 
   restAPIEvent.body = JSON.stringify({
     action: "sendmessage",
+    message,
     RoomID,
   });
   restAPIEvent.requestContext.connectionId = connectionId;
   restAPIEvent.requestContext.routeKey = "sendmessage";
+
+  restAPIEventCopy = JSON.parse(JSON.stringify(restAPIEvent));
 });
 
 afterAll(async () => {
   // delete the message
-  const deleteMessageResponse = await messagesManagerDB.deleteMessage;
+  const deleteMessageResponse = await messagesManagerDB.deleteMessage(
+    RoomID,
+    messageDate,
+    messageId
+  );
+  if (
+    "error" in deleteMessageResponse &&
+    deleteMessageResponse.error !== "No data found"
+  ) {
+    console.log("Error while deleting message");
+    console.log(deleteMessageResponse.error);
+  }
 
   // delete the room connection
   const deleteRoomConnectionResponse =
@@ -117,9 +152,75 @@ afterAll(async () => {
     console.log(deleteRoomResponse.error);
   }
 });
+
+afterEach(async () => {
+  restAPIEvent = JSON.parse(JSON.stringify(restAPIEventCopy));
+});
+
 describe("A test for the custom joinRoom route on the api gateway websocket", () => {
   test("Should return a successfull response and correctly store message information correclty", async () => {
-    // get the message id and date from the response
     const response = await handler(restAPIEvent);
+    expect(response).toHaveProperty("statusCode", 200);
+    expect(response).toHaveProperty("body", "Message sent successfully");
+
+    if (!response.messageId && !response.messageDate) {
+      throw new Error("No message id or date in response during test");
+    }
+    messageId = response.messageId;
+    messageDate = response.messageDate;
+
+    expect(response).toHaveProperty("messageId", messageId);
+    expect(response).toHaveProperty("messageDate", messageDate);
+
+    // check whether the message was correctly stored
+    const getMessageResponse = await messagesManagerDB.fetchMessage(
+      RoomID,
+      messageDate,
+      messageId
+    );
+    if ("error" in getMessageResponse) {
+      throw new Error(
+        `Error while fetching message in test. Error: ${getMessageResponse.error}`
+      );
+    }
+
+    const messageData = getMessageResponse.data;
+    expect(messageData).toHaveProperty("RoomID", RoomID);
+    expect(messageData).toHaveProperty("message", message);
+    expect(messageData).toHaveProperty("messageId", messageId);
+    expect(messageData).toHaveProperty("sentAt", messageDate);
+    expect(messageData).toHaveProperty("userID", userID);
+  });
+
+  test("Should return correct error when message is missing from body", async () => {
+    restAPIEvent.body = JSON.stringify({
+      action: "joinroom",
+      RoomID,
+    });
+    const response = await handler(restAPIEvent);
+    expect(response).toHaveProperty("statusCode", 400);
+    expect(response).toHaveProperty("body", "Missing Message");
+  });
+
+  test("Should return correct error when RoomID is missing from body", async () => {
+    restAPIEvent.body = JSON.stringify({
+      action: "joinroom",
+      message,
+    });
+    const response = await handler(restAPIEvent);
+    expect(response).toHaveProperty("statusCode", 400);
+    expect(response).toHaveProperty("body", "Invalid RoomID");
+  });
+
+  test("Should return correct error when message is to long", async () => {
+    restAPIEvent.body = JSON.stringify({
+      action: "joinroom",
+      RoomID,
+      message:
+        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa".repeat(40) + "a", // 2001
+    });
+    const response = await handler(restAPIEvent);
+    expect(response).toHaveProperty("statusCode", 400);
+    expect(response).toHaveProperty("body", "Message too long");
   });
 });

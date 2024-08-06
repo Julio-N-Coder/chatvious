@@ -27,8 +27,10 @@ export const handler = async (event: APIGatewayProxyWebsocketEventV2) => {
   }
   const body: sendMessageBody = JSON.parse(event.body);
 
-  if (!body.message || typeof body.message !== "string") {
+  if (!body.message) {
     return { statusCode: 400, body: "Missing Message" };
+  } else if (typeof body.message !== "string") {
+    return { statusCode: 400, body: "Invalid Message" };
   } else if (!body.RoomID || typeof body.RoomID !== "string") {
     return { statusCode: 400, body: "Invalid RoomID" };
   } else if (body.RoomID.length < 20) {
@@ -80,17 +82,18 @@ export const handler = async (event: APIGatewayProxyWebsocketEventV2) => {
     try {
       await client.send(command);
     } catch (error) {
+      console.log("Error sending message");
       console.log(error);
     }
   });
 
   // store the message
-  const messageID = event.requestContext.messageId;
+  const messageId = event.requestContext.messageId;
   const messageResponse = await messagesManagerDB.storeMessage(
     userID,
     RoomID,
     body.message,
-    messageID
+    messageId
   );
   if ("error" in messageResponse) {
     return {
@@ -98,8 +101,12 @@ export const handler = async (event: APIGatewayProxyWebsocketEventV2) => {
       body: messageResponse.error,
     };
   }
+  const messageDate = messageResponse.data.sentAt;
 
   return {
     statusCode: 200,
+    body: "Message sent successfully",
+    messageId,
+    messageDate,
   };
 };
