@@ -150,6 +150,21 @@ describe("A test for the custom joinRoom route on the api gateway websocket", ()
     expect(roomConnectionData).toHaveProperty("RoomID", RoomID);
     expect(roomConnectionData).toHaveProperty("connectionId", connectionId);
     expect(roomConnectionData).toHaveProperty("userID", userID);
+
+    // check whether initial Connection info was updated with RoomID
+    const fetchInitialConnectionResponse =
+      await wsMessagesDBManager.fetchInitialConnection(connectionId);
+    if ("error" in fetchInitialConnectionResponse) {
+      throw new Error(
+        `Error while fetching initial connection in test. Error: ${fetchInitialConnectionResponse.error}`
+      );
+    }
+
+    const initialConnectionData = fetchInitialConnectionResponse.data;
+    console.log(initialConnectionData);
+    expect(initialConnectionData).toHaveProperty("RoomID", RoomID);
+    expect(initialConnectionData).toHaveProperty("userID", userID);
+    expect(initialConnectionData).toHaveProperty("connectionId", connectionId);
   });
 
   test("Should return correct error when RoomID is missing from body", async () => {

@@ -1,5 +1,4 @@
 import { APIGatewayProxyWebsocketEventV2 } from "aws-lambda";
-// remember to give lambda function permission to call the API Gateway Management API
 import {
   ApiGatewayManagementApiClient,
   PostToConnectionCommand,

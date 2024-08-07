@@ -20,6 +20,7 @@ Globals:
       LogFormat: JSON
 
 # change AmazonDynamoDBFullAccess to just crud access. the one provided by sam.
+# remember to give sendMessage websocket lambda function permission to call the API Gateway Management API
 Resources:
   saveUserDataFunction:
     Type: AWS::Serverless::Function
@@ -445,7 +446,6 @@ Resources:
             Resource:
               - arn:aws:execute-api:*:*:*
 
-  # If I don't import other code, change this to a zip package type
   sendMessageWebSocket:
     Type: AWS::Serverless::Function
     Properties:

@@ -7,6 +7,8 @@ import {
   GetCommandOutput,
   DeleteCommand,
   DeleteCommandOutput,
+  UpdateCommand,
+  UpdateCommandOutput,
   QueryCommand,
   QueryCommandOutput,
 } from "@aws-sdk/lib-dynamodb";
@@ -14,7 +16,7 @@ import {
   InitialConnectionDB,
   InitialConnection,
   BaseModelsReturnType,
-  FetchInitialConnectionReturn,
+  InitialConnectionReturn,
   RoomConnectionDB,
   FetchRoomConnectionReturn,
   FetchAllRoomConnectionsReturn,
@@ -29,9 +31,10 @@ class WSMessagesDBManager {
     userID: string
   ): BaseModelsReturnType {
     const initialConnectionData: InitialConnectionDB = {
-      PartitionKey: "INITIAL_CONNECTION",
+      PartitionKey: "CONNECTION_INFO",
       SortKey: connectionId,
       userID,
+      RoomID: false,
     };
 
     const command = new PutCommand({
@@ -58,13 +61,11 @@ class WSMessagesDBManager {
     return { message: "Data stored successfully", statusCode: 200 };
   }
 
-  async fetchInitialConnection(
-    connectionId: string
-  ): FetchInitialConnectionReturn {
+  async fetchInitialConnection(connectionId: string): InitialConnectionReturn {
     const command = new GetCommand({
       TableName: "chatvious",
       Key: {
-        PartitionKey: "INITIAL_CONNECTION",
+        PartitionKey: "CONNECTION_INFO",
         SortKey: connectionId,
       },
       ConsistentRead: true,
@@ -93,6 +94,7 @@ class WSMessagesDBManager {
     const initialConnectionData: InitialConnection = {
       connectionId: initialConnectionDataDB.SortKey,
       userID: initialConnectionDataDB.userID,
+      RoomID: initialConnectionDataDB.RoomID,
     };
 
     return {
@@ -102,11 +104,11 @@ class WSMessagesDBManager {
     };
   }
 
-  async deleteInitialConnection(connectionId: string): BaseModelsReturnType {
+  async deleteInitialConnection(connectionId: string): InitialConnectionReturn {
     const command = new DeleteCommand({
       TableName: "chatvious",
       Key: {
-        PartitionKey: "INITIAL_CONNECTION",
+        PartitionKey: "CONNECTION_INFO",
         SortKey: connectionId,
       },
       ReturnValues: "ALL_OLD",
@@ -130,7 +132,16 @@ class WSMessagesDBManager {
       return { error: "No data found", statusCode: 404 };
     }
 
-    return { message: "Data deleted successfully", statusCode: 200 };
+    const deletedData: InitialConnection = {
+      connectionId: initialConnectionResponse.Attributes.SortKey as string,
+      userID: initialConnectionResponse.Attributes.userID as string,
+      RoomID: initialConnectionResponse.Attributes.RoomID as string,
+    };
+    return {
+      message: "Data deleted successfully",
+      data: deletedData,
+      statusCode: 200,
+    };
   }
 
   async storeRoomConnection(
@@ -215,6 +226,44 @@ class WSMessagesDBManager {
       data: roomConnectionData,
       statusCode: 200,
     };
+  }
+
+  async updateInitialConnectionWithRoomID(
+    connectionId: string,
+    RoomID: string
+  ): BaseModelsReturnType {
+    const command = new UpdateCommand({
+      TableName: "chatvious",
+      Key: {
+        PartitionKey: "CONNECTION_INFO",
+        SortKey: connectionId,
+      },
+      UpdateExpression: "SET RoomID = :RoomID",
+      ExpressionAttributeValues: {
+        ":RoomID": RoomID,
+      },
+      ReturnValues: "ALL_NEW",
+    });
+
+    let updateInitialConnectionResponse: UpdateCommandOutput;
+    try {
+      updateInitialConnectionResponse = await docClient.send(command);
+    } catch (err) {
+      return {
+        error: "Something Went wrong while updating data",
+        statusCode: 500,
+      };
+    }
+
+    const statusCode = updateInitialConnectionResponse.$metadata
+      .httpStatusCode as number;
+    if (statusCode !== 200) {
+      return { error: "Something Went wrong while updating data", statusCode };
+    } else if (!updateInitialConnectionResponse.Attributes) {
+      return { error: "No data found", statusCode: 404 };
+    }
+
+    return { message: "Data updated successfully", statusCode: 200 };
   }
 
   async fetchAllRoomConnections(RoomID: string): FetchAllRoomConnectionsReturn {

@@ -60,9 +60,7 @@ type FetchUserInfoSuccess = {
   statusCode: number;
 };
 
-interface CreateUserInfoSuccess {
-  message: string;
-  statusCode: number;
+interface CreateUserInfoSuccess extends BaseModelsSuccess {
   newUser: UserInfo;
 }
 
@@ -94,12 +92,10 @@ type FetchRoomMemberSuccess = {
 
 type FetchRoomMemberReturn = Promise<BaseModelsError | FetchRoomMemberSuccess>;
 
-type FetchRoomMembersSuccess = {
+interface FetchRoomMembersSuccess extends BaseModelsSuccess {
   roomMembers: RoomMember[];
-  message: string;
   memberCount: number;
-  statusCode: number;
-};
+}
 
 type FetchRoomMembersReturn = Promise<
   BaseModelsError | FetchRoomMembersSuccess
@@ -116,11 +112,9 @@ type RoomInfoDBType = RoomInfoType & {
   SortKey: `METADATA`;
 };
 
-type FetchRoomSuccessReturn = {
+interface FetchRoomSuccessReturn extends BaseModelsSuccess {
   roomInfo: RoomInfoType;
-  message: string;
-  statusCode: number;
-};
+}
 
 type FetchRoomReturn = Promise<BaseModelsError | FetchRoomSuccessReturn>;
 
@@ -143,29 +137,23 @@ interface JoinRequestDB extends BaseJoinRequest {
 }
 [];
 
-type FetchJoinRequestsSuccess = {
-  message: string;
+interface FetchJoinRequestsSuccess extends BaseModelsSuccess {
   joinRequests: JoinRequest[] | [];
-  statusCode: number;
-};
+}
 
 type FetchJoinRequestsReturn = Promise<
   BaseModelsError | FetchJoinRequestsSuccess
 >;
 
-type FetchNavJoinRequestsSuccess = {
-  message: string;
+interface FetchNavJoinRequestsSuccess extends BaseModelsSuccess {
   navJoinRequest: { RoomID: string; roomName: string }[] | [];
-  statusCode: number;
-};
+}
 
 type FetchNavJoinRequestsReturn = Promise<
   BaseModelsError | FetchNavJoinRequestsSuccess
 >;
 
-interface FetchNavUserInfoSuccess {
-  statusCode: number;
-  message: string;
+interface FetchNavUserInfoSuccess extends BaseModelsSuccess {
   data: {
     userName: string;
     profileColor: string;
@@ -255,15 +243,17 @@ interface APIGatewayWebSocketDisconnectEvent {
 interface InitialConnection {
   userID: string;
   connectionId: string; // sort key
+  RoomID: string | false; // will be false if not connected to a room
 }
 
 interface InitialConnectionDB {
-  PartitionKey: "INITIAL_CONNECTION"; // part key
+  PartitionKey: "CONNECTION_INFO"; // part key
   SortKey: string; // (sort key) connectionId
   userID: string;
+  RoomID: string | false;
 }
 
-type FetchInitialConnectionReturn = BaseModelsReturnTypeData<InitialConnection>;
+type InitialConnectionReturn = BaseModelsReturnTypeData<InitialConnection>;
 
 interface RoomConnection {
   RoomID: string;
@@ -325,7 +315,7 @@ export {
   APIGatewayWebSocketDisconnectEvent,
   InitialConnection,
   InitialConnectionDB,
-  FetchInitialConnectionReturn,
+  InitialConnectionReturn,
   RoomConnectionDB,
   FetchRoomConnectionReturn,
   FetchAllRoomConnectionsReturn,

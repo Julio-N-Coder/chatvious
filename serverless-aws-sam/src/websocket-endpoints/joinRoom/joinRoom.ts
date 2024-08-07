@@ -52,9 +52,12 @@ export const handler = async (event: APIGatewayProxyWebsocketEventV2) => {
     };
   }
 
-  // remove them from InitialConnectionDB
+  // update initial connection to include RoomID
   const deleteInitialConnectionResponse =
-    await wsMessagesDBManager.deleteInitialConnection(connectionId);
+    await wsMessagesDBManager.updateInitialConnectionWithRoomID(
+      connectionId,
+      RoomID
+    );
   if ("error" in deleteInitialConnectionResponse) {
     return {
       statusCode: deleteInitialConnectionResponse.statusCode,
