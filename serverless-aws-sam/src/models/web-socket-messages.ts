@@ -28,13 +28,14 @@ const docClient = DynamoDBDocumentClient.from(client);
 class WSMessagesDBManager {
   async storeInitialConnection(
     connectionId: string,
-    userID: string
+    userID: string,
+    RoomID?: string
   ): BaseModelsReturnType {
     const initialConnectionData: InitialConnectionDB = {
       PartitionKey: "CONNECTION_INFO",
       SortKey: connectionId,
       userID,
-      RoomID: false,
+      RoomID: RoomID ? RoomID : false, // false means they are not connected to a room
     };
 
     const command = new PutCommand({
