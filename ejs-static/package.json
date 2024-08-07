@@ -11,7 +11,7 @@
     "serve:prod": "webpack serve --mode=production --node-env=production",
     "serve": "webpack serve",
     "static": "concurrently 'node static.js' 'webpack watch'",
-    "dev": "node script.js"
+    "dev": "concurrently 'node script.js' 'node webSocket.js'"
   },
   "devDependencies": {
     "@types/node": "^20.14.11",
@@ -32,6 +32,7 @@
     "typescript": "^5.5.3",
     "webpack": "^5.91.0",
     "webpack-cli": "^5.1.4",
-    "webpack-dev-server": "^5.0.4"
+    "webpack-dev-server": "^5.0.4",
+    "ws": "^8.18.0"
   }
 }

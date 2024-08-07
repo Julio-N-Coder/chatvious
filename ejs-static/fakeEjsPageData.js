@@ -165,6 +165,20 @@ const fakeJoinRoomInfoPageOwner = {
   isProduction: false,
 };
 
+const fakeChatRoomOwnerData = {
+  username: fakeUserInfo.userName,
+  profileColor: fakeUserInfo.profileColor,
+  navJoinRequest: [],
+  isProduction: false,
+};
+
+const fakeChatRoomMemberData = {
+  username: fakeUserInfo.userName,
+  profileColor: fakeUserInfo.profileColor,
+  navJoinRequest: [],
+  isProduction: false,
+};
+console.log(fakeChatRoomMemberData.username, fakeChatRoomOwnerData.username);
 export {
   fakeDashboardData,
   ownedRoomInfo,
@@ -172,4 +186,6 @@ export {
   fakeJoinRoomInfoPage,
   fakeJoinRoomInfoPageMember,
   fakeJoinRoomInfoPageOwner,
+  fakeChatRoomOwnerData,
+  fakeChatRoomMemberData,
 };

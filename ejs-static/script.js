@@ -7,6 +7,8 @@ import {
   fakeJoinRoomInfoPage,
   fakeJoinRoomInfoPageOwner,
   fakeJoinRoomInfoPageMember,
+  fakeChatRoomOwnerData,
+  fakeChatRoomMemberData,
 } from "./fakeEjsPageData.js";
 const app = express();
 
@@ -42,6 +44,21 @@ app.get("/rooms/randomRoom", (req, res) => {
   res.render(
     path.resolve("..", "serverless-aws-sam", "src", "views", "roomInfo"),
     fakeJoinRoomInfoPage
+  );
+});
+
+// think about using the ws library to simulate a basic chatroom environment
+app.get(`/chat-room/${ownedRoomInfo.RoomID}`, (req, res) => {
+  res.render(
+    path.resolve("..", "serverless-aws-sam", "src", "views", "chatRoom"),
+    fakeChatRoomOwnerData
+  );
+});
+
+app.get(`/chat-room/${joinedRoomInfo.RoomID}`, (req, res) => {
+  res.render(
+    path.resolve("..", "serverless-aws-sam", "src", "views", "chatRoom"),
+    fakeChatRoomMemberData
   );
 });
 

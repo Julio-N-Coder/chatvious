@@ -78,6 +78,8 @@ export const handler = async (event: APIGatewayProxyWebsocketEventV2) => {
     };
   }
 
+  // notify the user about sucessfull join
+
   return {
     statusCode: 200,
     body: JSON.stringify({ message: "Joined Room Successfully" }),

@@ -4,10 +4,22 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <% if (isProduction) { %>
-    <link rel="stylesheet" href="ejs/styles.css" />
-    <script defer src="ejs/runtime.js"></script>
-    <script defer src="ejs/navBar.js"></script>
-    <script defer src="ejs/dashboard.js"></script>
+    <link
+      rel="stylesheet"
+      href="https://main.chatvious.coding-wielder.com/ejs/styles.css"
+    />
+    <script
+      defer
+      src="https://main.chatvious.coding-wielder.com/ejs/runtime.js"
+    ></script>
+    <script
+      defer
+      src="https://main.chatvious.coding-wielder.com/ejs/navBar.js"
+    ></script>
+    <script
+      defer
+      src="https://main.chatvious.coding-wielder.com/ejs/dashboard.js"
+    ></script>
     <% } else { %>
     <link rel="stylesheet" href="http://localhost:8000/ejs/styles.css" />
     <script defer src="http://localhost:8000/ejs/runtime.js"></script>
@@ -52,8 +64,14 @@
     <%- include("./components/dashboard/make-join-room-model", { type: "create" }) %>
     <%- include("./components/dashboard/make-join-room-model", { type: "join" }) %>
     <% if (isProduction) { %>
-    <script defer src="ejs/clientCreateRoom.js"></script>
-    <script defer src="ejs/clientJoinRoom.js"></script>
+    <script
+      defer
+      src="https://main.chatvious.coding-wielder.com/ejs/clientCreateRoom.js"
+    ></script>
+    <script
+      defer
+      src="https://main.chatvious.coding-wielder.com/ejs/clientJoinRoom.js"
+    ></script>
     <% } else { %>
     <script defer src="http://localhost:8000/ejs/clientCreateRoom.js"></script>
     <script defer src="http://localhost:8000/ejs/clientJoinRoom.js"></script>

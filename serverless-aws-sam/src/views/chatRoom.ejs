@@ -4,29 +4,34 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <% if (isProduction) { %>
-    <link rel="stylesheet" href="/ejs/styles.css" />
-    <script defer src="/ejs/runtime.js"></script>
-    <script defer src="/ejs/navBar.js"></script>
-    <script defer src="/ejs/chatRoom.js"></script>
+    <link
+      rel="stylesheet"
+      href="https://main.chatvious.coding-wielder.com/ejs/styles.css"
+    />
     <script
       defer
-      src="/ejs/vendors-node_modules_socket_io-client_build_esm_index_js.js"
+      src="https://main.chatvious.coding-wielder.com/ejs/runtime.js"
+    ></script>
+    <script
+      defer
+      src="https://main.chatvious.coding-wielder.com/ejs/navBar.js"
+    ></script>
+    <script
+      defer
+      src="https://main.chatvious.coding-wielder.com/ejs/chatRoom.js"
     ></script>
     <% } else { %>
     <link rel="stylesheet" href="http://localhost:8000/ejs/styles.css" />
     <script defer src="http://localhost:8000/ejs/runtime.js"></script>
     <script defer src="http://localhost:8000/ejs/navBar.js"></script>
     <script defer src="http://localhost:8000/ejs/chatRoom.js"></script>
-    <script
-      defer
-      src="http://localhost:8000/ejs/vendors-node_modules_socket_io-client_build_esm_index_js.js"
-    ></script>
     <% } %>
     <title>Room Page</title>
   </head>
   <body>
     <div class="roboto antialiased h-screen bg-base-300">
-      <%# include('./components/navBar'); %>
+      <%- include('./components/navBar', {username, profileColor,
+      navJoinRequest, isProduction}); %>
       <input id="input" />
       <button id="button">Send</button>
       <div id="message" class="bg-blue-500 h-6"></div>
