@@ -1,4 +1,8 @@
-<div class="bg-base-100 p-1">
+<div
+  class="bg-base-100 p-3"
+  id="<%= messageId %>"
+  data-message-date="<%= messageDate %>"
+>
   <div class="flex items-center gap-2">
     <div
       class="profile dropdown dropdown-end relative border border-black w-10 h-10 rounded-full text-white text-center place-content-center text-2xl bg-<%= profileColor %>-500"
@@ -10,5 +14,5 @@
       <div><%= RoomUserStatus %></div>
     </div>
   </div>
-  <div class="text-lg break-words"><%= message %></div>
+  <div class="text-lg break-words rounded-lg bg-base-200"><%= message %></div>
 </div>

@@ -28,6 +28,8 @@ wss.on("connection", (ws) => {
       const message = dataObj.message;
       const RoomID = dataObj.RoomID;
       const RoomUserStatus = RoomID === ownedRoomID ? "OWNER" : "MEMBER";
+      const messageId = crypto.randomUUID();
+      const messageDate = new Date().toISOString();
 
       const sender = {
         userName: fakeUserInfo.userName,
@@ -35,7 +37,9 @@ wss.on("connection", (ws) => {
         profileColor: fakeUserInfo.profileColor,
       };
 
-      ws.send(JSON.stringify({ action, sender, message }));
+      ws.send(
+        JSON.stringify({ action, sender, message, messageId, messageDate })
+      );
     } else {
       ws.send(JSON.stringify({ action, message: "Invalid action" }));
     }

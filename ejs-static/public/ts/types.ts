@@ -23,6 +23,8 @@ interface sendMessageAction {
     profileColor: string;
   };
   message: string;
+  messageId: string;
+  messageDate: string;
 }
 
 interface MessageBoxEjsOptions {
@@ -30,6 +32,8 @@ interface MessageBoxEjsOptions {
   RoomUserStatus: "MEMBER" | "ADMIN" | "OWNER";
   profileColor: string;
   message: string;
+  messageId: string;
+  messageDate: string;
 }
 
 export {

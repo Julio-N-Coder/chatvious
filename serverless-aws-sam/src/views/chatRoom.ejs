@@ -50,7 +50,11 @@
           >
             <%# loop through room mesages and render them here (remove below
             message. it's a test one for now) %>
-            <div class="bg-base-100 text-lg p-1">
+            <div
+              class="bg-base-100 text-lg p-3"
+              id="SomeRandomID"
+              data-message-date="SomeFakeDate"
+            >
               <div class="flex items-center gap-2">
                 <div
                   class="profile dropdown dropdown-end relative border border-black w-10 h-10 rounded-full text-white text-center place-content-center text-2xl bg-blue-500"
@@ -62,27 +66,29 @@
                   <div>status</div>
                 </div>
               </div>
-              <div class="break-words">the message</div>
+              <div class="break-words rounded-lg bg-base-200">the message</div>
             </div>
           </div>
           <div class="flex justify-center">
             <div
-              class="flex justify-between gap-1 w-[98%] px-1 pb-1 bg-base-300 rounded-xl"
+              class="flex justify-between gap-1 w-[98%] p-1 bg-base-300 rounded-xl"
             >
               <textarea
-                class="resize-none bg-base-300 rounded-xl grow px-1"
+                class="resize-none bg-base-300 rounded-xl grow px-1 outline-none"
                 id="input"
                 placeholder="Enter Chat Message Here"
                 maxlength="2000"
               ></textarea>
-              <div class="flex items-end">
+              <!-- <div class="flex items-end"> -->
+              <div class="flex flex-col justify-end items-center">
                 <button
-                  class="rounded-2xl p-1 btn btn-sm btn-accent text-accent-content"
+                  class="rounded-full p-1 btn btn-circle btn-accent text-accent-content"
                   id="button"
                   disabled
                 >
                   Send
                 </button>
+                <div id="inputCharCount">0/2k</div>
               </div>
             </div>
           </div>

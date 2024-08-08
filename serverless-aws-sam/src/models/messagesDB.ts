@@ -30,12 +30,15 @@ class MessagesManagerDB extends BaseModels {
     userID: string,
     RoomID: string,
     message: string,
-    messageIdArg?: string
+    messageIdArg?: string,
+    messageDate?: string
   ): BaseModelsReturnTypeData<{
     messageId: string;
     sentAt: string;
   }> {
-    const currentTimestamp = new Date().toISOString();
+    const currentTimestamp = messageDate
+      ? messageDate
+      : new Date().toISOString();
     const messageId = messageIdArg ? messageIdArg : crypto.randomUUID();
 
     const messageData: MessageDB = {

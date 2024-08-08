@@ -11,14 +11,18 @@ const RoomID = location.pathname.split("/").pop() as string;
 
 const input = document.getElementById("input") as HTMLTextAreaElement;
 const button = document.getElementById("button") as HTMLButtonElement;
+const inputCharCount = document.getElementById(
+  "inputCharCount"
+) as HTMLSpanElement;
 const messagesContainer = document.getElementById(
   "messagesContainer"
 ) as HTMLDivElement;
 
 function sendMessage() {
   const message = input.value;
-  if (message && message.length > 0 && message.length < 2000) {
+  if (message && message.length > 0 && message.length <= 2000) {
     input.value = "";
+    inputCharCount.textContent = "0/2k";
     button.disabled = true;
     input.style.height = "auto";
     const sendMessageData = JSON.stringify({
@@ -38,7 +42,9 @@ input.addEventListener("keydown", (event) => {
 });
 
 // dyanamically changes textarea height and sets a max height to 7 cols
-input.addEventListener("input", () => {
+input.addEventListener("input", (event) => {
+  const inputLength = input.value.length;
+  inputCharCount.textContent = `${inputLength}/2k`;
   if (input.value.length > 0) {
     button.disabled = false;
   } else {
@@ -53,8 +59,6 @@ input.addEventListener("input", () => {
 });
 
 socket.addEventListener("open", () => {
-  // send a joinroom chat message to join the room first
-  console.log("Connected to server");
   const joinChatRoomRequest = JSON.stringify({
     action: "joinroom",
     RoomID,
@@ -83,12 +87,25 @@ socket.addEventListener("message", (event) => {
       RoomUserStatus: data.sender.RoomUserStatus,
       profileColor: data.sender.profileColor,
       message: message,
+      messageId: data.messageId,
+      messageDate: data.messageDate,
     };
 
     const newMessageBox = ejs.render(messageBoxEjs, messageBoxOptions);
     const newMessageBoxElement = document.createElement("div");
     newMessageBoxElement.innerHTML = newMessageBox;
 
+    // smoothly scroll to bottom only if they are already at the bottom
+    const isScrolledToBottom =
+      messagesContainer.scrollHeight - messagesContainer.clientHeight <=
+      messagesContainer.scrollTop;
+
     messagesContainer.appendChild(newMessageBoxElement);
+    if (isScrolledToBottom) {
+      messagesContainer.scrollTo({
+        top: messagesContainer.scrollHeight,
+        behavior: "smooth",
+      });
+    }
   }
 });

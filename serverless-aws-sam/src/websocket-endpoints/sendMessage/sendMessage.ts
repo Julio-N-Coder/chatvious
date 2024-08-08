@@ -72,6 +72,9 @@ export const handler = async (event: APIGatewayProxyWebsocketEventV2) => {
   }
 
   const allRoomConnections = allRoomConnectionsResponse.data;
+  const messageId = event.requestContext.messageId;
+  const messageDate = new Date().toISOString();
+
   // loop through them to send messages to each of them. even the connected user
   const messageData = {
     // send userName and profileColor
@@ -82,6 +85,8 @@ export const handler = async (event: APIGatewayProxyWebsocketEventV2) => {
       profileColor: roomConnectionData.profileColor,
     },
     message: body.message,
+    messageId,
+    messageDate,
   };
   const messageDataString = JSON.stringify(messageData);
 
@@ -100,12 +105,12 @@ export const handler = async (event: APIGatewayProxyWebsocketEventV2) => {
   });
 
   // store the message
-  const messageId = event.requestContext.messageId;
   const messageResponse = await messagesManagerDB.storeMessage(
     userID,
     RoomID,
     body.message,
-    messageId
+    messageId,
+    messageDate
   );
   if ("error" in messageResponse) {
     return {
@@ -113,7 +118,6 @@ export const handler = async (event: APIGatewayProxyWebsocketEventV2) => {
       body: messageResponse.error,
     };
   }
-  const messageDate = messageResponse.data.sentAt;
 
   return {
     statusCode: 200,
