@@ -180,6 +180,7 @@ const fakeChatRoomMemberData = {
 };
 console.log(fakeChatRoomMemberData.username, fakeChatRoomOwnerData.username);
 export {
+  fakeUserInfo,
   fakeDashboardData,
   ownedRoomInfo,
   joinedRoomInfo,

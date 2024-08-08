@@ -1,4 +1,12 @@
 import { WebSocketServer } from "ws";
+import {
+  fakeUserInfo,
+  ownedRoomInfo,
+  joinedRoomInfo,
+} from "./fakeEjsPageData.js";
+
+const ownedRoomID = ownedRoomInfo.RoomID;
+const joinedRoomID = joinedRoomInfo.RoomID;
 
 const wss = new WebSocketServer({ port: 8080 });
 
@@ -14,13 +22,20 @@ wss.on("connection", (ws) => {
 
     if (action === "joinroom") {
       console.log("joinroom");
-      const RoomID = dataObj.roomID;
-      ws.send(JSON.stringify({ action, RoomID, message: "Joined room" }));
+      ws.send(JSON.stringify({ action, message: "Joined room" }));
     } else if (action === "sendmessage") {
       console.log("sendmessage");
-      const RoomID = dataObj.RoomID;
       const message = dataObj.message;
-      ws.send(JSON.stringify({ action, RoomID, message }));
+      const RoomID = dataObj.RoomID;
+      const RoomUserStatus = RoomID === ownedRoomID ? "OWNER" : "MEMBER";
+
+      const sender = {
+        userName: fakeUserInfo.userName,
+        RoomUserStatus,
+        profileColor: fakeUserInfo.profileColor,
+      };
+
+      ws.send(JSON.stringify({ action, sender, message }));
     } else {
       ws.send(JSON.stringify({ action, message: "Invalid action" }));
     }

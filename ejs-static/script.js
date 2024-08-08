@@ -47,7 +47,7 @@ app.get("/rooms/randomRoom", (req, res) => {
   );
 });
 
-// think about using the ws library to simulate a basic chatroom environment
+// add fake chat messages data
 app.get(`/chat-room/${ownedRoomInfo.RoomID}`, (req, res) => {
   res.render(
     path.resolve("..", "serverless-aws-sam", "src", "views", "chatRoom"),

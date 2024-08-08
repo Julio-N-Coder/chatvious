@@ -259,6 +259,9 @@ interface RoomConnection {
   RoomID: string;
   connectionId: string;
   userID: string;
+  userName: string;
+  RoomUserStatus: "MEMBER" | "ADMIN" | "OWNER";
+  profileColor: string;
 }
 
 interface RoomConnectionDB extends RoomConnection {

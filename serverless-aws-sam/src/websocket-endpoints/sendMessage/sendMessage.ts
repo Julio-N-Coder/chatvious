@@ -56,7 +56,8 @@ export const handler = async (event: APIGatewayProxyWebsocketEventV2) => {
       body: roomConnectionResponse.error,
     };
   }
-  const userID = roomConnectionResponse.data.userID;
+  const roomConnectionData = roomConnectionResponse.data;
+  const userID = roomConnectionData.userID;
 
   const client = new ApiGatewayManagementApiClient({ endpoint: callbackUrl });
 
@@ -72,10 +73,22 @@ export const handler = async (event: APIGatewayProxyWebsocketEventV2) => {
 
   const allRoomConnections = allRoomConnectionsResponse.data;
   // loop through them to send messages to each of them. even the connected user
+  const messageData = {
+    // send userName and profileColor
+    action: body.action,
+    sender: {
+      userName: roomConnectionData.userName,
+      RoomUserStatus: roomConnectionData.RoomUserStatus,
+      profileColor: roomConnectionData.profileColor,
+    },
+    message: body.message,
+  };
+  const messageDataString = JSON.stringify(messageData);
+
   allRoomConnections.forEach(async (connection) => {
     const requestParams = {
       ConnectionId: connection.connectionId,
-      Data: body.message as string,
+      Data: messageDataString,
     };
     const command = new PostToConnectionCommand(requestParams);
     try {

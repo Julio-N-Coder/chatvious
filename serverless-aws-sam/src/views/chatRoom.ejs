@@ -20,21 +20,74 @@
       defer
       src="https://main.chatvious.coding-wielder.com/ejs/chatRoom.js"
     ></script>
+    <script
+      defer
+      src="https://main.chatvious.coding-wielder.com/ejs/ejs.min.js"
+    ></script>
     <% } else { %>
     <link rel="stylesheet" href="http://localhost:8000/ejs/styles.css" />
     <script defer src="http://localhost:8000/ejs/runtime.js"></script>
     <script defer src="http://localhost:8000/ejs/navBar.js"></script>
     <script defer src="http://localhost:8000/ejs/chatRoom.js"></script>
+    <script defer src="http://localhost:8000/ejs/ejs.min.js"></script>
     <% } %>
     <title>Room Page</title>
   </head>
   <body>
-    <div class="roboto antialiased h-screen bg-base-300">
+    <div
+      class="roboto antialiased h-screen max-h-screen bg-base-100 flex flex-col"
+    >
       <%- include('./components/navBar', {username, profileColor,
       navJoinRequest, isProduction}); %>
-      <input id="input" />
-      <button id="button">Send</button>
-      <div id="message" class="bg-blue-500 h-6"></div>
+      <div class="flex-1 flex max-h-screen overflow-y-hidden">
+        <%# A Sidebar will go here in the future. Give Sidbar a percent width %>
+        <div class="bg-base-300 w-[10%]">Sidebar</div>
+        <div class="flex flex-col justify-end w-[90%]">
+          <%# messages %>
+          <div
+            id="messagesContainer"
+            class="flex flex-col overflow-y-auto divide-y divide-base-content"
+          >
+            <%# loop through room mesages and render them here (remove below
+            message. it's a test one for now) %>
+            <div class="bg-base-100 text-lg p-1">
+              <div class="flex items-center gap-2">
+                <div
+                  class="profile dropdown dropdown-end relative border border-black w-10 h-10 rounded-full text-white text-center place-content-center text-2xl bg-blue-500"
+                >
+                  <span><%= "TestName"[0].toUpperCase() %></span>
+                </div>
+                <div>
+                  <div>name</div>
+                  <div>status</div>
+                </div>
+              </div>
+              <div class="break-words">the message</div>
+            </div>
+          </div>
+          <div class="flex justify-center">
+            <div
+              class="flex justify-between gap-1 w-[98%] px-1 pb-1 bg-base-300 rounded-xl"
+            >
+              <textarea
+                class="resize-none bg-base-300 rounded-xl grow px-1"
+                id="input"
+                placeholder="Enter Chat Message Here"
+                maxlength="2000"
+              ></textarea>
+              <div class="flex items-end">
+                <button
+                  class="rounded-2xl p-1 btn btn-sm btn-accent text-accent-content"
+                  id="button"
+                  disabled
+                >
+                  Send
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </body>
 </html>

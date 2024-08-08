@@ -26,5 +26,7 @@ export const handler = async (
     }
   }
 
+  // notify users of a diconnection to update sidebar
+
   return { statusCode: 200 };
 };

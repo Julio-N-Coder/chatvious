@@ -2,7 +2,10 @@
 import daisyui from "daisyui";
 
 export default {
-  content: ["../serverless-aws-sam/src/views/**/*.ejs"],
+  content: [
+    "../serverless-aws-sam/src/views/**/*.ejs",
+    "./public/client-ejs/**/*.ejs",
+  ],
   safelist: [
     {
       pattern: /bg-(blue|green|orange|yellow|sky|purple|pink)-500/,

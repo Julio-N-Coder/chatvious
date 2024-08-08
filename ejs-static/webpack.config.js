@@ -22,7 +22,9 @@ const config = {
   output: {
     filename: "[name].js",
     path: path.resolve("..", "dist", "public", "ejs"),
-    clean: true,
+    clean: {
+      keep: /^ejs(\.min)?\.js$/,
+    },
   },
   devServer: {
     static: "../dist/public",
@@ -52,7 +54,7 @@ const config = {
   module: {
     rules: [
       {
-        test: /\.tsx?$/,
+        test: /\.ts?$/,
         loader: "ts-loader",
         exclude: ["/node_modules/"],
       },
@@ -63,6 +65,10 @@ const config = {
       {
         test: /\.(eot|svg|ttf|woff|woff2|png|jpg|gif)$/i,
         type: "asset",
+      },
+      {
+        test: /\.ejs$/,
+        type: "asset/source",
       },
     ],
   },

@@ -1,5 +1,5 @@
 {
-  "include": ["public/ts/**/*.ts"],
+  "include": ["public/ts/**/*.ts", "public/client-ejs/ejs.js"],
   "exclude": ["node_modules"],
   "compilerOptions": {
     "sourceMap": true,

@@ -34,7 +34,7 @@ export async function handler(
     };
   }
 
-  // fetch all chat room messages to render them
+  // fetch all chat room messages in reverse order to render them
 
   const navUserInfoResponse = await fetchNavUserInfo(userID);
   if ("error" in navUserInfoResponse) {

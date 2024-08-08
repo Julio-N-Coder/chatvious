@@ -15,9 +15,28 @@ type BasicServerSuccess = {
 
 type BasicServerResponse = BasicServerError | BasicServerSuccess;
 
+interface sendMessageAction {
+  action: "sendmessage";
+  sender: {
+    userName: string;
+    RoomUserStatus: "MEMBER" | "ADMIN" | "OWNER";
+    profileColor: string;
+  };
+  message: string;
+}
+
+interface MessageBoxEjsOptions {
+  userName: string;
+  RoomUserStatus: "MEMBER" | "ADMIN" | "OWNER";
+  profileColor: string;
+  message: string;
+}
+
 export {
   TokenRefresh,
   BasicServerError,
   BasicServerSuccess,
   BasicServerResponse,
+  sendMessageAction,
+  MessageBoxEjsOptions,
 };

@@ -51,6 +51,9 @@ export const handler = async (event: APIGatewayProxyWebsocketEventV2) => {
       body: roomMemberResponse.error,
     };
   }
+  const userName = roomMemberResponse.roomMember.userName;
+  const RoomUserStatus = roomMemberResponse.roomMember.RoomUserStatus;
+  const profileColor = roomMemberResponse.roomMember.profileColor;
 
   // update initial connection to include RoomID
   const deleteInitialConnectionResponse =
@@ -69,7 +72,10 @@ export const handler = async (event: APIGatewayProxyWebsocketEventV2) => {
   const storeRoomMemberResponse = await wsMessagesDBManager.storeRoomConnection(
     connectionId,
     userID,
-    RoomID
+    RoomID,
+    userName,
+    RoomUserStatus,
+    profileColor
   );
   if ("error" in storeRoomMemberResponse) {
     return {
@@ -78,7 +84,8 @@ export const handler = async (event: APIGatewayProxyWebsocketEventV2) => {
     };
   }
 
-  // notify the user about sucessfull join
+  // notify the user about sucessfull join (do both of these in one loop)
+  // notify other users of joined a new joined user to be able to show them on a sidebar
 
   return {
     statusCode: 200,

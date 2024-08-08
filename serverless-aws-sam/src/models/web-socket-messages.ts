@@ -148,7 +148,10 @@ class WSMessagesDBManager {
   async storeRoomConnection(
     connectionId: string,
     userID: string,
-    RoomID: string
+    RoomID: string,
+    userName: string,
+    RoomUserStatus: "MEMBER" | "ADMIN" | "OWNER",
+    profileColor: string
   ): BaseModelsReturnType {
     const roomConnectionData: RoomConnectionDB = {
       PartitionKey: `ROOM#${RoomID}`,
@@ -156,6 +159,9 @@ class WSMessagesDBManager {
       connectionId,
       userID,
       RoomID,
+      userName,
+      RoomUserStatus,
+      profileColor,
     };
 
     const command = new PutCommand({
@@ -220,6 +226,9 @@ class WSMessagesDBManager {
       RoomID: fetchRoomConnectionResponse.Item.RoomID,
       connectionId: fetchRoomConnectionResponse.Item.connectionId,
       userID: fetchRoomConnectionResponse.Item.userID,
+      userName: fetchRoomConnectionResponse.Item.userName,
+      RoomUserStatus: fetchRoomConnectionResponse.Item.RoomUserStatus,
+      profileColor: fetchRoomConnectionResponse.Item.profileColor,
     };
 
     return {
