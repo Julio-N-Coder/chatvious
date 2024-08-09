@@ -1,6 +1,6 @@
 import "../../css/styles.css";
 import { sendMessageAction, MessageBoxEjsOptions } from "../types";
-import messageBoxEjs from "../../client-ejs/messageBox.ejs";
+import messageBoxEjs from "../../../../serverless-aws-sam/src/views/components/chatRoom/messageBox.ejs";
 // production url not decided yet (temp for now)
 const websocketURL = process.env.IS_DEV_SERVER
   ? "ws://localhost:8080"

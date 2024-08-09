@@ -3,6 +3,7 @@ import ejs from "ejs";
 import fetchNavUserInfo from "../../lib/navUserInfo.js";
 import { isProduction, addSetCookieHeaders } from "../../lib/handyUtils.js";
 import { roomManager } from "../../models/rooms.js";
+import { messagesManagerDB } from "../../models/messagesDB.js";
 
 export async function handler(
   event: APIGatewayEvent
@@ -35,6 +36,17 @@ export async function handler(
   }
 
   // fetch all chat room messages in reverse order to render them
+  const roomMesagesResponse = await messagesManagerDB.fetchAllRoomMessages(
+    RoomID
+  );
+  if ("error" in roomMesagesResponse) {
+    return {
+      headers: { "Content-Type": "application/json" },
+      statusCode: roomMesagesResponse.statusCode,
+      body: JSON.stringify({ error: roomMesagesResponse.error }),
+    };
+  }
+  const roomMessages = roomMesagesResponse.data;
 
   const navUserInfoResponse = await fetchNavUserInfo(userID);
   if ("error" in navUserInfoResponse) {
@@ -47,6 +59,7 @@ export async function handler(
 
   const userInfo = navUserInfoResponse.data;
   const chatRoomHTML = await ejs.renderFile("../../views/chatRoom.ejs", {
+    roomMessages,
     username: userInfo.userName,
     profileColor: userInfo.profileColor,
     navJoinRequest: userInfo.navJoinRequests,

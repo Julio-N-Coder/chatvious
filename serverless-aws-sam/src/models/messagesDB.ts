@@ -28,7 +28,10 @@ class MessagesManagerDB extends BaseModels {
 
   async storeMessage(
     userID: string,
+    userName: string,
     RoomID: string,
+    RoomUserStatus: "MEMBER" | "ADMIN" | "OWNER",
+    profileColor: string,
     message: string,
     messageIdArg?: string,
     messageDate?: string
@@ -47,6 +50,9 @@ class MessagesManagerDB extends BaseModels {
       message,
       messageId,
       userID,
+      userName,
+      RoomUserStatus,
+      profileColor,
       RoomID,
       sentAt: currentTimestamp,
     };
@@ -112,7 +118,7 @@ class MessagesManagerDB extends BaseModels {
     };
   }
 
-  async fetchAllMessages(RoomID: string): FetchAllMessagesReturn {
+  async fetchAllRoomMessages(RoomID: string): FetchAllMessagesReturn {
     const params = {
       TableName: this.tableName,
       KeyConditionExpression:
@@ -150,8 +156,11 @@ class MessagesManagerDB extends BaseModels {
         message: item.message,
         messageId: item.messageId,
         userID: item.userID,
+        userName: item.userName,
+        RoomUserStatus: item.RoomUserStatus,
         RoomID: item.RoomID,
         sentAt: item.sentAt,
+        profileColor: item.profileColor,
       };
     });
 

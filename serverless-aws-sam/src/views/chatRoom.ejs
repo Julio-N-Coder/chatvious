@@ -48,26 +48,13 @@
             id="messagesContainer"
             class="flex flex-col overflow-y-auto divide-y divide-base-content"
           >
-            <%# loop through room mesages and render them here (remove below
-            message. it's a test one for now) %>
-            <div
-              class="bg-base-100 text-lg p-3"
-              id="SomeRandomID"
-              data-message-date="SomeFakeDate"
-            >
-              <div class="flex items-center gap-2">
-                <div
-                  class="profile dropdown dropdown-end relative border border-black w-10 h-10 rounded-full text-white text-center place-content-center text-2xl bg-blue-500"
-                >
-                  <span><%= "TestName"[0].toUpperCase() %></span>
-                </div>
-                <div>
-                  <div>name</div>
-                  <div>status</div>
-                </div>
-              </div>
-              <div class="break-words rounded-lg bg-base-200">the message</div>
-            </div>
+            <% roomMessages.forEach((roomMessageData) => { %> <%-
+            include("./components/chatRoom/messageBox", { userName:
+            roomMessageData.userName, messageId: roomMessageData.messageId,
+            messageDate: roomMessageData.messageDate, profileColor:
+            roomMessageData.profileColor, RoomUserStatus:
+            roomMessageData.RoomUserStatus, message: roomMessageData.message})
+            %> <% }) %>
           </div>
           <div class="flex justify-center">
             <div

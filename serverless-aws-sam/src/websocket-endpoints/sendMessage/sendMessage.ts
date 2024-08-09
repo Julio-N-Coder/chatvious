@@ -41,6 +41,7 @@ export const handler = async (event: APIGatewayProxyWebsocketEventV2) => {
   }
 
   const RoomID = body.RoomID;
+  const message = body.message;
 
   // check whether user is connected to the room
   const roomConnectionResponse = await wsMessagesDBManager.fetchRoomConnection(
@@ -56,8 +57,12 @@ export const handler = async (event: APIGatewayProxyWebsocketEventV2) => {
       body: roomConnectionResponse.error,
     };
   }
+
   const roomConnectionData = roomConnectionResponse.data;
   const userID = roomConnectionData.userID;
+  const userName = roomConnectionData.userName;
+  const profileColor = roomConnectionData.profileColor;
+  const RoomUserStatus = roomConnectionData.RoomUserStatus;
 
   const client = new ApiGatewayManagementApiClient({ endpoint: callbackUrl });
 
@@ -80,11 +85,11 @@ export const handler = async (event: APIGatewayProxyWebsocketEventV2) => {
     // send userName and profileColor
     action: body.action,
     sender: {
-      userName: roomConnectionData.userName,
-      RoomUserStatus: roomConnectionData.RoomUserStatus,
-      profileColor: roomConnectionData.profileColor,
+      userName,
+      RoomUserStatus,
+      profileColor,
     },
-    message: body.message,
+    message,
     messageId,
     messageDate,
   };
@@ -107,8 +112,11 @@ export const handler = async (event: APIGatewayProxyWebsocketEventV2) => {
   // store the message
   const messageResponse = await messagesManagerDB.storeMessage(
     userID,
+    userName,
     RoomID,
-    body.message,
+    RoomUserStatus,
+    profileColor,
+    message,
     messageId,
     messageDate
   );

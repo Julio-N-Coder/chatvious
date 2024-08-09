@@ -61,6 +61,9 @@ const config = {
       {
         test: /\.ejs$/,
         type: "asset/source",
+        include: [
+          path.resolve("../serverless-aws-sam/src/views/components/chatRoom"),
+        ],
       },
     ],
   },

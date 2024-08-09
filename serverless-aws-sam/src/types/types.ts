@@ -277,6 +277,9 @@ interface Message {
   message: string;
   messageId: string;
   userID: string;
+  userName: string;
+  RoomUserStatus: "MEMBER" | "ADMIN" | "OWNER";
+  profileColor: string;
   RoomID: string;
   sentAt: string;
 }

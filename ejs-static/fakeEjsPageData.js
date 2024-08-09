@@ -165,7 +165,42 @@ const fakeJoinRoomInfoPageOwner = {
   isProduction: false,
 };
 
+const roomMessages = [
+  {
+    message:
+      "This message is going to be a big longer to see how it looks like. This message is going to be a big longer to see how it looks like. This message is going to be a big longer to see how it looks like.",
+    messageId: "FakeMessageID3",
+    userID: "fakeUserID3",
+    userName: "UsernameFake3",
+    RoomUserStatus: "MEMBER",
+    profileColor: "orange",
+    RoomID: ownedRoomInfo.RoomID,
+    sentAt: "2024-08-02T21:34:22.328Z",
+  },
+  {
+    message: "Some fake message",
+    messageId: "FakeMessageID2",
+    userID: "fakeUserID2",
+    userName: "FakeUsername2",
+    RoomUserStatus: "MEMBER",
+    profileColor: "pink",
+    RoomID: ownedRoomInfo.RoomID,
+    sentAt: "2024-08-02T21:34:22.328Z",
+  },
+  {
+    message: "the First fake message",
+    messageId: "FakeMessageID1",
+    userID: fakeUserInfo.userID,
+    userName: fakeUserInfo.userName,
+    RoomUserStatus: "ADMIN",
+    profileColor: fakeUserInfo.profileColor,
+    RoomID: ownedRoomInfo.RoomID,
+    sentAt: "2024-08-02T21:34:22.328Z",
+  },
+];
+
 const fakeChatRoomOwnerData = {
+  roomMessages,
   username: fakeUserInfo.userName,
   profileColor: fakeUserInfo.profileColor,
   navJoinRequest: [],
@@ -173,12 +208,13 @@ const fakeChatRoomOwnerData = {
 };
 
 const fakeChatRoomMemberData = {
+  roomMessages,
   username: fakeUserInfo.userName,
   profileColor: fakeUserInfo.profileColor,
   navJoinRequest: [],
   isProduction: false,
 };
-console.log(fakeChatRoomMemberData.username, fakeChatRoomOwnerData.username);
+
 export {
   fakeUserInfo,
   fakeDashboardData,
@@ -189,4 +225,5 @@ export {
   fakeJoinRoomInfoPageOwner,
   fakeChatRoomOwnerData,
   fakeChatRoomMemberData,
+  roomMessages,
 };
