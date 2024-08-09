@@ -37,7 +37,8 @@ export async function handler(
 
   // fetch all chat room messages in reverse order to render them
   const roomMesagesResponse = await messagesManagerDB.fetchAllRoomMessages(
-    RoomID
+    RoomID,
+    true
   );
   if ("error" in roomMesagesResponse) {
     return {

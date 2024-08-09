@@ -118,7 +118,10 @@ class MessagesManagerDB extends BaseModels {
     };
   }
 
-  async fetchAllRoomMessages(RoomID: string): FetchAllMessagesReturn {
+  async fetchAllRoomMessages(
+    RoomID: string,
+    reverseOrder?: boolean
+  ): FetchAllMessagesReturn {
     const params = {
       TableName: this.tableName,
       KeyConditionExpression:
@@ -127,6 +130,7 @@ class MessagesManagerDB extends BaseModels {
         ":pk": `ROOM#${RoomID}`,
         ":messagesPrefix": "MESSAGES#",
       },
+      ScanIndexForward: reverseOrder ? false : true,
     };
 
     const command = new QueryCommand(params);

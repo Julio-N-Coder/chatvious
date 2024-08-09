@@ -446,10 +446,46 @@ Resources:
             Resource:
               - arn:aws:execute-api:*:*:*
 
-  sendMessageWebSocket:
+  WSConnect:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: Chatvious_sendMessageWebSocket
+      FunctionName: Chatvious_WSConnect
+      Description: The Default Websocket route for when a user first connects to a chat room
+      PackageType: Image
+      MemorySize: 128
+      Timeout: 6
+      Architectures:
+        - x86_64
+      Policies:
+        - AmazonDynamoDBFullAccess
+    Metadata:
+      DockerContext: ./src
+      Dockerfile: WSConnect.Dockerfile
+      DockerTag: latest
+
+  WSDisconnect:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: Chatvious_WSDisconnect
+      Description: The Default Websocket route for when a user disconnects from a chat room
+      PackageType: Image
+      MemorySize: 128
+      Timeout: 6
+      Architectures:
+        - x86_64
+      Policies:
+        - AmazonDynamoDBFullAccess
+        - Name: Chatvious_WebSocketManageConnectionsPolicy
+          PolicyArn: !GetAtt WebSocketManageConnectionsPolicy.Arn
+    Metadata:
+      DockerContext: ./src
+      Dockerfile: WSDisconnect.Dockerfile
+      DockerTag: latest
+
+  joinRoomWS:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: Chatvious_joinRoomWS
       Description: A Websocket route for a user to join a chat room
       PackageType: Image
       MemorySize: 128
@@ -462,5 +498,24 @@ Resources:
           PolicyArn: !GetAtt WebSocketManageConnectionsPolicy.Arn
     Metadata:
       DockerContext: ./src
-      Dockerfile: sendMessageWebSocket.Dockerfile
+      Dockerfile: joinRoomWS.Dockerfile
+      DockerTag: latest
+
+  sendMessageWS:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: Chatvious_sendMessageWS
+      Description: A Websocket route for a user to send a message in a chat room
+      PackageType: Image
+      MemorySize: 128
+      Timeout: 6
+      Architectures:
+        - x86_64
+      Policies:
+        - AmazonDynamoDBFullAccess
+        - Name: Chatvious_WebSocketManageConnectionsPolicy
+          PolicyArn: !GetAtt WebSocketManageConnectionsPolicy.Arn
+    Metadata:
+      DockerContext: ./src
+      Dockerfile: sendMessageWS.Dockerfile
       DockerTag: latest

@@ -74,7 +74,10 @@ beforeAll(async () => {
   const roomConnectionResponse = await wsMessagesDBManager.storeRoomConnection(
     connectionId,
     userID,
-    RoomID
+    RoomID,
+    userName,
+    "OWNER",
+    userInfo.profileColor
   );
   if ("error" in roomConnectionResponse) {
     throw new Error(
