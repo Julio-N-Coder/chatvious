@@ -1,6 +1,6 @@
 {
-  "exclude": ["node_modules", "dist"],
   "include": ["**/*.ts"],
+  "exclude": ["node_modules", "tests", "**/*.test.ts"],
   "compilerOptions": {
     "outDir": "/app/dist",
     "target": "ESNext",

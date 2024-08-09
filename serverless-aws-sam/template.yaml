@@ -233,7 +233,6 @@ Resources:
       Dockerfile: kickMember.Dockerfile
       DockerTag: latest
 
-  # docker file not set up yet
   leaveRoom:
     Type: AWS::Serverless::Function
     Properties:
@@ -258,7 +257,6 @@ Resources:
       Dockerfile: leaveRoom.Dockerfile
       DockerTag: latest
 
-  # docker file not set up yet
   deleteRoom:
     Type: AWS::Serverless::Function
     Properties:
@@ -446,12 +444,38 @@ Resources:
             Resource:
               - arn:aws:execute-api:*:*:*
 
+  WSLambdaAuthorizer:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: Chatvious_WSLambdaAuthorizer
+      Description: The Lambda Authorizer for chatvious websockets
+      CodeUri: src/websocket-endpoints/lambda-authorizer/
+      Handler: websocket-auth.handler
+      Runtime: nodejs20.x
+      MemorySize: 128
+      Timeout: 10
+      Architectures:
+        - x86_64
+      Environment:
+        Variables:
+          COGNITO_DOMAIN: https://chatvious.auth.us-west-1.amazoncognito.com
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        Minify: true
+        Target: es2020
+        Sourcemap: true
+        EntryPoints:
+          - websocket-auth.ts
+
   WSConnect:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: Chatvious_WSConnect
       Description: The Default Websocket route for when a user first connects to a chat room
-      PackageType: Image
+      CodeUri: ./src
+      Handler: websocket-endpoints/connect/connect.handler
+      Runtime: nodejs20.x
       MemorySize: 128
       Timeout: 6
       Architectures:
@@ -459,9 +483,12 @@ Resources:
       Policies:
         - AmazonDynamoDBFullAccess
     Metadata:
-      DockerContext: ./src
-      Dockerfile: WSConnect.Dockerfile
-      DockerTag: latest
+      BuildMethod: esbuild
+      BuildProperties:
+        Minify: true
+        Bundle: true
+        Target: es2020
+        Sourcemap: true
 
   WSDisconnect:
     Type: AWS::Serverless::Function
@@ -475,8 +502,7 @@ Resources:
         - x86_64
       Policies:
         - AmazonDynamoDBFullAccess
-        - Name: Chatvious_WebSocketManageConnectionsPolicy
-          PolicyArn: !GetAtt WebSocketManageConnectionsPolicy.Arn
+        - !Ref WebSocketManageConnectionsPolicy
     Metadata:
       DockerContext: ./src
       Dockerfile: WSDisconnect.Dockerfile
@@ -494,8 +520,7 @@ Resources:
         - x86_64
       Policies:
         - AmazonDynamoDBFullAccess
-        - Name: Chatvious_WebSocketManageConnectionsPolicy
-          PolicyArn: !GetAtt WebSocketManageConnectionsPolicy.Arn
+        - !Ref WebSocketManageConnectionsPolicy
     Metadata:
       DockerContext: ./src
       Dockerfile: joinRoomWS.Dockerfile
@@ -513,8 +538,7 @@ Resources:
         - x86_64
       Policies:
         - AmazonDynamoDBFullAccess
-        - Name: Chatvious_WebSocketManageConnectionsPolicy
-          PolicyArn: !GetAtt WebSocketManageConnectionsPolicy.Arn
+        - !Ref WebSocketManageConnectionsPolicy
     Metadata:
       DockerContext: ./src
       Dockerfile: sendMessageWS.Dockerfile
