@@ -9,6 +9,7 @@ import {
   GetCommandOutput,
 } from "@aws-sdk/lib-dynamodb";
 import { userManager } from "./users.js";
+import { messagesManagerDB } from "./messagesDB.js";
 import {
   BaseModelsReturnType,
   RoomInfoDBType,
@@ -179,6 +180,34 @@ class RoomManager {
           return {
             error: removeRoomMemberResponse.error,
             statusCode: removeRoomMemberResponse.statusCode,
+          };
+        }
+      }
+    }
+
+    // delete all Messages in the room
+    const fetchMessagesResponse = await messagesManagerDB.fetchAllRoomMessages(
+      RoomID
+    );
+    if ("error" in fetchMessagesResponse) {
+      return {
+        error: fetchMessagesResponse.error,
+        statusCode: fetchMessagesResponse.statusCode,
+      };
+    }
+
+    if (fetchMessagesResponse.message === "Messages fetched successfully") {
+      const messages = fetchMessagesResponse.data;
+      for (const message of messages) {
+        const deleteMessageResponse = await messagesManagerDB.deleteMessage(
+          RoomID,
+          message.sentAt,
+          message.messageId
+        );
+        if ("error" in deleteMessageResponse) {
+          return {
+            error: deleteMessageResponse.error,
+            statusCode: deleteMessageResponse.statusCode,
           };
         }
       }

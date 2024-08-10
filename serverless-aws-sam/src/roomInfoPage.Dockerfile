@@ -9,7 +9,7 @@ WORKDIR /app/src/
 RUN npm install
 
 WORKDIR /app/src/
-COPY ./models/users.ts ./models/rooms.ts ./models/
+COPY ./models/users.ts ./models/rooms.ts ./models/baseModels.ts ./models/messagesDB.ts ./models/
 
 COPY ./lib/*.ts ./lib/
 

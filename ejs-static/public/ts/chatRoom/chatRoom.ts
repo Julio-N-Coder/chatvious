@@ -18,13 +18,21 @@ const messagesContainer = document.getElementById(
   "messagesContainer"
 ) as HTMLDivElement;
 
+input.value = localStorage.getItem("chatInput") || "";
+let inputLength = input.value.length;
+inputCharCount.textContent = `${inputLength}/2k`;
+button.disabled = inputLength <= 0;
+
 function sendMessage() {
   const message = input.value;
   if (message && message.length > 0 && message.length <= 2000) {
     input.value = "";
+    localStorage.setItem("chatInput", "");
+
     inputCharCount.textContent = "0/2k";
     button.disabled = true;
     input.style.height = "auto";
+
     const sendMessageData = JSON.stringify({
       action: "sendmessage",
       RoomID,
@@ -43,13 +51,23 @@ input.addEventListener("keydown", (event) => {
 
 // dyanamically changes textarea height and sets a max height to 7 cols
 input.addEventListener("input", (event) => {
-  const inputLength = input.value.length;
-  inputCharCount.textContent = `${inputLength}/2k`;
-  if (input.value.length > 0) {
+  let message = input.value;
+  inputLength = input.value.length;
+
+  if (inputLength > 0) {
     button.disabled = false;
   } else {
     button.disabled = true;
   }
+
+  if (inputLength > 2000) {
+    message = message.slice(0, 2000);
+    inputLength = 2000;
+    input.value = message;
+  }
+  inputCharCount.textContent = `${inputLength}/2k`;
+
+  localStorage.setItem("chatInput", message);
 
   input.style.height = "auto";
   input.style.height = input.scrollHeight + "px";
