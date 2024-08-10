@@ -6,7 +6,6 @@ import { isProduction, addSetCookieHeaders } from "../../lib/handyUtils.js";
 export const handler = async (
   event: APIGatewayEvent
 ): Promise<APIGatewayProxyResult> => {
-  console.log("Rendering Dashboard");
   const userID = event.requestContext.authorizer?.claims.sub as string;
 
   const navUserInfoResponse = await fetchNavUserInfo(userID);
@@ -19,7 +18,7 @@ export const handler = async (
   }
 
   const userInfo = navUserInfoResponse.data;
-  const dashboardHTML = await ejs.renderFile("../../views/dashboard.ejs", {
+  const dashboardHTML = await ejs.renderFile("./views/dashboard.ejs", {
     ownedRooms: userInfo.ownedRooms,
     joinedRooms: userInfo.joinedRooms,
     username: userInfo.userName,

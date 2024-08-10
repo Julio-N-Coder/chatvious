@@ -59,7 +59,7 @@ export async function handler(
   }
 
   const userInfo = navUserInfoResponse.data;
-  const chatRoomHTML = await ejs.renderFile("../../views/chatRoom.ejs", {
+  const chatRoomHTML = await ejs.renderFile("./views/chatRoom.ejs", {
     roomMessages,
     username: userInfo.userName,
     profileColor: userInfo.profileColor,

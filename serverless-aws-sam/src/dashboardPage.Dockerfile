@@ -4,47 +4,28 @@ FROM public.ecr.aws/lambda/nodejs:20 AS builder
 ARG function_directory
 
 # Copy needed files
-COPY ./tsconfig.base.json /app/src/
-COPY ./types/types.ts /app/src/types/
+COPY ./tsconfig.json ./package*.json /app/src/
 
 WORKDIR /app/src/
-COPY ./models/package*.json ./models/users.ts ./models/rooms.ts ./models/tsconfig.json ./models/
+RUN npm install
 
-COPY ./lib/package*.json ./lib/tsconfig.json ./lib/*.ts ./lib/
+COPY ./types/types.ts /app/src/types/
 
-# Build typescript code
-WORKDIR /app/src/models/
-RUN npm install && npm run build
+COPY ./models/users.ts ./models/rooms.ts ./models/
 
-WORKDIR /app/src/lib/
-RUN npm install && npm run build
+COPY ./lib/*.ts ./lib/
 
 WORKDIR /app/src/ejs-page-render/dashboard
-COPY ${function_directory}/package*.json ./
-RUN npm install
-COPY ${function_directory}/dashboard.ts ${function_directory}/tsconfig.json ./
-RUN npm run build
+COPY ${function_directory}/dashboard.ts ./
+
+WORKDIR /app/src/
+RUN npm run build-dashboard
 
 FROM public.ecr.aws/lambda/nodejs:20
 ARG function_directory
 ENV NODE_ENV=production
 WORKDIR ${LAMBDA_TASK_ROOT}
 COPY --from=builder /app/dist/ ./
-RUN rm -rf ${LAMBDA_TASK_ROOT}/types/
-# copy views to render ejs pages
 COPY ./views ./views
 
-# Install packages
-WORKDIR ${LAMBDA_TASK_ROOT}/models/
-COPY ./models/package*.json ./
-RUN npm install
-
-WORKDIR ${LAMBDA_TASK_ROOT}/lib/
-COPY ./lib/package*.json ./
-RUN npm install
-
-WORKDIR ${LAMBDA_TASK_ROOT}/ejs-page-render/dashboard
-COPY ${function_directory}/package*.json ./
-RUN npm install
-
-CMD ["ejs-page-render/dashboard/dashboard.handler"]
+CMD ["dashboard.handler"]

@@ -10,8 +10,8 @@
     "fullBuild:prod": "npm --prefix ../client run build:prod && npm run build:prod",
     "serve:prod": "cp ./public/client-ejs/ejs.min.js ../dist/public/ejs/ && webpack serve --mode=production --node-env=production",
     "serve": "cp ./public/client-ejs/ejs.min.js ../dist/public/ejs/ && webpack serve",
-    "static": "cp ./public/client-ejs/ejs.min.js ../dist/public/ejs/ && concurrently 'node static.js' 'webpack watch'",
-    "dev": "concurrently 'node script.js' 'node webSocket.js'"
+    "static": "cp ./public/client-ejs/ejs.min.js ../dist/public/ejs/ && concurrently 'node static.js' 'node webSocket.js' 'webpack watch'",
+    "dev": "node script.js"
   },
   "devDependencies": {
     "@types/node": "^20.14.11",

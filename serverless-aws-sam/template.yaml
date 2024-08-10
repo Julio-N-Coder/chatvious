@@ -118,7 +118,9 @@ Resources:
     Properties:
       FunctionName: Chatvious_createRoom
       Description: Creates a new chat room
-      PackageType: Image
+      CodeUri: ./src
+      Handler: roomRoutes/createRoom/createRoom.handler
+      Runtime: nodejs20.x
       MemorySize: 128
       Timeout: 6
       Architectures:
@@ -133,16 +135,21 @@ Resources:
             Method: POST
             RestApiId: !Ref ChatviousRestApi
     Metadata:
-      DockerContext: ./src
-      Dockerfile: createRoom.Dockerfile
-      DockerTag: latest
+      BuildMethod: esbuild
+      BuildProperties:
+        Minify: true
+        Bundle: true
+        Target: es2020
+        Sourcemap: true
 
   joinRoom:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: Chatvious_joinRoom
       Description: A user can join a chat room
-      PackageType: Image
+      CodeUri: ./src
+      Handler: roomRoutes/joinRoom/joinRoom.handler
+      Runtime: nodejs20.x
       MemorySize: 128
       Timeout: 6
       Architectures:
@@ -157,16 +164,21 @@ Resources:
             Method: POST
             RestApiId: !Ref ChatviousRestApi
     Metadata:
-      DockerContext: ./src
-      Dockerfile: joinRoom.Dockerfile
-      DockerTag: latest
+      BuildMethod: esbuild
+      BuildProperties:
+        Minify: true
+        Bundle: true
+        Target: es2020
+        Sourcemap: true
 
   acceptJoinRequest:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: Chatvious_acceptJoinRequest
       Description: Accepts a join request for a user to join a chat room
-      PackageType: Image
+      CodeUri: ./src
+      Handler: roomRoutes/acceptJoinRequest/acceptJoinRequest.handler
+      Runtime: nodejs20.x
       MemorySize: 128
       Timeout: 6
       Architectures:
@@ -181,16 +193,21 @@ Resources:
             Method: POST
             RestApiId: !Ref ChatviousRestApi
     Metadata:
-      DockerContext: ./src
-      Dockerfile: acceptJoinRequest.Dockerfile
-      DockerTag: latest
+      BuildMethod: esbuild
+      BuildProperties:
+        Minify: true
+        Bundle: true
+        Target: es2020
+        Sourcemap: true
 
   rejectJoinRequest:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: Chatvious_rejectJoinRequest
       Description: Rejects a join request for a chat room
-      PackageType: Image
+      CodeUri: ./src
+      Handler: roomRoutes/rejectJoinRequest/rejectJoinRequest.handler
+      Runtime: nodejs20.x
       MemorySize: 128
       Timeout: 6
       Architectures:
@@ -205,16 +222,21 @@ Resources:
             Method: POST
             RestApiId: !Ref ChatviousRestApi
     Metadata:
-      DockerContext: ./src
-      Dockerfile: rejectJoinRequest.Dockerfile
-      DockerTag: latest
+      BuildMethod: esbuild
+      BuildProperties:
+        Minify: true
+        Bundle: true
+        Target: es2020
+        Sourcemap: true
 
   kickMember:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: Chatvious_kickMember
       Description: Kicks a member from a chat room
-      PackageType: Image
+      CodeUri: ./src
+      Handler: roomRoutes/kickMember/kickMember.handler
+      Runtime: nodejs20.x
       MemorySize: 128
       Timeout: 6
       Architectures:
@@ -229,16 +251,21 @@ Resources:
             Method: POST
             RestApiId: !Ref ChatviousRestApi
     Metadata:
-      DockerContext: ./src
-      Dockerfile: kickMember.Dockerfile
-      DockerTag: latest
+      BuildMethod: esbuild
+      BuildProperties:
+        Minify: true
+        Bundle: true
+        Target: es2020
+        Sourcemap: true
 
   leaveRoom:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: Chatvious_leaveRoom
       Description: A route for a user to leave a chat room
-      PackageType: Image
+      CodeUri: ./src
+      Handler: roomRoutes/leaveRoom/leaveRoom.handler
+      Runtime: nodejs20.x
       MemorySize: 128
       Timeout: 6
       Architectures:
@@ -253,16 +280,21 @@ Resources:
             Method: POST
             RestApiId: !Ref ChatviousRestApi
     Metadata:
-      DockerContext: ./src
-      Dockerfile: leaveRoom.Dockerfile
-      DockerTag: latest
+      BuildMethod: esbuild
+      BuildProperties:
+        Minify: true
+        Bundle: true
+        Target: es2020
+        Sourcemap: true
 
   deleteRoom:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: Chatvious_deleteRoom
       Description: Deletes a chat room
-      PackageType: Image
+      CodeUri: ./src
+      Handler: roomRoutes/deleteRoom/deleteRoom.handler
+      Runtime: nodejs20.x
       MemorySize: 128
       Timeout: 6
       Architectures:
@@ -277,9 +309,12 @@ Resources:
             Method: POST
             RestApiId: !Ref ChatviousRestApi
     Metadata:
-      DockerContext: ./src
-      Dockerfile: deleteRoom.Dockerfile
-      DockerTag: latest
+      BuildMethod: esbuild
+      BuildProperties:
+        Minify: true
+        Bundle: true
+        Target: es2020
+        Sourcemap: true
 
   callback:
     Type: AWS::Serverless::Function
@@ -290,7 +325,9 @@ Resources:
         - x86_64
       MemorySize: 128
       Timeout: 10
-      PackageType: Image
+      CodeUri: ./src
+      Handler: cognito/callback/callback.handler
+      Runtime: nodejs20.x
       Environment:
         Variables:
           COGNITO_DOMAIN: https://chatvious.auth.us-west-1.amazoncognito.com
@@ -305,9 +342,12 @@ Resources:
             Auth:
               Authorizer: NONE
     Metadata:
-      DockerContext: ./src
-      Dockerfile: callback.Dockerfile
-      DockerTag: latest
+      BuildMethod: esbuild
+      BuildProperties:
+        Minify: true
+        Bundle: true
+        Target: es2020
+        Sourcemap: true
 
   LambdaAuthorizer:
     Type: AWS::Serverless::Function
@@ -316,16 +356,21 @@ Resources:
       Description: The Lambda Authorizer for chatvious
       MemorySize: 128
       Timeout: 10
-      PackageType: Image
+      CodeUri: ./src
+      Handler: cognito/lambda-authorizer/lambda-authorizer.handler
+      Runtime: nodejs20.x
       Architectures:
         - x86_64
       Environment:
         Variables:
           COGNITO_DOMAIN: https://chatvious.auth.us-west-1.amazoncognito.com
     Metadata:
-      DockerContext: ./src
-      Dockerfile: LambdaAuthorizer.Dockerfile
-      DockerTag: latest
+      BuildMethod: esbuild
+      BuildProperties:
+        Minify: true
+        Bundle: true
+        Target: es2020
+        Sourcemap: true
 
   ChatviousRestApi:
     Type: AWS::Serverless::Api
@@ -449,8 +494,8 @@ Resources:
     Properties:
       FunctionName: Chatvious_WSLambdaAuthorizer
       Description: The Lambda Authorizer for chatvious websockets
-      CodeUri: src/websocket-endpoints/lambda-authorizer/
-      Handler: websocket-auth.handler
+      CodeUri: ./src
+      Handler: websocket-endpoints/lambda-authorizer/websocket-auth.handler
       Runtime: nodejs20.x
       MemorySize: 128
       Timeout: 10
@@ -463,10 +508,9 @@ Resources:
       BuildMethod: esbuild
       BuildProperties:
         Minify: true
+        Bundle: true
         Target: es2020
         Sourcemap: true
-        EntryPoints:
-          - websocket-auth.ts
 
   WSConnect:
     Type: AWS::Serverless::Function
@@ -495,7 +539,9 @@ Resources:
     Properties:
       FunctionName: Chatvious_WSDisconnect
       Description: The Default Websocket route for when a user disconnects from a chat room
-      PackageType: Image
+      CodeUri: ./src
+      Handler: websocket-endpoints/disconnect/disconnect.handler
+      Runtime: nodejs20.x
       MemorySize: 128
       Timeout: 6
       Architectures:
@@ -504,16 +550,21 @@ Resources:
         - AmazonDynamoDBFullAccess
         - !Ref WebSocketManageConnectionsPolicy
     Metadata:
-      DockerContext: ./src
-      Dockerfile: WSDisconnect.Dockerfile
-      DockerTag: latest
+      BuildMethod: esbuild
+      BuildProperties:
+        Minify: true
+        Bundle: true
+        Target: es2020
+        Sourcemap: true
 
   joinRoomWS:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: Chatvious_joinRoomWS
       Description: A Websocket route for a user to join a chat room
-      PackageType: Image
+      CodeUri: ./src
+      Handler: websocket-endpoints/joinRoom/joinRoom.handler
+      Runtime: nodejs20.x
       MemorySize: 128
       Timeout: 6
       Architectures:
@@ -522,16 +573,21 @@ Resources:
         - AmazonDynamoDBFullAccess
         - !Ref WebSocketManageConnectionsPolicy
     Metadata:
-      DockerContext: ./src
-      Dockerfile: joinRoomWS.Dockerfile
-      DockerTag: latest
+      BuildMethod: esbuild
+      BuildProperties:
+        Minify: true
+        Bundle: true
+        Target: es2020
+        Sourcemap: true
 
   sendMessageWS:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: Chatvious_sendMessageWS
       Description: A Websocket route for a user to send a message in a chat room
-      PackageType: Image
+      CodeUri: ./src
+      Handler: websocket-endpoints/sendMessage/sendMessage.handler
+      Runtime: nodejs20.x
       MemorySize: 128
       Timeout: 6
       Architectures:
@@ -540,6 +596,9 @@ Resources:
         - AmazonDynamoDBFullAccess
         - !Ref WebSocketManageConnectionsPolicy
     Metadata:
-      DockerContext: ./src
-      Dockerfile: sendMessageWS.Dockerfile
-      DockerTag: latest
+      BuildMethod: esbuild
+      BuildProperties:
+        Minify: true
+        Bundle: true
+        Target: es2020
+        Sourcemap: true

@@ -93,7 +93,7 @@ export async function handler(
     const { joinRequests } = joinRequestResponse;
 
     console.log("rendering roomInfo page", "Owner/Admin");
-    const roomInfoHTML = await ejs.renderFile("../../views/roomInfo.ejs", {
+    const roomInfoHTML = await ejs.renderFile("./views/roomInfo.ejs", {
       roomInfo,
       roomOwner,
       roomMembers,
@@ -116,7 +116,7 @@ export async function handler(
   }
 
   console.log("rendering roomInfo page");
-  const roomInfoHTML = await ejs.renderFile("../../views/roomInfo.ejs", {
+  const roomInfoHTML = await ejs.renderFile("./views/roomInfo.ejs", {
     roomInfo,
     roomOwner,
     roomMembers,
