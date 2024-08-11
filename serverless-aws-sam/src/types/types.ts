@@ -137,6 +137,14 @@ interface JoinRequestDB extends BaseJoinRequest {
 }
 [];
 
+interface FetchJoinRequestSuccess extends BaseModelsSuccess {
+  joinRequest: JoinRequest;
+}
+
+type FetchJoinRequestReturn = Promise<
+  BaseModelsError | FetchJoinRequestSuccess
+>;
+
 interface FetchJoinRequestsSuccess extends BaseModelsSuccess {
   joinRequests: JoinRequest[] | [];
 }
@@ -314,6 +322,7 @@ export {
   FetchRoomReturn,
   JoinRequest,
   JoinRequestDB,
+  FetchJoinRequestReturn,
   FetchJoinRequestsReturn,
   FetchNavJoinRequestsReturn,
   FetchNavUserInfoReturn,

@@ -21,6 +21,7 @@ import {
   FetchRoomMembersReturn,
   JoinRequest,
   JoinRequestDB,
+  FetchJoinRequestReturn,
   FetchJoinRequestsReturn,
 } from "../types/types.js";
 
@@ -400,7 +401,10 @@ class RoomManager {
     return { message: "Member Removed", statusCode: 200 };
   }
 
-  async fetchJoinRequest(RoomID: string, userID: string) {
+  async fetchJoinRequest(
+    RoomID: string,
+    userID: string
+  ): FetchJoinRequestReturn {
     const joinRequestCommand = new GetCommand({
       TableName: "chatvious",
       Key: {

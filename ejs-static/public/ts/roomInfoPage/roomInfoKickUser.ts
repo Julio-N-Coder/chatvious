@@ -3,10 +3,15 @@ import { BasicServerSuccess, BasicServerError } from "../types";
 const kickButtons = document.getElementsByClassName(
   "kick"
 ) as HTMLCollectionOf<HTMLButtonElement>;
-
 const fixedStatusBox = document.getElementById(
   "fixedStatusBox"
 ) as HTMLDivElement;
+
+function clearFixedStatusBox() {
+  fixedStatusBox1.classList.remove("bg-success", "text-success-content");
+  fixedStatusBox1.classList.remove("bg-error", "text-error-content");
+  fixedStatusBox1.innerText = "";
+}
 
 for (let i = 0; i < kickButtons.length; i++) {
   kickButtons[i].addEventListener("click", async (e: Event) => {
@@ -34,6 +39,7 @@ for (let i = 0; i < kickButtons.length; i++) {
       fixedStatusBox.textContent = "Something Went Wrong";
 
       kickButton.disabled = false;
+      setTimeout(clearFixedStatusBox, 5000);
       return;
     }
 
@@ -43,6 +49,7 @@ for (let i = 0; i < kickButtons.length; i++) {
       fixedStatusBox.classList.add("bg-error", "text-error-content");
       fixedStatusBox.textContent = kickMemberError.error;
       kickButton.disabled = false;
+      setTimeout(clearFixedStatusBox, 5000);
       return;
     }
 
@@ -52,14 +59,6 @@ for (let i = 0; i < kickButtons.length; i++) {
     fixedStatusBox.classList.add("bg-success", "text-success-content");
     fixedStatusBox.textContent = kickMemberSuccess.message;
 
-    setTimeout(() => {
-      fixedStatusBox.classList.remove(
-        "bg-success",
-        "text-success-content",
-        "bg-error",
-        "text-error-content"
-      );
-      fixedStatusBox.innerText = "";
-    }, 5000);
+    setTimeout(clearFixedStatusBox, 5000);
   });
 }

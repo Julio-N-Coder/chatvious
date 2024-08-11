@@ -5,7 +5,9 @@ import {
   ownedRoomInfo,
   joinedRoomInfo,
   fakeJoinRoomInfoPage,
+  joinedRoomAdminInfo,
   fakeJoinRoomInfoPageOwner,
+  fakeJoinRoomInfoPageAdmin,
   fakeJoinRoomInfoPageMember,
   fakeChatRoomOwnerData,
   fakeChatRoomMemberData,
@@ -37,6 +39,14 @@ app.get(`/rooms/${joinedRoomInfo.RoomID}`, (req, res) => {
   res.render(
     path.resolve("..", "serverless-aws-sam", "src", "views", "roomInfo"),
     fakeJoinRoomInfoPageMember
+  );
+});
+
+app.get(`/rooms/${joinedRoomAdminInfo.RoomID}`, (req, res) => {
+  res.render(
+    path.resolve("..", "serverless-aws-sam", "src", "views", "roomInfo"),
+    // change
+    fakeJoinRoomInfoPageAdmin
   );
 });
 

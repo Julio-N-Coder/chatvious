@@ -11,6 +11,10 @@ const joinedRoomID = joinedRoomInfo.RoomID;
 const wss = new WebSocketServer({ port: 8080 });
 
 // this is just a dev server to view changes so not broadcasting
+wss.on("listening", () => {
+  console.log("WebSocket server is running on port 8080");
+});
+
 wss.on("connection", (ws) => {
   ws.on("error", console.error);
 

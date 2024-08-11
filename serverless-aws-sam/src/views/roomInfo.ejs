@@ -58,7 +58,7 @@
           <div class="text-2xl text-center">
             Room ID: <%= roomInfo.RoomID %>
           </div>
-          <% if (isOwner || isOwnerOrAdmin || isMember) { %>
+          <% if (isOwner || isAdmin || isMember) { %>
           <div class="flex justify-center items-center gap-1">
             <span class="text-xl">Join Chat Room</span>
             <a
@@ -67,7 +67,7 @@
               >Join</a
             >
           </div>
-          <% } %> <%# Join Request %> <% if (isOwnerOrAdmin) { %>
+          <% } %> <%# Join Request %> <% if (isOwner || isAdmin) { %>
           <div class="border-base-content border-2 rounded-xl text-xl p-1">
             <div class="text-3xl text-center">Join Requests</div>
             <% if (joinRequests.length > 0) { %>
@@ -98,7 +98,7 @@
             <div class="text-center">Currently No Join Request</div>
             <% } %>
           </div>
-          <% } else if (!isMember) { %>
+          <% } else if (!isMember && !hasSentJoinRequest) { %>
           <div class="text-lg flex justify-center">
             <div class="flex gap-1 justify-center">
               <div>Send Join Request to Room?</div>
@@ -130,13 +130,22 @@
                   member.userName, profileColor: member.profileColor, forNav:
                   false}) %>
                   <span class=""><%= member.userName %></span>
-                  <span class="text-lg"><%= member.RoomUserStatus %></span>
-                  <% if (isOwnerOrAdmin && member.RoomUserStatus === "MEMBER") {
-                  %> <%# Not implemented yet %>
+                  <span class="RoomUserStatus text-lg"
+                    ><%= member.RoomUserStatus %></span
+                  >
+                  <% if (isAdmin && member.RoomUserStatus === "MEMBER") { %>
                   <button class="kick ml-3 btn btn-accent btn-sm">Kick</button>
-                  <% } else if (isOwner) {%>
+                  <% } else if (isOwner) { %>
                   <button class="kick ml-3 btn btn-accent btn-sm">Kick</button>
-                  <% } %>
+                  <% if (member.RoomUserStatus === "ADMIN") { %>
+                  <button class="demote ml-3 btn btn-accent btn-sm">
+                    Demote
+                  </button>
+                  <% } %> <% if (member.RoomUserStatus === "MEMBER") { %>
+                  <button class="promote ml-3 btn btn-accent btn-sm">
+                    Promote
+                  </button>
+                  <% } %> <% } %>
                 </div>
                 <% } %> <% } else { %>
                 <div class="text-center text-2xl">There are no Members yet</div>
@@ -157,7 +166,7 @@
               ></span>
             </button>
           </div>
-          <% } else if (isMember) { %>
+          <% } else if (isMember || isAdmin) { %>
           <div id="leaveRoom" class="flex justify-end">
             <button class="btn btn-error text-error-content hover:bg-red-400">
               Leave Room
@@ -171,7 +180,7 @@
         </div>
       </div>
     </div>
-    <% if (isProduction) { %> <% if (isOwnerOrAdmin) { %>
+    <% if (isProduction) { %> <% if (isOwner || isAdmin) { %>
     <script
       defer
       src="https://main.chatvious.coding-wielder.com/ejs/roomInfoKickUser.js"
@@ -191,12 +200,20 @@
       defer
       src="https://main.chatvious.coding-wielder.com/ejs/deleteRoom.js"
     ></script>
-    <% } else if (isMember) { %>
+    <% } else if (isMember || isAdmin) { %>
     <script
       defer
       src="https://main.chatvious.coding-wielder.com/ejs/leaveRoom.js"
     ></script>
-    <% } %> <% } else { %> <% if (isOwnerOrAdmin) { %>
+    <script
+      defer
+      src="https://main.chatvious.coding-wielder.com/ejs/promoteUser.js"
+    ></script>
+    <script
+      defer
+      src="https://main.chatvious.coding-wielder.com/ejs/demoteUser.js"
+    ></script>
+    <% } %> <% } else { %> <% if (isOwner || isAdmin) { %>
     <script defer src="http://localhost:8000/ejs/roomInfoKickUser.js"></script>
     <% if (joinRequests.length > 0) { %>
     <script
@@ -210,7 +227,9 @@
     ></script>
     <% } %> <% if (isOwner) { %>
     <script defer src="http://localhost:8000/ejs/deleteRoom.js"></script>
-    <% } else if (isMember) { %>
+    <script defer src="http://localhost:8000/ejs/promoteUser.js"></script>
+    <script defer src="http://localhost:8000/ejs/demoteUser.js"></script>
+    <% } else if (isMember || isAdmin) { %>
     <script defer src="http://localhost:8000/ejs/leaveRoom.js"></script>
     <% } %> <% } %>
   </body>

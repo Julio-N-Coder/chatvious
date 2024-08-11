@@ -1,6 +1,6 @@
 import path from "path";
 import MiniCssExtractPlugin from "mini-css-extract-plugin";
-import { DefinePlugin } from "webpack";
+import webpack from "webpack";
 
 const isProduction = process.env.NODE_ENV == "production";
 
@@ -17,6 +17,10 @@ const config = {
     roomInfoJoinRequest: "./public/ts/roomInfoPage/roomInfoJoinRequest.ts",
     clientAcceptOrReject: "./public/ts/roomInfoPage/clientAcceptOrReject.ts",
     roomInfoKickUser: "./public/ts/roomInfoPage/roomInfoKickUser.ts",
+    leaveRoom: "./public/ts/roomInfoPage/leaveRoom.ts",
+    deleteRoom: "./public/ts/roomInfoPage/deleteRoom.ts",
+    promoteUser: "./public/ts/roomInfoPage/promoteUser.ts",
+    demoteUser: "./public/ts/roomInfoPage/demoteUser.ts",
   },
   output: {
     filename: "[name].js",

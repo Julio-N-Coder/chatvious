@@ -92,12 +92,12 @@ export async function handler(
     }
     const { joinRequests } = joinRequestResponse;
 
-    console.log("rendering roomInfo page", "Owner/Admin");
     const roomInfoHTML = await ejs.renderFile("./views/roomInfo.ejs", {
       roomInfo,
       roomOwner,
       roomMembers,
-      isOwnerOrAdmin: true,
+      isMember,
+      isAdmin,
       isOwner,
       joinRequests,
       navJoinRequest,
@@ -115,14 +115,36 @@ export async function handler(
     return await addSetCookieHeaders(event, ownerAdminSucess);
   }
 
-  console.log("rendering roomInfo page");
+  // check whether they have sent a join request
+  let hasSentJoinRequest = false;
+  if (!isMember) {
+    const fetchJoinRequestResponse = await roomManager.fetchJoinRequest(
+      RoomID,
+      userID
+    );
+    if (
+      "error" in fetchJoinRequestResponse &&
+      fetchJoinRequestResponse.error !== "Bad Request"
+    ) {
+      return {
+        headers: { "Content-Type": "application/json" },
+        statusCode: fetchJoinRequestResponse.statusCode,
+        body: JSON.stringify({ error: fetchJoinRequestResponse.error }),
+      };
+    }
+    if ("joinRequest" in fetchJoinRequestResponse) {
+      hasSentJoinRequest = true;
+    }
+  }
+
   const roomInfoHTML = await ejs.renderFile("./views/roomInfo.ejs", {
     roomInfo,
     roomOwner,
     roomMembers,
     isMember,
-    isOwnerOrAdmin: false,
+    isAdmin,
     isOwner,
+    hasSentJoinRequest,
     navJoinRequest,
     profileColor,
     username: userName,

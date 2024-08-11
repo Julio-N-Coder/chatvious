@@ -8,10 +8,9 @@
     "build:prod": "cp ./public/client-ejs/ejs.min.js ../dist/public/ejs/ && webpack --config webpack.prod.js --node-env=production",
     "fullBuild": "npm --prefix ../client run build && npm run build",
     "fullBuild:prod": "npm --prefix ../client run build:prod && npm run build:prod",
-    "serve:prod": "cp ./public/client-ejs/ejs.min.js ../dist/public/ejs/ && webpack serve --mode=production --node-env=production",
-    "serve": "cp ./public/client-ejs/ejs.min.js ../dist/public/ejs/ && webpack serve",
-    "static": "cp ./public/client-ejs/ejs.min.js ../dist/public/ejs/ && concurrently 'node static.js' 'node webSocket.js' 'webpack watch'",
-    "dev": "node script.js"
+    "static": "cp ./public/client-ejs/ejs.min.js ../dist/public/ejs/ && concurrently 'node static.js' 'nodemon webSocket.js' 'webpack watch --node-env=development'",
+    "static:prod": "cp ./public/client-ejs/ejs.min.js ../dist/public/ejs/ && concurrently 'node static.js' 'nodemon webSocket.js' 'webpack watch --mode=production --node-env=production'",
+    "dev": "nodemon -e js,css,html,ejs --exec \"node script.js\""
   },
   "devDependencies": {
     "@types/node": "^20.14.11",
@@ -26,6 +25,7 @@
     "expose-loader": "^5.0.0",
     "express": "^4.19.2",
     "mini-css-extract-plugin": "^2.8.1",
+    "nodemon": "^3.1.4",
     "postcss": "^8.4.38",
     "postcss-cli": "^11.0.0",
     "postcss-loader": "^8.1.1",
