@@ -160,8 +160,7 @@ afterAll(async () => {
   }
 });
 
-// don't have promoting functionality yet so can't change user status yet to test
-// make sure to test room user status when it's implemented
+// make sure to test room user status as well
 describe("Test if kickMember route kicks the user from the chat room", () => {
   test("kickMember route returns successfull response with correct input", async () => {
     const response = await handler(restAPIEvent);

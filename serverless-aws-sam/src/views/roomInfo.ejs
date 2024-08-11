@@ -138,11 +138,15 @@
                   <% } else if (isOwner) { %>
                   <button class="kick ml-3 btn btn-accent btn-sm">Kick</button>
                   <% if (member.RoomUserStatus === "ADMIN") { %>
-                  <button class="demote ml-3 btn btn-accent btn-sm">
+                  <button
+                    class="promoteDemote demote ml-3 btn btn-accent btn-sm"
+                  >
                     Demote
                   </button>
                   <% } %> <% if (member.RoomUserStatus === "MEMBER") { %>
-                  <button class="promote ml-3 btn btn-accent btn-sm">
+                  <button
+                    class="promoteDemote promote ml-3 btn btn-accent btn-sm"
+                  >
                     Promote
                   </button>
                   <% } %> <% } %>
@@ -207,11 +211,7 @@
     ></script>
     <script
       defer
-      src="https://main.chatvious.coding-wielder.com/ejs/promoteUser.js"
-    ></script>
-    <script
-      defer
-      src="https://main.chatvious.coding-wielder.com/ejs/demoteUser.js"
+      src="https://main.chatvious.coding-wielder.com/ejs/promoteOrDemoteUser.js"
     ></script>
     <% } %> <% } else { %> <% if (isOwner || isAdmin) { %>
     <script defer src="http://localhost:8000/ejs/roomInfoKickUser.js"></script>
@@ -227,8 +227,10 @@
     ></script>
     <% } %> <% if (isOwner) { %>
     <script defer src="http://localhost:8000/ejs/deleteRoom.js"></script>
-    <script defer src="http://localhost:8000/ejs/promoteUser.js"></script>
-    <script defer src="http://localhost:8000/ejs/demoteUser.js"></script>
+    <script
+      defer
+      src="http://localhost:8000/ejs/promoteOrDemoteUser.js"
+    ></script>
     <% } else if (isMember || isAdmin) { %>
     <script defer src="http://localhost:8000/ejs/leaveRoom.js"></script>
     <% } %> <% } %>

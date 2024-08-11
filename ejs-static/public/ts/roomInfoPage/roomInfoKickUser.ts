@@ -8,9 +8,9 @@ const fixedStatusBox = document.getElementById(
 ) as HTMLDivElement;
 
 function clearFixedStatusBox() {
-  fixedStatusBox1.classList.remove("bg-success", "text-success-content");
-  fixedStatusBox1.classList.remove("bg-error", "text-error-content");
-  fixedStatusBox1.innerText = "";
+  fixedStatusBox.classList.remove("bg-success", "text-success-content");
+  fixedStatusBox.classList.remove("bg-error", "text-error-content");
+  fixedStatusBox.innerText = "";
 }
 
 for (let i = 0; i < kickButtons.length; i++) {

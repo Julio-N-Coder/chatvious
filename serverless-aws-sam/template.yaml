@@ -316,6 +316,35 @@ Resources:
         Target: es2020
         Sourcemap: true
 
+  promoteOrDemoteUser:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: Chatvious_promoteOrDemoteUser
+      Description: Promotes or demotes a user in a chat room
+      CodeUri: ./src
+      Handler: roomRoutes/promoteOrDemoteUser/promoteOrDemoteUser.handler
+      Runtime: nodejs20.x
+      MemorySize: 128
+      Timeout: 6
+      Architectures:
+        - x86_64
+      Policies:
+        - AmazonDynamoDBFullAccess
+      Events:
+        ChatviousRestApiPOSTroomspromoteOrDemoteUser:
+          Type: Api
+          Properties:
+            Path: /rooms/promoteOrDemoteUser
+            Method: POST
+            RestApiId: !Ref ChatviousRestApi
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        Minify: true
+        Bundle: true
+        Target: es2020
+        Sourcemap: true
+
   callback:
     Type: AWS::Serverless::Function
     Properties:
@@ -465,6 +494,13 @@ Resources:
                 httpMethod: GET
                 type: aws_proxy
                 uri: !Sub arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${chatRoom.Arn}/invocations
+              responses: {}
+          /rooms/promoteOrDemoteUser:
+            post:
+              x-amazon-apigateway-integration:
+                httpMethod: POST
+                type: aws_proxy
+                uri: !Sub arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${promoteOrDemoteUser.Arn}/invocations
               responses: {}
       # Below is the correct syntax. I don't know why it's erroring in VSCode.
       EndpointConfiguration: REGIONAL
