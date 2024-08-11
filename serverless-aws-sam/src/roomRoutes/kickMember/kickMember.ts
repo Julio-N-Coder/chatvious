@@ -124,7 +124,10 @@ function validateBody(
   } catch (error) {
     return standardError("Invalid JSON");
   }
-  if (!parsedBody.RoomID || !parsedBody.userID) {
+  if (
+    !(parsedBody.RoomID && typeof parsedBody.RoomID !== "string") ||
+    !(parsedBody.userID && typeof parsedBody.userID !== "string")
+  ) {
     return standardError("Bad Request");
   }
 

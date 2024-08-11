@@ -7,6 +7,7 @@ import {
   DeleteCommand,
   QueryCommand,
   GetCommandOutput,
+  UpdateCommandOutput,
 } from "@aws-sdk/lib-dynamodb";
 import { userManager } from "./users.js";
 import { messagesManagerDB } from "./messagesDB.js";
@@ -25,7 +26,9 @@ import {
   FetchJoinRequestsReturn,
 } from "../types/types.js";
 
-const client = new DynamoDBClient({});
+const dynamodbOptionsString = process.env.DYNAMODB_OPTIONS || "{}";
+const dynamodbOptions = JSON.parse(dynamodbOptionsString);
+const client = new DynamoDBClient(dynamodbOptions);
 const docClient = DynamoDBDocumentClient.from(client);
 
 class RoomManager {
@@ -546,6 +549,39 @@ class RoomManager {
       message: "Successfully removed Join Request",
       statusCode: 200,
     };
+  }
+
+  async updateRoomUserStatus(
+    RoomID: string,
+    memberID: string,
+    newRoomUserStatus: "MEMBER" | "ADMIN" | "OWNER"
+  ): BaseModelsReturnType {
+    const updateMemberCommand = new UpdateCommand({
+      TableName: "chatvious",
+      Key: {
+        PartitionKey: `ROOM#${RoomID}`,
+        SortKey: `MEMBERS#USERID#${memberID}`,
+      },
+      UpdateExpression: "SET RoomUserStatus = :newStatus",
+      ExpressionAttributeValues: { ":newStatus": newRoomUserStatus },
+      ReturnValues: "ALL_NEW",
+    });
+
+    let updateMemberResponse: UpdateCommandOutput;
+    try {
+      updateMemberResponse = await docClient.send(updateMemberCommand);
+    } catch (error) {
+      return { error: "Failed to update Member", statusCode: 500 };
+    }
+
+    const statusCode = updateMemberResponse.$metadata.httpStatusCode as number;
+    if (statusCode !== 200) {
+      return { error: "Failed to update Member", statusCode };
+    } else if (updateMemberResponse.Attributes == undefined) {
+      return { error: "Bad Request", statusCode: 400 };
+    }
+
+    return { message: "RoomUserStatus on Member Updated", statusCode: 200 };
   }
 }
 
