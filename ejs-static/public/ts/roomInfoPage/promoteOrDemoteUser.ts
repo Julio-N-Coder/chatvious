@@ -61,7 +61,6 @@ for (let i = 0; i < promoteDemoteButtons.length; i++) {
       return;
     }
 
-    // update status and show new buttons
     const promoteDemoteSuccess: BasicServerResponse =
       await promoteDemoteUserResponse.json();
     if ("error" in promoteDemoteSuccess) {

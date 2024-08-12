@@ -10,6 +10,8 @@ import {
 } from "@jest/globals";
 import { userManager } from "../../../models/users.js";
 import { roomManager } from "../../../models/rooms.js";
+import { UserInfo } from "../../../types/types.js";
+import { newTestUser } from "../../../lib/libtest/handyTestUtils.js";
 
 let restAPIEvent: typeof restAPIEventBase = JSON.parse(
   JSON.stringify(restAPIEventBase)
@@ -18,32 +20,13 @@ let restAPIEventCopy: typeof restAPIEventBase;
 
 const userID = restAPIEvent.requestContext.authorizer.claims.sub;
 const userName = restAPIEvent.requestContext.authorizer.claims.username;
+let newUser: UserInfo;
 
 const roomName = "createRoomTestRoom";
 let RoomID: string;
 
 beforeAll(async () => {
-  // check if there is a user, delete them to have the same info if they exist
-  const fetchUserInfoResponse = await userManager.fetchUserInfo(userID);
-  if ("error" in fetchUserInfoResponse) {
-    if (fetchUserInfoResponse.error === "Failed to Get User Info") {
-      throw new Error("Failed to fetch user info");
-    }
-  } else {
-    const deleteUserResponse = await userManager.deleteUser(userID);
-    if ("error" in deleteUserResponse) {
-      throw new Error(
-        `Failed to clean up before test. Error: ${deleteUserResponse.error}`
-      );
-    }
-  }
-
-  const createUserResponse = await userManager.createUser(userID, userName);
-  if ("error" in createUserResponse) {
-    throw new Error(
-      `Failed to create user. Error: ${createUserResponse.error}`
-    );
-  }
+  newUser = await newTestUser(userID, userName);
 
   restAPIEvent.body = JSON.stringify({
     roomName,
@@ -89,7 +72,7 @@ afterAll(async () => {
 });
 
 describe("A test suite to see if the createRoom route works correctly", () => {
-  test("createRoom Route returns a successfull response with the correct input", async () => {
+  test("createRoom Route returns a successfull response, makes the room, updates the rooms on user, and adds user to room as Owner", async () => {
     const response = await handler(restAPIEvent);
     expect(response.statusCode).toBe(201);
 
@@ -99,6 +82,20 @@ describe("A test suite to see if the createRoom route works correctly", () => {
 
     expect(body.message).toBe("Room Created");
     expect(body.roomInfo.roomName).toBe(roomName);
+
+    // check if the room is created
+    const fetchRoomResponse = await roomManager.fetchRoom(RoomID);
+    if ("error" in fetchRoomResponse) {
+      throw new Error(
+        `Failed to fetch room. Error: ${fetchRoomResponse.error}`
+      );
+    }
+
+    expect(fetchRoomResponse).toHaveProperty("statusCode", 200);
+    expect(fetchRoomResponse).toHaveProperty("message", "Room Found");
+    expect(fetchRoomResponse).toHaveProperty("roomInfo");
+    expect(fetchRoomResponse.roomInfo).toHaveProperty("RoomID", RoomID);
+    expect(fetchRoomResponse.roomInfo).toHaveProperty("roomName", roomName);
   });
 
   test("Incorrect Content-Type header should return the correct Error", async () => {

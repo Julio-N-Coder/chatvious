@@ -11,6 +11,7 @@ import {
 import { userManager } from "../../../models/users.js";
 import { roomManager } from "../../../models/rooms.js";
 import { RoomInfoType, UserInfo } from "../../../types/types.js";
+import { newTestUser } from "../../../lib/libtest/handyTestUtils.js";
 
 let restAPIEvent: typeof restAPIEventBase = JSON.parse(
   JSON.stringify(restAPIEventBase)
@@ -19,7 +20,6 @@ let restAPIEventCopy: typeof restAPIEventBase;
 
 const userID = restAPIEvent.requestContext.authorizer.claims.sub;
 const userName = restAPIEvent.requestContext.authorizer.claims.username;
-const email = restAPIEvent.requestContext.authorizer.claims.email;
 let newUser: UserInfo;
 
 const roomName = "joinRoomTestRoom";
@@ -30,32 +30,7 @@ let roomUserOwner: UserInfo;
 let roomUserID: string;
 
 beforeAll(async () => {
-  // check if there is a user, delete them to have the same info if they exist
-  const fetchUserInfoResponse = await userManager.fetchUserInfo(userID);
-  if ("error" in fetchUserInfoResponse) {
-    if (fetchUserInfoResponse.error === "Failed to Get User Info") {
-      throw new Error("Failed to fetch user info");
-    }
-  } else {
-    const deleteUserResponse = await userManager.deleteUser(userID);
-    if ("error" in deleteUserResponse) {
-      throw new Error(
-        `Failed to clean up before test. Error: ${deleteUserResponse.error}`
-      );
-    }
-  }
-
-  const createUserResponse = await userManager.createUser(
-    userID,
-    userName,
-    email
-  );
-  if ("error" in createUserResponse) {
-    throw new Error(
-      `Failed to create user. Error: ${createUserResponse.error}`
-    );
-  }
-  newUser = createUserResponse.newUser;
+  newUser = await newTestUser(userID, userName);
 
   // make a user to be able to make a room
   const createRequestingUserResponse = await userManager.createUser();
@@ -153,6 +128,40 @@ describe("A test suite to test whether a room join request is successfully sent"
 
     const body = JSON.parse(response.body);
     expect(body.message).toBe("Successfully sent Join Request to the Room");
+
+    // check if the join request was sent to the room
+    const fetchJoinRequestResponse = await roomManager.fetchJoinRequest(
+      RoomID,
+      userID
+    );
+    if ("error" in fetchJoinRequestResponse) {
+      throw new Error(
+        `Failed to check if join request was sent. Error: ${fetchJoinRequestResponse.error}`
+      );
+    }
+
+    expect(fetchJoinRequestResponse).toHaveProperty("statusCode", 200);
+    expect(fetchJoinRequestResponse).toHaveProperty(
+      "message",
+      "Join Request Fetched"
+    );
+    expect(fetchJoinRequestResponse).toHaveProperty("joinRequest");
+    expect(fetchJoinRequestResponse.joinRequest).toHaveProperty(
+      "RoomID",
+      RoomID
+    );
+    expect(fetchJoinRequestResponse.joinRequest).toHaveProperty(
+      "fromUserID",
+      userID
+    );
+    expect(fetchJoinRequestResponse.joinRequest).toHaveProperty(
+      "fromUserName",
+      userName
+    );
+    expect(fetchJoinRequestResponse.joinRequest).toHaveProperty(
+      "roomName",
+      roomName
+    );
   });
 
   test("Incorrect Content-Type header should return the correct Error", async () => {

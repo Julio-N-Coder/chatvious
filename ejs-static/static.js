@@ -8,7 +8,7 @@ app.get("/about", (req, res) => {
   res.sendFile(path.resolve("..", "dist", "public", "index.html"));
 });
 
-app.listen(8000, () => {
-  console.log("Server is running on port 8000");
-  console.log("url: http://localhost:8000");
+app.listen(8040, () => {
+  console.log("Server is running on port 8040");
+  console.log("url: http://localhost:8040");
 });

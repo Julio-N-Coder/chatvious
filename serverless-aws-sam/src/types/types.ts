@@ -60,6 +60,13 @@ type FetchUserInfoSuccess = {
   statusCode: number;
 };
 
+interface FetchRoomsOnUserData {
+  ownedRooms?: RoomsOnUser;
+  joinedRooms?: RoomsOnUser;
+}
+
+type FetchRoomsOnUserReturn = BaseModelsReturnTypeData<FetchRoomsOnUserData>;
+
 interface CreateUserInfoSuccess extends BaseModelsSuccess {
   newUser: UserInfo;
 }
@@ -317,6 +324,8 @@ export {
   FetchRoomMembersReturn,
   UserInfoDBResponse,
   UserInfo,
+  FetchRoomsOnUserData,
+  FetchRoomsOnUserReturn,
   CreateUserInfoReturn,
   FetchUserInfoReturn,
   FetchRoomReturn,

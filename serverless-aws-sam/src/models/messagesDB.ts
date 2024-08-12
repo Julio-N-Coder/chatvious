@@ -18,7 +18,9 @@ import {
   BaseModelsReturnTypeData,
 } from "../types/types.js";
 
-const client = new DynamoDBClient({});
+const dynamodbOptionsString = process.env.DYNAMODB_OPTIONS || "{}";
+const dynamodbOptions = JSON.parse(dynamodbOptionsString);
+const client = new DynamoDBClient(dynamodbOptions);
 const docClient = DynamoDBDocumentClient.from(client);
 
 class MessagesManagerDB extends BaseModels {

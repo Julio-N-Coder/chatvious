@@ -5,8 +5,6 @@ import { userManager } from "../../models/users.js";
 export async function handler(
   event: APIGatewayEvent
 ): Promise<APIGatewayProxyResult> {
-  console.log("Making Create Room");
-
   const bodyValidation = validateBody(event);
   if ("statusCode" in bodyValidation) {
     return bodyValidation;

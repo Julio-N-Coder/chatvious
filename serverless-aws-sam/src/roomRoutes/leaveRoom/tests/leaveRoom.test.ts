@@ -11,6 +11,7 @@ import {
 import { userManager } from "../../../models/users.js";
 import { roomManager } from "../../../models/rooms.js";
 import { UserInfo, RoomInfoType } from "../../../types/types.js";
+import { newTestUser } from "../../../lib/libtest/handyTestUtils.js";
 
 let restAPIEvent: typeof restAPIEventBase = JSON.parse(
   JSON.stringify(restAPIEventBase)
@@ -19,7 +20,6 @@ let restAPIEventCopy: typeof restAPIEventBase;
 
 const userID = restAPIEvent.requestContext.authorizer.claims.sub;
 const userName = restAPIEvent.requestContext.authorizer.claims.username;
-const email = restAPIEvent.requestContext.authorizer.claims.email;
 let newUser: UserInfo;
 
 const roomName = "leaveRoomTestRoom";
@@ -31,32 +31,7 @@ let roomOwnerUserID: string;
 let roomOwnerUserName: string;
 
 beforeAll(async () => {
-  // check if there is a user, delete them to have the same info if they exist
-  const fetchUserInfoResponse = await userManager.fetchUserInfo(userID);
-  if ("error" in fetchUserInfoResponse) {
-    if (fetchUserInfoResponse.error === "Failed to Get User Info") {
-      throw new Error("Failed to fetch user info");
-    }
-  } else {
-    const deleteUserResponse = await userManager.deleteUser(userID);
-    if ("error" in deleteUserResponse) {
-      throw new Error(
-        `Failed to clean up before test. Error: ${deleteUserResponse.error}`
-      );
-    }
-  }
-
-  const createUserResponse = await userManager.createUser(
-    userID,
-    userName,
-    email
-  );
-  if ("error" in createUserResponse) {
-    throw new Error(
-      `Failed to create user. Error: ${createUserResponse.error}`
-    );
-  }
-  newUser = createUserResponse.newUser;
+  newUser = await newTestUser(userID, userName);
 
   // make a user who will be the room owner
   const createroomOwnerUserResponse = await userManager.createUser();
@@ -171,12 +146,49 @@ afterAll(async () => {
 });
 
 describe("A test To see if the leaveRoom Route works correctly", () => {
-  test("leaveRoom route should return a successfull response with correct input", async () => {
+  test("leaveRoom route should return a successfull response and removes roomMember and room on user", async () => {
     const response = await handler(restAPIEvent);
     expect(response.statusCode).toBe(200);
 
     const body = JSON.parse(response.body);
     expect(body.message).toBe("Successfully Left the room");
+
+    // check if the user was removed from the room
+    const fetchRoomMemberResponse = await roomManager.fetchRoomMember(
+      RoomID,
+      userID
+    );
+    if (
+      "error" in fetchRoomMemberResponse &&
+      fetchRoomMemberResponse.error !== "Bad Request"
+    ) {
+      throw new Error(
+        `Failed to fetch RoomMember after leaving room in test. Error: ${fetchRoomMemberResponse.error}`
+      );
+    }
+
+    expect(fetchRoomMemberResponse).toHaveProperty("statusCode", 400);
+    expect(fetchRoomMemberResponse).toHaveProperty("error", "Bad Request");
+
+    // check if room on user was removed
+    const roomOnUserResponse = await userManager.fetchSingleRoomOnUser(
+      userID,
+      RoomID
+    );
+    if (
+      "error" in roomOnUserResponse &&
+      roomOnUserResponse.error !== "Room on user not found"
+    ) {
+      throw new Error(
+        `Failed to fetch room on user after leaving room in test. Error: ${roomOnUserResponse.error}`
+      );
+    }
+
+    expect(roomOnUserResponse).toHaveProperty("statusCode", 404);
+    expect(roomOnUserResponse).toHaveProperty(
+      "error",
+      "Room on user not found"
+    );
   });
 
   test("Incorrect Content-Type header should return the correct Error", async () => {

@@ -15,4 +15,5 @@ export default {
   },
   testMatch: ["**/tests/*.test.ts"],
   moduleFileExtensions: ["ts", "js", "json", "node"],
+  setupFiles: ["./jest.setup.js"],
 };

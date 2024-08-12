@@ -125,8 +125,8 @@ function validateBody(
     return standardError("Invalid JSON");
   }
   if (
-    !(parsedBody.RoomID && typeof parsedBody.RoomID !== "string") ||
-    !(parsedBody.userID && typeof parsedBody.userID !== "string")
+    (!parsedBody.RoomID && typeof parsedBody.RoomID !== "string") ||
+    (!parsedBody.userID && typeof parsedBody.userID !== "string")
   ) {
     return standardError("Bad Request");
   }

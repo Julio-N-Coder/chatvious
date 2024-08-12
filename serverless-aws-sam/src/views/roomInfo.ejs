@@ -17,9 +17,9 @@
       src="https://main.chatvious.coding-wielder.com/ejs/navBar.js"
     ></script>
     <% } else { %>
-    <link rel="stylesheet" href="http://localhost:8000/ejs/styles.css" />
-    <script defer src="http://localhost:8000/ejs/runtime.js"></script>
-    <script defer src="http://localhost:8000/ejs/navBar.js"></script>
+    <link rel="stylesheet" href="http://localhost:8040/ejs/styles.css" />
+    <script defer src="http://localhost:8040/ejs/runtime.js"></script>
+    <script defer src="http://localhost:8040/ejs/navBar.js"></script>
     <% } %>
     <title>Document</title>
   </head>
@@ -214,25 +214,25 @@
       src="https://main.chatvious.coding-wielder.com/ejs/promoteOrDemoteUser.js"
     ></script>
     <% } %> <% } else { %> <% if (isOwner || isAdmin) { %>
-    <script defer src="http://localhost:8000/ejs/roomInfoKickUser.js"></script>
+    <script defer src="http://localhost:8040/ejs/roomInfoKickUser.js"></script>
     <% if (joinRequests.length > 0) { %>
     <script
       defer
-      src="http://localhost:8000/ejs/clientAcceptOrReject.js"
+      src="http://localhost:8040/ejs/clientAcceptOrReject.js"
     ></script>
     <% } %> <% } else { %>
     <script
       defer
-      src="http://localhost:8000/ejs/roomInfoJoinRequest.js"
+      src="http://localhost:8040/ejs/roomInfoJoinRequest.js"
     ></script>
     <% } %> <% if (isOwner) { %>
-    <script defer src="http://localhost:8000/ejs/deleteRoom.js"></script>
+    <script defer src="http://localhost:8040/ejs/deleteRoom.js"></script>
     <script
       defer
-      src="http://localhost:8000/ejs/promoteOrDemoteUser.js"
+      src="http://localhost:8040/ejs/promoteOrDemoteUser.js"
     ></script>
     <% } else if (isMember || isAdmin) { %>
-    <script defer src="http://localhost:8000/ejs/leaveRoom.js"></script>
+    <script defer src="http://localhost:8040/ejs/leaveRoom.js"></script>
     <% } %> <% } %>
   </body>
 </html>

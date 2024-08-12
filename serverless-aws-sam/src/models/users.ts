@@ -4,6 +4,8 @@ import {
   FetchUserInfoReturn,
   UserInfoDBResponse,
   RoomsOnUser,
+  FetchRoomsOnUserData,
+  FetchRoomsOnUserReturn,
   FetchNavJoinRequestsReturn,
   CreateUserInfoReturn,
 } from "../types/types.js";
@@ -17,9 +19,12 @@ import {
   PutCommandOutput,
   DeleteCommand,
   DeleteCommandOutput,
+  GetCommandOutput,
 } from "@aws-sdk/lib-dynamodb";
 
-const client = new DynamoDBClient({});
+const dynamodbOptionsString = process.env.DYNAMODB_OPTIONS || "{}";
+const dynamodbOptions = JSON.parse(dynamodbOptionsString);
+const client = new DynamoDBClient(dynamodbOptions);
 const docClient = DynamoDBDocumentClient.from(client);
 
 class UserManager {
@@ -132,6 +137,85 @@ class UserManager {
     };
 
     return { userInfo, statusCode: 200 };
+  }
+
+  async fetchRoomsOnUser(
+    userID: string,
+    fetchOwnedRooms: boolean,
+    fetchJoinedRooms: boolean
+  ): FetchRoomsOnUserReturn {
+    const ownedRoomsString = "ownedRooms";
+    const joinedRoomsString = "joinedRooms";
+
+    let ProjectionExpression = "";
+    if (fetchOwnedRooms && fetchJoinedRooms) {
+      ProjectionExpression = `${ownedRoomsString}, ${joinedRoomsString}`;
+    } else if (fetchOwnedRooms) {
+      ProjectionExpression = ownedRoomsString;
+    } else if (fetchJoinedRooms) {
+      ProjectionExpression = joinedRoomsString;
+    } else {
+      return { error: "Did not provide all arguments", statusCode: 400 };
+    }
+
+    const fetchUserInfoCommand = new GetCommand({
+      TableName: "chatvious",
+      Key: { PartitionKey: `USER#${userID}`, SortKey: "PROFILE" },
+      ProjectionExpression,
+    });
+
+    let userInfoDBResponse: GetCommandOutput;
+    try {
+      userInfoDBResponse = await docClient.send(fetchUserInfoCommand);
+    } catch (error) {
+      return { error: "Failed to Get User Info", statusCode: 500 };
+    }
+    const statusCode = userInfoDBResponse.$metadata.httpStatusCode as number;
+
+    if (statusCode !== 200) {
+      return { error: "Failed to Get User Info", statusCode };
+    } else if (!userInfoDBResponse.Item) {
+      return { error: "User not found", statusCode: 404 };
+    }
+
+    const roomsOnUser: FetchRoomsOnUserData = userInfoDBResponse.Item;
+
+    return {
+      message: "Rooms Fetched",
+      data: roomsOnUser,
+      statusCode: 200,
+    };
+  }
+
+  async fetchSingleRoomOnUser(userID: string, RoomID: string) {
+    const fetchRoomsOnUserResponse = await this.fetchRoomsOnUser(
+      userID,
+      true,
+      true
+    );
+    if ("error" in fetchRoomsOnUserResponse) {
+      return fetchRoomsOnUserResponse;
+    }
+
+    const ownedRooms = fetchRoomsOnUserResponse.data.ownedRooms as RoomsOnUser;
+    const joinedRooms = fetchRoomsOnUserResponse.data
+      .joinedRooms as RoomsOnUser;
+
+    if (ownedRooms.length > 0) {
+      const room = ownedRooms.find((room) => room.RoomID === RoomID);
+
+      if (room) {
+        return { message: "Owned Room Found", data: room, statusCode: 200 };
+      }
+    } else if (joinedRooms.length > 0) {
+      const room = joinedRooms.find((room) => room.RoomID === RoomID);
+
+      if (room) {
+        return { message: "Joined Room Found", data: room, statusCode: 200 };
+      }
+    }
+
+    return { error: "Room on user not found", statusCode: 404 };
   }
 
   async updateJoinedRooms(

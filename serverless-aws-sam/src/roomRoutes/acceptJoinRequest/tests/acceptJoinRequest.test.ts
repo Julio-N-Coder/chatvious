@@ -11,6 +11,7 @@ import {
 import { userManager } from "../../../models/users.js";
 import { roomManager } from "../../../models/rooms.js";
 import { UserInfo, RoomInfoType } from "../../../types/types.js";
+import { newTestUser } from "../../../lib/libtest/handyTestUtils.js";
 
 let restAPIEvent: typeof restAPIEventBase = JSON.parse(
   JSON.stringify(restAPIEventBase)
@@ -19,7 +20,6 @@ let restAPIEventCopy: typeof restAPIEventBase;
 
 const userID = restAPIEvent.requestContext.authorizer.claims.sub;
 const userName = restAPIEvent.requestContext.authorizer.claims.username;
-const email = restAPIEvent.requestContext.authorizer.claims.email;
 let newUser: UserInfo;
 
 const roomName = "acceptJoinRequestRoom";
@@ -31,32 +31,7 @@ let requestUserID: string;
 let requestUserName: string;
 
 beforeAll(async () => {
-  // check if there is a user, delete them to have the same info if they exist
-  const fetchUserInfoResponse = await userManager.fetchUserInfo(userID);
-  if ("error" in fetchUserInfoResponse) {
-    if (fetchUserInfoResponse.error === "Failed to Get User Info") {
-      throw new Error("Failed to fetch user info");
-    }
-  } else {
-    const deleteUserResponse = await userManager.deleteUser(userID);
-    if ("error" in deleteUserResponse) {
-      throw new Error(
-        `Failed to clean up before test. Error: ${deleteUserResponse.error}`
-      );
-    }
-  }
-
-  const createUserResponse = await userManager.createUser(
-    userID,
-    userName,
-    email
-  );
-  if ("error" in createUserResponse) {
-    throw new Error(
-      `Failed to create user. Error: ${createUserResponse.error}`
-    );
-  }
-  newUser = createUserResponse.newUser;
+  newUser = await newTestUser(userID, userName);
 
   // make a user for the person making the request
   const createRequestingUserResponse = await userManager.createUser();
@@ -174,12 +149,56 @@ afterAll(async () => {
 });
 
 describe("Test to see if accepting the join request works", () => {
-  test("Should return a 200 status code and it should return the right body response", async () => {
+  test("Should return a successfull response, add the user to the room and update the rooms they are joined in", async () => {
     const response = await handler(restAPIEvent);
     expect(response.statusCode).toBe(200);
 
     const body = JSON.parse(response.body);
     expect(body.message).toBe("Join request accepted successfully");
+
+    // check if the user was added to the room
+    const fetchRoomMemberResponse = await roomManager.fetchRoomMember(
+      RoomID,
+      requestUserID
+    );
+    if ("error" in fetchRoomMemberResponse) {
+      throw new Error(
+        `Failed to fetch room member. Error: ${fetchRoomMemberResponse.error}`
+      );
+    }
+
+    expect(fetchRoomMemberResponse).toHaveProperty("statusCode", 200);
+    expect(fetchRoomMemberResponse).toHaveProperty("roomMember");
+    expect(fetchRoomMemberResponse.roomMember).toHaveProperty(
+      "userName",
+      requestUserName
+    );
+    expect(fetchRoomMemberResponse.roomMember).toHaveProperty(
+      "userID",
+      requestUserID
+    );
+    expect(fetchRoomMemberResponse.roomMember).toHaveProperty("RoomID", RoomID);
+    expect(fetchRoomMemberResponse.roomMember).toHaveProperty(
+      "RoomUserStatus",
+      "MEMBER"
+    );
+
+    // check if the rooms the user is joined in was updated
+    const roomOnUserResponse = await userManager.fetchSingleRoomOnUser(
+      requestUserID,
+      RoomID
+    );
+    if ("error" in roomOnUserResponse) {
+      throw new Error(
+        `Failed to fetch rooms on user. Error: ${roomOnUserResponse.error}`
+      );
+    }
+
+    expect(roomOnUserResponse).toHaveProperty("statusCode", 200);
+    expect(roomOnUserResponse).toHaveProperty("message", "Joined Room Found");
+    expect(roomOnUserResponse).toHaveProperty("data");
+    expect(roomOnUserResponse.data).toHaveProperty("roomName", roomName);
+    expect(roomOnUserResponse.data).toHaveProperty("RoomID", RoomID);
   });
 
   test("Incorrect Content-Type header should return the correct Error", async () => {
