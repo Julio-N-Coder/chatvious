@@ -19,9 +19,149 @@ Globals:
     LoggingConfig:
       LogFormat: JSON
 
-# change AmazonDynamoDBFullAccess to just crud access. the one provided by sam.
-# remember to give sendMessage websocket lambda function permission to call the API Gateway Management API
 Resources:
+  # Delete current chatvoius table in AWS account before first deployment
+  ChatviousTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: chatvious
+      BillingMode: PROVISIONED
+      ProvisionedThroughput:
+        ReadCapacityUnits: 1
+        WriteCapacityUnits: 1
+      AttributeDefinitions:
+        - AttributeName: PartitionKey
+          AttributeType: S
+        - AttributeName: SortKey
+          AttributeType: S
+        - AttributeName: GSISortKey
+          AttributeType: S
+      KeySchema:
+        - AttributeName: PartitionKey
+          KeyType: HASH
+        - AttributeName: SortKey
+          KeyType: RANGE
+      GlobalSecondaryIndexes:
+        - IndexName: Generic-GSISort-Index
+          KeySchema:
+            - AttributeName: PartitionKey
+              KeyType: HASH
+            - AttributeName: GSISortKey
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+          ProvisionedThroughput:
+            ReadCapacityUnits: 1
+            WriteCapacityUnits: 1
+
+  TableChatviousReadCapacityScalableTarget:
+    Type: AWS::ApplicationAutoScaling::ScalableTarget
+    DependsOn: ChatviousTable
+    Properties:
+      ServiceNamespace: dynamodb
+      ResourceId: table/chatvious
+      ScalableDimension: dynamodb:table:ReadCapacityUnits
+      MinCapacity: 1
+      MaxCapacity: 10
+      RoleARN: !Sub arn:aws:iam::${AWS::AccountId}:role/aws-service-role/dynamodb.application-autoscaling.amazonaws.com/AWSServiceRoleForApplicationAutoScaling_DynamoDBTable
+
+  TableChatviousReadCapacityScalingPolicy:
+    Type: AWS::ApplicationAutoScaling::ScalingPolicy
+    DependsOn: TableChatviousReadCapacityScalableTarget
+    Properties:
+      ServiceNamespace: dynamodb
+      ResourceId: table/chatvious
+      ScalableDimension: dynamodb:table:ReadCapacityUnits
+      PolicyName: chatvious-read-capacity-scaling-policy
+      PolicyType: TargetTrackingScaling
+      TargetTrackingScalingPolicyConfiguration:
+        PredefinedMetricSpecification:
+          PredefinedMetricType: DynamoDBReadCapacityUtilization
+        ScaleOutCooldown: 60
+        ScaleInCooldown: 60
+        TargetValue: 70
+
+  TableChatviousWriteCapacityScalableTarget:
+    Type: AWS::ApplicationAutoScaling::ScalableTarget
+    DependsOn: ChatviousTable
+    Properties:
+      ServiceNamespace: dynamodb
+      ResourceId: table/chatvious
+      ScalableDimension: dynamodb:table:WriteCapacityUnits
+      MinCapacity: 1
+      MaxCapacity: 10
+      RoleARN: !Sub arn:aws:iam::${AWS::AccountId}:role/aws-service-role/dynamodb.application-autoscaling.amazonaws.com/AWSServiceRoleForApplicationAutoScaling_DynamoDBTable
+
+  TableChatviousWriteCapacityScalingPolicy:
+    Type: AWS::ApplicationAutoScaling::ScalingPolicy
+    DependsOn: TableChatviousWriteCapacityScalableTarget
+    Properties:
+      ServiceNamespace: dynamodb
+      ResourceId: table/chatvious
+      ScalableDimension: dynamodb:table:WriteCapacityUnits
+      PolicyName: chatvious-write-capacity-scaling-policy
+      PolicyType: TargetTrackingScaling
+      TargetTrackingScalingPolicyConfiguration:
+        PredefinedMetricSpecification:
+          PredefinedMetricType: DynamoDBWriteCapacityUtilization
+        ScaleOutCooldown: 60
+        ScaleInCooldown: 60
+        TargetValue: 70
+
+  TableChatviousIndexGenericGSISortIndexReadCapacityScalableTarget:
+    Type: AWS::ApplicationAutoScaling::ScalableTarget
+    DependsOn: ChatviousTable
+    Properties:
+      ServiceNamespace: dynamodb
+      ResourceId: table/chatvious/index/Generic-GSISort-Index
+      ScalableDimension: dynamodb:index:ReadCapacityUnits
+      MinCapacity: 1
+      MaxCapacity: 6
+      RoleARN: !Sub arn:aws:iam::${AWS::AccountId}:role/aws-service-role/dynamodb.application-autoscaling.amazonaws.com/AWSServiceRoleForApplicationAutoScaling_DynamoDBTable
+
+  TableChatviousIndexGenericGSISortIndexReadCapacityScalingPolicy:
+    Type: AWS::ApplicationAutoScaling::ScalingPolicy
+    DependsOn: TableChatviousIndexGenericGSISortIndexReadCapacityScalableTarget
+    Properties:
+      ServiceNamespace: dynamodb
+      ResourceId: table/chatvious/index/Generic-GSISort-Index
+      ScalableDimension: dynamodb:index:ReadCapacityUnits
+      PolicyName: chatvious-index-Generic-GSISort-Index-read-capacity-scaling-policy
+      PolicyType: TargetTrackingScaling
+      TargetTrackingScalingPolicyConfiguration:
+        PredefinedMetricSpecification:
+          PredefinedMetricType: DynamoDBReadCapacityUtilization
+        ScaleOutCooldown: 60
+        ScaleInCooldown: 60
+        TargetValue: 70
+
+  TableChatviousIndexGenericGSISortIndexWriteCapacityScalableTarget:
+    Type: AWS::ApplicationAutoScaling::ScalableTarget
+    DependsOn: ChatviousTable
+    Properties:
+      ServiceNamespace: dynamodb
+      ResourceId: table/chatvious/index/Generic-GSISort-Index
+      ScalableDimension: dynamodb:index:WriteCapacityUnits
+      MinCapacity: 1
+      MaxCapacity: 6
+      RoleARN: !Sub arn:aws:iam::${AWS::AccountId}:role/aws-service-role/dynamodb.application-autoscaling.amazonaws.com/AWSServiceRoleForApplicationAutoScaling_DynamoDBTable
+
+  TableChatviousIndexGenericGSISortIndexWriteCapacityScalingPolicy:
+    Type: AWS::ApplicationAutoScaling::ScalingPolicy
+    DependsOn: TableChatviousIndexGenericGSISortIndexWriteCapacityScalableTarget
+    Properties:
+      ServiceNamespace: dynamodb
+      ResourceId: table/chatvious/index/Generic-GSISort-Index
+      ScalableDimension: dynamodb:index:WriteCapacityUnits
+      PolicyName: chatvious-index-Generic-GSISort-Index-write-capacity-scaling-policy
+      PolicyType: TargetTrackingScaling
+      TargetTrackingScalingPolicyConfiguration:
+        PredefinedMetricSpecification:
+          PredefinedMetricType: DynamoDBWriteCapacityUtilization
+        ScaleOutCooldown: 60
+        ScaleInCooldown: 60
+        TargetValue: 70
+
   saveUserDataFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -33,7 +173,12 @@ Resources:
       Architectures:
         - x86_64
       Policies:
-        - AmazonDynamoDBFullAccess
+        - DynamoDBCrudPolicy:
+            TableName: !Ref ChatviousTable
+      Environment:
+        Variables:
+          CHATVIOUSTABLE_TABLE_NAME: !Ref ChatviousTable
+          CHATVIOUSTABLE_TABLE_ARN: !GetAtt ChatviousTable.Arn
     Metadata:
       BuildMethod: esbuild
       BuildProperties:
@@ -52,7 +197,8 @@ Resources:
       Architectures:
         - x86_64
       Policies:
-        - AmazonDynamoDBReadOnlyAccess
+        - DynamoDBCrudPolicy:
+            TableName: !Ref ChatviousTable
       Events:
         ChatviousRestApiGETdashboard:
           Type: Api
@@ -60,6 +206,10 @@ Resources:
             Path: /dashboard
             Method: GET
             RestApiId: !Ref ChatviousRestApi
+      Environment:
+        Variables:
+          CHATVIOUSTABLE_TABLE_NAME: !Ref ChatviousTable
+          CHATVIOUSTABLE_TABLE_ARN: !GetAtt ChatviousTable.Arn
     Metadata:
       DockerContext: ./src
       Dockerfile: dashboardPage.Dockerfile
@@ -76,7 +226,8 @@ Resources:
       Architectures:
         - x86_64
       Policies:
-        - AmazonDynamoDBReadOnlyAccess
+        - DynamoDBCrudPolicy:
+            TableName: !Ref ChatviousTable
       Events:
         ChatviousRestApiGETroomsRoomID:
           Type: Api
@@ -84,6 +235,10 @@ Resources:
             Path: /rooms/{RoomID}
             Method: GET
             RestApiId: !Ref ChatviousRestApi
+      Environment:
+        Variables:
+          CHATVIOUSTABLE_TABLE_NAME: !Ref ChatviousTable
+          CHATVIOUSTABLE_TABLE_ARN: !GetAtt ChatviousTable.Arn
     Metadata:
       DockerContext: ./src
       Dockerfile: roomInfoPage.Dockerfile
@@ -100,7 +255,8 @@ Resources:
       Architectures:
         - x86_64
       Policies:
-        - AmazonDynamoDBReadOnlyAccess
+        - DynamoDBCrudPolicy:
+            TableName: !Ref ChatviousTable
       Events:
         ChatviousRestApiGETchatroomRoomID:
           Type: Api
@@ -108,6 +264,10 @@ Resources:
             Path: /chat-room/{RoomID}
             Method: GET
             RestApiId: !Ref ChatviousRestApi
+      Environment:
+        Variables:
+          CHATVIOUSTABLE_TABLE_NAME: !Ref ChatviousTable
+          CHATVIOUSTABLE_TABLE_ARN: !GetAtt ChatviousTable.Arn
     Metadata:
       DockerContext: ./src
       Dockerfile: chatRoom.Dockerfile
@@ -126,7 +286,8 @@ Resources:
       Architectures:
         - x86_64
       Policies:
-        - AmazonDynamoDBFullAccess
+        - DynamoDBCrudPolicy:
+            TableName: !Ref ChatviousTable
       Events:
         ChatviousRestApiPOSTroomscreateRoom:
           Type: Api
@@ -134,6 +295,10 @@ Resources:
             Path: /rooms/createRoom
             Method: POST
             RestApiId: !Ref ChatviousRestApi
+      Environment:
+        Variables:
+          CHATVIOUSTABLE_TABLE_NAME: !Ref ChatviousTable
+          CHATVIOUSTABLE_TABLE_ARN: !GetAtt ChatviousTable.Arn
     Metadata:
       BuildMethod: esbuild
       BuildProperties:
@@ -155,7 +320,8 @@ Resources:
       Architectures:
         - x86_64
       Policies:
-        - AmazonDynamoDBFullAccess
+        - DynamoDBCrudPolicy:
+            TableName: !Ref ChatviousTable
       Events:
         ChatviousRestApiPOSTroomsjoinRoom:
           Type: Api
@@ -163,6 +329,10 @@ Resources:
             Path: /rooms/joinRoom
             Method: POST
             RestApiId: !Ref ChatviousRestApi
+      Environment:
+        Variables:
+          CHATVIOUSTABLE_TABLE_NAME: !Ref ChatviousTable
+          CHATVIOUSTABLE_TABLE_ARN: !GetAtt ChatviousTable.Arn
     Metadata:
       BuildMethod: esbuild
       BuildProperties:
@@ -184,7 +354,8 @@ Resources:
       Architectures:
         - x86_64
       Policies:
-        - AmazonDynamoDBFullAccess
+        - DynamoDBCrudPolicy:
+            TableName: !Ref ChatviousTable
       Events:
         ChatviousRestApiPOSTroomsacceptJoinRequest:
           Type: Api
@@ -192,6 +363,10 @@ Resources:
             Path: /rooms/acceptJoinRequest
             Method: POST
             RestApiId: !Ref ChatviousRestApi
+      Environment:
+        Variables:
+          CHATVIOUSTABLE_TABLE_NAME: !Ref ChatviousTable
+          CHATVIOUSTABLE_TABLE_ARN: !GetAtt ChatviousTable.Arn
     Metadata:
       BuildMethod: esbuild
       BuildProperties:
@@ -213,7 +388,8 @@ Resources:
       Architectures:
         - x86_64
       Policies:
-        - AmazonDynamoDBFullAccess
+        - DynamoDBCrudPolicy:
+            TableName: !Ref ChatviousTable
       Events:
         ChatviousRestApiPOSTroomsrejectJoinRequest:
           Type: Api
@@ -221,6 +397,10 @@ Resources:
             Path: /rooms/rejectJoinRequest
             Method: POST
             RestApiId: !Ref ChatviousRestApi
+      Environment:
+        Variables:
+          CHATVIOUSTABLE_TABLE_NAME: !Ref ChatviousTable
+          CHATVIOUSTABLE_TABLE_ARN: !GetAtt ChatviousTable.Arn
     Metadata:
       BuildMethod: esbuild
       BuildProperties:
@@ -242,7 +422,8 @@ Resources:
       Architectures:
         - x86_64
       Policies:
-        - AmazonDynamoDBFullAccess
+        - DynamoDBCrudPolicy:
+            TableName: !Ref ChatviousTable
       Events:
         ChatviousRestApiPOSTroomskickMember:
           Type: Api
@@ -250,6 +431,10 @@ Resources:
             Path: /rooms/kickMember
             Method: POST
             RestApiId: !Ref ChatviousRestApi
+      Environment:
+        Variables:
+          CHATVIOUSTABLE_TABLE_NAME: !Ref ChatviousTable
+          CHATVIOUSTABLE_TABLE_ARN: !GetAtt ChatviousTable.Arn
     Metadata:
       BuildMethod: esbuild
       BuildProperties:
@@ -271,7 +456,8 @@ Resources:
       Architectures:
         - x86_64
       Policies:
-        - AmazonDynamoDBFullAccess
+        - DynamoDBCrudPolicy:
+            TableName: !Ref ChatviousTable
       Events:
         ChatviousRestApiPOSTroomsleaveRoom:
           Type: Api
@@ -279,6 +465,10 @@ Resources:
             Path: /rooms/leaveRoom
             Method: POST
             RestApiId: !Ref ChatviousRestApi
+      Environment:
+        Variables:
+          CHATVIOUSTABLE_TABLE_NAME: !Ref ChatviousTable
+          CHATVIOUSTABLE_TABLE_ARN: !GetAtt ChatviousTable.Arn
     Metadata:
       BuildMethod: esbuild
       BuildProperties:
@@ -300,7 +490,8 @@ Resources:
       Architectures:
         - x86_64
       Policies:
-        - AmazonDynamoDBFullAccess
+        - DynamoDBCrudPolicy:
+            TableName: !Ref ChatviousTable
       Events:
         ChatviousRestApiPOSTroomsdeleteRoom:
           Type: Api
@@ -308,6 +499,10 @@ Resources:
             Path: /rooms/deleteRoom
             Method: POST
             RestApiId: !Ref ChatviousRestApi
+      Environment:
+        Variables:
+          CHATVIOUSTABLE_TABLE_NAME: !Ref ChatviousTable
+          CHATVIOUSTABLE_TABLE_ARN: !GetAtt ChatviousTable.Arn
     Metadata:
       BuildMethod: esbuild
       BuildProperties:
@@ -329,7 +524,8 @@ Resources:
       Architectures:
         - x86_64
       Policies:
-        - AmazonDynamoDBFullAccess
+        - DynamoDBCrudPolicy:
+            TableName: !Ref ChatviousTable
       Events:
         ChatviousRestApiPOSTroomspromoteOrDemoteUser:
           Type: Api
@@ -337,6 +533,10 @@ Resources:
             Path: /rooms/promoteOrDemoteUser
             Method: POST
             RestApiId: !Ref ChatviousRestApi
+      Environment:
+        Variables:
+          CHATVIOUSTABLE_TABLE_NAME: !Ref ChatviousTable
+          CHATVIOUSTABLE_TABLE_ARN: !GetAtt ChatviousTable.Arn
     Metadata:
       BuildMethod: esbuild
       BuildProperties:
@@ -561,7 +761,12 @@ Resources:
       Architectures:
         - x86_64
       Policies:
-        - AmazonDynamoDBFullAccess
+        - DynamoDBCrudPolicy:
+            TableName: !Ref ChatviousTable
+      Environment:
+        Variables:
+          CHATVIOUSTABLE_TABLE_NAME: !Ref ChatviousTable
+          CHATVIOUSTABLE_TABLE_ARN: !GetAtt ChatviousTable.Arn
     Metadata:
       BuildMethod: esbuild
       BuildProperties:
@@ -583,8 +788,13 @@ Resources:
       Architectures:
         - x86_64
       Policies:
-        - AmazonDynamoDBFullAccess
         - !Ref WebSocketManageConnectionsPolicy
+        - DynamoDBCrudPolicy:
+            TableName: !Ref ChatviousTable
+      Environment:
+        Variables:
+          CHATVIOUSTABLE_TABLE_NAME: !Ref ChatviousTable
+          CHATVIOUSTABLE_TABLE_ARN: !GetAtt ChatviousTable.Arn
     Metadata:
       BuildMethod: esbuild
       BuildProperties:
@@ -606,8 +816,13 @@ Resources:
       Architectures:
         - x86_64
       Policies:
-        - AmazonDynamoDBFullAccess
         - !Ref WebSocketManageConnectionsPolicy
+        - DynamoDBCrudPolicy:
+            TableName: !Ref ChatviousTable
+      Environment:
+        Variables:
+          CHATVIOUSTABLE_TABLE_NAME: !Ref ChatviousTable
+          CHATVIOUSTABLE_TABLE_ARN: !GetAtt ChatviousTable.Arn
     Metadata:
       BuildMethod: esbuild
       BuildProperties:
@@ -629,8 +844,13 @@ Resources:
       Architectures:
         - x86_64
       Policies:
-        - AmazonDynamoDBFullAccess
         - !Ref WebSocketManageConnectionsPolicy
+        - DynamoDBCrudPolicy:
+            TableName: !Ref ChatviousTable
+      Environment:
+        Variables:
+          CHATVIOUSTABLE_TABLE_NAME: !Ref ChatviousTable
+          CHATVIOUSTABLE_TABLE_ARN: !GetAtt ChatviousTable.Arn
     Metadata:
       BuildMethod: esbuild
       BuildProperties:
@@ -638,3 +858,46 @@ Resources:
         Bundle: true
         Target: es2020
         Sourcemap: true
+
+Metadata:
+  AWS::Composer::Groups:
+    Group:
+      Label: Chatvious RestAPI Compute
+      Members:
+        - LambdaAuthorizer
+        - callback
+        - createRoom
+        - joinRoom
+        - acceptJoinRequest
+        - rejectJoinRequest
+        - kickMember
+        - leaveRoom
+        - deleteRoom
+        - promoteOrDemoteUser
+        - Group2
+    Group2:
+      Label: EJS Page Renderers
+      Members:
+        - dashboardPage
+        - roomInfoPage
+        - chatRoom
+    Group3:
+      Label: Chatvious WebSocket Routes
+      Members:
+        - WSConnect
+        - WSLambdaAuthorizer
+        - WSDisconnect
+        - joinRoomWS
+        - sendMessageWS
+        - WebSocketManageConnectionsPolicy
+    Group4:
+      Label: ChatviousTable Capacity
+      Members:
+        - TableChatviousReadCapacityScalableTarget
+        - TableChatviousReadCapacityScalingPolicy
+        - TableChatviousWriteCapacityScalableTarget
+        - TableChatviousWriteCapacityScalingPolicy
+        - TableChatviousIndexGenericGSISortIndexReadCapacityScalableTarget
+        - TableChatviousIndexGenericGSISortIndexReadCapacityScalingPolicy
+        - TableChatviousIndexGenericGSISortIndexWriteCapacityScalableTarget
+        - TableChatviousIndexGenericGSISortIndexWriteCapacityScalingPolicy
