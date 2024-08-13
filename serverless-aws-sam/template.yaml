@@ -179,6 +179,12 @@ Resources:
         Variables:
           CHATVIOUSTABLE_TABLE_NAME: !Ref ChatviousTable
           CHATVIOUSTABLE_TABLE_ARN: !GetAtt ChatviousTable.Arn
+      Events:
+        CognitoUserPoolPostConfirmationTrigger:
+          Type: Cognito
+          Properties:
+            UserPool: !Ref UserPool
+            Trigger: PostConfirmation
     Metadata:
       BuildMethod: esbuild
       BuildProperties:
@@ -1009,6 +1015,75 @@ Resources:
       DeploymentId: !Ref Deployment
       ApiId: !Ref WebsocketApi
 
+  UserPool:
+    Type: AWS::Cognito::UserPool
+    Properties:
+      UserPoolName: !Sub ${AWS::StackName}-UserPool
+      AdminCreateUserConfig:
+        AllowAdminCreateUserOnly: false
+      AutoVerifiedAttributes:
+        - email
+      UsernameAttributes:
+        - email
+      UsernameConfiguration:
+        CaseSensitive: false
+      Schema:
+        - AttributeDataType: String
+          Name: email
+          Required: true
+          Mutable: false
+        - AttributeDataType: String
+          Name: name
+          Required: true
+          Mutable: true
+          StringAttributeConstraints:
+            MinLength: '1'
+            MaxLength: '20'
+      EmailConfiguration:
+        # Change to DEVELOPER once I setup ses and specify arn here by SourceArn parameter
+        EmailSendingAccount: COGNITO_DEFAULT
+  UserPoolPermission:
+    Type: AWS::Lambda::Permission
+    DependsOn:
+      - UserPool
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref saveUserDataFunction
+      Principal: cognito-idp.amazonaws.com
+
+  UserPoolClient:
+    Type: AWS::Cognito::UserPoolClient
+    Properties:
+      ClientName: !Sub ${AWS::StackName}-UserPoolClient
+      GenerateSecret: false
+      UserPoolId: !Ref UserPool
+      ExplicitAuthFlows:
+        - ALLOW_USER_SRP_AUTH
+        - ALLOW_REFRESH_TOKEN_AUTH
+      PreventUserExistenceErrors: ENABLED
+      RefreshTokenValidity: 365
+      TokenValidityUnits:
+        RefreshToken: days
+      SupportedIdentityProviders:
+        - COGNITO
+      AllowedOAuthFlowsUserPoolClient: true
+      # add production domain callback and logout urls. change code as well to handle local and prod urls
+      CallbackURLs:
+        - http://localhost:3000/callback
+      LogoutURLs:
+        - http://localhost:3000
+      AllowedOAuthFlows:
+        - code
+      AllowedOAuthScopes:
+        - email
+        - openid
+
+  UserPoolDomain:
+    Type: AWS::Cognito::UserPoolDomain
+    Properties:
+      Domain: !Ref UserPoolClient
+      UserPoolId: !Ref UserPool
+
 Metadata:
   AWS::Composer::Groups:
     Group:
@@ -1068,3 +1143,13 @@ Outputs:
         - !Ref AWS::Region
         - .amazonaws.com/
         - !Ref Stage
+
+  UserPool:
+    Description: Cognito User Pool ID
+    Value: !Ref UserPool
+  UserPoolClient:
+    Description: Cognito User Pool Application Client ID
+    Value: !Ref UserPoolClient
+  CognitoLoginURL:
+    Description: Cognito User Pool Application Client Hosted Login UI URL
+    Value: !Sub https://${UserPoolClient}.auth.${AWS::Region}.amazoncognito.com/login?client_id=${UserPoolClient}&response_type=code&redirect_uri=http://localhost:3000/callback
