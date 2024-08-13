@@ -11,6 +11,7 @@ interface Tokens {
   id_token: string | undefined;
 }
 
+// need to change auth to handle REQUEST type
 export const handler = async (
   event: APIGatewayTokenAuthorizerEvent
 ): Promise<APIGatewayAuthorizerResult> => {

@@ -1,6 +1,6 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
-Description: lambda-signUp-saveData
+Description: AWS Sam Template for chatvious
 
 Globals:
   Function:
@@ -859,6 +859,123 @@ Resources:
         Target: es2020
         Sourcemap: true
 
+  WebsocketApi:
+    Type: AWS::ApiGatewayV2::Api
+    Properties:
+      Name: Chatvious_WebsocketApi
+      ProtocolType: WEBSOCKET
+      RouteSelectionExpression: $request.body.action
+
+  WebsocketAuthorizer:
+    Type: AWS::ApiGatewayV2::Authorizer
+    Properties:
+      ApiId: !Ref WebsocketApi
+      AuthorizerType: REQUEST
+      Name: Chatvious_WebsocketAuthorizer
+      AuthorizerResultTtlInSeconds: 0
+      AuthorizerUri: !Sub arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WSLambdaAuthorizer.Arn}/invocations
+      # IdentitySource:
+      #   - route.request.querystring.token
+      #   - route.request.header.Cookie
+
+  ConnectRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref WebsocketApi
+      RouteKey: $connect
+      AuthorizationType: NONE
+      OperationName: ConnectRoute
+      Target: !Join
+        - /
+        - - integrations
+          - !Ref ConnectInteg # Ignore vscode validation error
+
+  ConnectInteg:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId: !Ref WebsocketApi
+      Description: Connect Integration
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WSConnect.Arn}/invocations
+
+  DisconnectRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref WebsocketApi
+      RouteKey: $disconnect
+      AuthorizationType: NONE
+      OperationName: DisconnectRoute
+      Target: !Join
+        - /
+        - - integrations
+          - !Ref DisconnectInteg # Ignore vscode validation error
+
+  DisconnectInteg:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId: !Ref WebsocketApi
+      Description: Disconnect Integration
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WSDisconnect.Arn}/invocations
+
+  JoinRoomRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref WebsocketApi
+      RouteKey: joinroom
+      AuthorizationType: NONE
+      OperationName: JoinRoomRoute
+      Target: !Join
+        - /
+        - - integrations
+          - !Ref JoinRoomInteg # Ignore vscode validation error
+
+  JoinRoomInteg:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId: !Ref WebsocketApi
+      Description: Send Message Integration
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${joinRoomWS.Arn}/invocations
+
+  SendMessageRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref WebsocketApi
+      RouteKey: sendmessage
+      AuthorizationType: NONE
+      OperationName: SendMessageRoute
+      Target: !Join
+        - /
+        - - integrations
+          - !Ref SendMessageInteg # Ignore vscode validation error
+
+  SendMessageInteg:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId: !Ref WebsocketApi
+      Description: Send Message Integration
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${sendMessageWS.Arn}/invocations
+
+  Deployment:
+    Type: AWS::ApiGatewayV2::Deployment
+    DependsOn:
+      - ConnectRoute
+      - JoinRoomRoute
+      - SendMessageRoute
+      - DisconnectRoute
+    Properties:
+      ApiId: !Ref WebsocketApi
+
+  Stage:
+    Type: AWS::ApiGatewayV2::Stage
+    Properties:
+      StageName: Prod
+      Description: Prod Stage
+      DeploymentId: !Ref Deployment
+      ApiId: !Ref WebsocketApi
+
 Metadata:
   AWS::Composer::Groups:
     Group:
@@ -901,3 +1018,20 @@ Metadata:
         - TableChatviousIndexGenericGSISortIndexReadCapacityScalingPolicy
         - TableChatviousIndexGenericGSISortIndexWriteCapacityScalableTarget
         - TableChatviousIndexGenericGSISortIndexWriteCapacityScalingPolicy
+        - ChatviousTable
+
+Outputs:
+  DynamoDBTableName:
+    Description: The name of the DynamoDB Table
+    Value: !Ref ChatviousTable
+
+  WebSocketURI:
+    Description: The WSS Protocol URI to connect to
+    Value: !Join
+      - ''
+      - - wss://
+        - !Ref WebsocketApi
+        - .execute-api.
+        - !Ref AWS::Region
+        - .amazonaws.com/
+        - !Ref Stage
