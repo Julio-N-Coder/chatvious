@@ -187,6 +187,33 @@ type FetchNavUserInfoReturn = Promise<
   BaseModelsError | FetchNavUserInfoSuccess
 >;
 
+type APIGatewayWebSocketAuthorizerEvent = {
+  type: "REQUEST";
+  methodArn: string;
+  headers: { [key: string]: string; Connection: "upgrade" };
+  multiValueHeaders: { [key: string]: string[] };
+  queryStringParameters?: { [key: string]: string };
+  multiValueQueryStringParameters?: { [key: string]: string[] };
+  stageVariables?: { [key: string]: string };
+  requestContext: {
+    routeKey: "$connect";
+    eventType: "CONNECT";
+    extendedRequestId?: string;
+    requestTime?: string;
+    messageDirection: "IN";
+    stage: string;
+    connectedAt: number;
+    requestTimeEpoch: number;
+    identity: {
+      sourceIp: string;
+    };
+    requestId: string;
+    domainName: string;
+    connectionId: string;
+    apiId: string;
+  };
+};
+
 interface APIGatewayWebSocketConnectEvent {
   headers: {
     [key: string]: string;
@@ -335,6 +362,7 @@ export {
   FetchJoinRequestsReturn,
   FetchNavJoinRequestsReturn,
   FetchNavUserInfoReturn,
+  APIGatewayWebSocketAuthorizerEvent,
   APIGatewayWebSocketConnectEvent,
   APIGatewayWebSocketDisconnectEvent,
   InitialConnection,

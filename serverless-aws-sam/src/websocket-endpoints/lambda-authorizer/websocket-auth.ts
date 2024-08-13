@@ -1,23 +1,25 @@
-import {
-  APIGatewayTokenAuthorizerEvent,
-  APIGatewayAuthorizerResult,
-} from "aws-lambda";
+import { APIGatewayAuthorizerResult } from "aws-lambda";
+import { APIGatewayWebSocketAuthorizerEvent } from "../../types/types.js";
 import { CognitoJwtVerifier } from "aws-jwt-verify";
 import cookie from "cookie";
 
 interface Tokens {
-  refresh_token: string;
   access_token: string | undefined;
   id_token: string | undefined;
 }
 
-// need to change auth to handle REQUEST type
 export const handler = async (
-  event: APIGatewayTokenAuthorizerEvent
+  event: APIGatewayWebSocketAuthorizerEvent
 ): Promise<APIGatewayAuthorizerResult> => {
   const methodArn = event.methodArn;
 
-  const tokens = decomposeTokensString(event.authorizationToken);
+  if (!event.queryStringParameters) {
+    return buildPolicy("Unauthorized", "Deny", methodArn);
+  } else if (!event.queryStringParameters.token) {
+    return buildPolicy("Unauthorized", "Deny", methodArn);
+  }
+
+  const tokens = decomposeTokensString(event.queryStringParameters.token);
   if ("error" in tokens) {
     return buildPolicy("Unauthorized", "Deny", methodArn);
   }
@@ -36,7 +38,7 @@ export const handler = async (
       clientId: cognitoData.CLIENT_ID as string,
     });
 
-    const access_token = tokens.access_token as string;
+    const access_token = tokens.access_token;
     try {
       const payload = await verifier.verify(access_token);
 
@@ -106,23 +108,19 @@ function buildPolicy(
 function decomposeTokensString(
   cookieString: string
 ): Tokens | { error: string } {
+  let cookiesWithTokens;
   try {
-    const cookiesWithTokens = cookie.parse(cookieString);
-
-    if (!("refresh_token" in cookiesWithTokens)) {
-      return { error: "Missing refresh token" };
-    }
-
-    const tokens = {
-      refresh_token: cookiesWithTokens.refresh_token,
-      access_token: cookiesWithTokens.access_token || undefined,
-      id_token: cookiesWithTokens.id_token || undefined,
-    };
-
-    return tokens;
+    cookiesWithTokens = cookie.parse(cookieString);
   } catch (err) {
     return {
       error: "Invalid token format",
     };
   }
+
+  const tokens = {
+    access_token: cookiesWithTokens.access_token || undefined,
+    id_token: cookiesWithTokens.id_token || undefined,
+  };
+
+  return tokens;
 }

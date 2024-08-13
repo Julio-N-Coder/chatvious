@@ -2,6 +2,7 @@ import "../../css/styles.css";
 import { sendMessageAction, MessageBoxEjsOptions } from "../types";
 import messageBoxEjs from "../../../../serverless-aws-sam/src/views/components/chatRoom/messageBox.ejs";
 // production url not decided yet (temp for now)
+// pass JWT tokens via a query string parameter. json stringify them keys: access_token and id_token
 const websocketURL = process.env.IS_DEV_SERVER
   ? "ws://localhost:8080"
   : "apigateway websocket url(not set up yet)";

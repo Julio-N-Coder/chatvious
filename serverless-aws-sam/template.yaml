@@ -866,6 +866,39 @@ Resources:
       ProtocolType: WEBSOCKET
       RouteSelectionExpression: $request.body.action
 
+  WSConnectPermission:
+    Type: AWS::Lambda::Permission
+    DependsOn:
+      - WebsocketApi
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref WSConnect
+      Principal: apigateway.amazonaws.com
+  WSDisconnectPermission:
+    Type: AWS::Lambda::Permission
+    DependsOn:
+      - WebsocketApi
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref WSDisconnect
+      Principal: apigateway.amazonaws.com
+  joinRoomWSPermission:
+    Type: AWS::Lambda::Permission
+    DependsOn:
+      - WebsocketApi
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref joinRoomWS
+      Principal: apigateway.amazonaws.com
+  sendMessageWSPermission:
+    Type: AWS::Lambda::Permission
+    DependsOn:
+      - WebsocketApi
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref sendMessageWS
+      Principal: apigateway.amazonaws.com
+
   WebsocketAuthorizer:
     Type: AWS::ApiGatewayV2::Authorizer
     Properties:
@@ -874,9 +907,9 @@ Resources:
       Name: Chatvious_WebsocketAuthorizer
       AuthorizerResultTtlInSeconds: 0
       AuthorizerUri: !Sub arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WSLambdaAuthorizer.Arn}/invocations
-      # IdentitySource:
-      #   - route.request.querystring.token
-      #   - route.request.header.Cookie
+      IdentitySource:
+        - route.request.querystring.token
+        - route.request.header.Cookie
 
   ConnectRoute:
     Type: AWS::ApiGatewayV2::Route
