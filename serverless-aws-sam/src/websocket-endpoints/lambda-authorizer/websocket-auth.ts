@@ -26,7 +26,7 @@ export const handler = async (
 
   const cognitoData = {
     USER_POOL_ID: process.env.USER_POOL_ID as string,
-    CLIENT_ID: process.env.CLIENT_ID as string,
+    CLIENT_ID: process.env.USER_POOL_CLIENT_ID as string,
     COGNITO_DOMAIN: process.env.COGNITO_DOMAIN as string,
   };
 

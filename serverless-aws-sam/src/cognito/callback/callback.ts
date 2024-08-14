@@ -64,7 +64,7 @@ export async function handler(
     const domainURL = process.env.DOMAIN_URL;
 
     // Add check to make tokens secure true in production
-    const secure = !process.env.IS_LOCAL_SERVER;
+    const secure = process.env.IS_LOCAL_SERVER === "false";
     const cookieExpires = new Date(Date.now() + expires_in * 1000);
 
     const access_token_cookie = cookie.serialize("access_token", access_token, {

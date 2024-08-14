@@ -22,7 +22,7 @@ async function addSetCookieHeaders(
   const verifier = CognitoJwtVerifier.create({
     userPoolId: process.env.USER_POOL_ID as string,
     tokenUse: "access",
-    clientId: process.env.CLIENT_ID as string,
+    clientId: process.env.USER_POOL_CLIENT_ID as string,
   });
 
   let payload: CognitoAccessTokenPayload;
@@ -32,7 +32,7 @@ async function addSetCookieHeaders(
     return returnSuccessObject;
   }
 
-  const secure = !process.env.IS_LOCAL_SERVER;
+  const secure = process.env.IS_LOCAL_SERVER === "false";
   const expires_in = new Date(payload.exp * 1000);
   // Add check to make tokens secure true in production
   const access_token_cookie = cookie.serialize("access_token", access_token, {

@@ -7,8 +7,6 @@ Globals:
     Environment:
       Variables:
         NODE_ENV: production
-        CLIENT_ID: jet3kkqp4jnkm1v3ta7htu75g
-        USER_POOL_ID: us-west-1_iJn1nk3N1
         # domain not set up yet
         DOMAIN: chatvious.coding-wielder.com
         DOMAIN_URL: https://chatvious.coding-wielder.com/main
@@ -216,6 +214,9 @@ Resources:
         Variables:
           CHATVIOUSTABLE_TABLE_NAME: !Ref ChatviousTable
           CHATVIOUSTABLE_TABLE_ARN: !GetAtt ChatviousTable.Arn
+          USER_POOL_ID: !Ref UserPool
+          USER_POOL_CLIENT_ID: !Ref UserPoolClient
+          USER_POOL_ARN: !GetAtt UserPool.Arn
     Metadata:
       DockerContext: ./src
       Dockerfile: dashboardPage.Dockerfile
@@ -245,6 +246,9 @@ Resources:
         Variables:
           CHATVIOUSTABLE_TABLE_NAME: !Ref ChatviousTable
           CHATVIOUSTABLE_TABLE_ARN: !GetAtt ChatviousTable.Arn
+          USER_POOL_ID: !Ref UserPool
+          USER_POOL_CLIENT_ID: !Ref UserPoolClient
+          USER_POOL_ARN: !GetAtt UserPool.Arn
     Metadata:
       DockerContext: ./src
       Dockerfile: roomInfoPage.Dockerfile
@@ -274,6 +278,9 @@ Resources:
         Variables:
           CHATVIOUSTABLE_TABLE_NAME: !Ref ChatviousTable
           CHATVIOUSTABLE_TABLE_ARN: !GetAtt ChatviousTable.Arn
+          USER_POOL_ID: !Ref UserPool
+          USER_POOL_CLIENT_ID: !Ref UserPoolClient
+          USER_POOL_ARN: !GetAtt UserPool.Arn
     Metadata:
       DockerContext: ./src
       Dockerfile: chatRoom.Dockerfile
@@ -566,6 +573,9 @@ Resources:
       Environment:
         Variables:
           COGNITO_DOMAIN: https://chatvious.auth.us-west-1.amazoncognito.com
+          USER_POOL_ID: !Ref UserPool
+          USER_POOL_CLIENT_ID: !Ref UserPoolClient
+          USER_POOL_ARN: !GetAtt UserPool.Arn
           CALLBACK_URL: http://localhost:3000/callback
       Events:
         ChatviousRestApiGETcallback:
@@ -599,6 +609,9 @@ Resources:
       Environment:
         Variables:
           COGNITO_DOMAIN: https://chatvious.auth.us-west-1.amazoncognito.com
+          USER_POOL_ID: !Ref UserPool
+          USER_POOL_CLIENT_ID: !Ref UserPoolClient
+          USER_POOL_ARN: !GetAtt UserPool.Arn
     Metadata:
       BuildMethod: esbuild
       BuildProperties:
@@ -708,8 +721,7 @@ Resources:
                 type: aws_proxy
                 uri: !Sub arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${promoteOrDemoteUser.Arn}/invocations
               responses: {}
-      # Below is the correct syntax. I don't know why it's erroring in VSCode.
-      EndpointConfiguration: REGIONAL
+      EndpointConfiguration: REGIONAL # Ignore vscode error, this is correct syntax
       # Set up domain configuration once I get a domain
       Cors:
         AllowMethods: '''OPTIONS, POST, GET'''
@@ -746,6 +758,9 @@ Resources:
       Environment:
         Variables:
           COGNITO_DOMAIN: https://chatvious.auth.us-west-1.amazoncognito.com
+          USER_POOL_ID: !Ref UserPool
+          USER_POOL_CLIENT_ID: !Ref UserPoolClient
+          USER_POOL_ARN: !GetAtt UserPool.Arn
     Metadata:
       BuildMethod: esbuild
       BuildProperties:
@@ -912,7 +927,7 @@ Resources:
       AuthorizerType: REQUEST
       Name: Chatvious_WebsocketAuthorizer
       AuthorizerResultTtlInSeconds: 0
-      AuthorizerUri: !Sub arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WSLambdaAuthorizer.Arn}/invocations
+      AuthorizerUri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WSLambdaAuthorizer.Arn}/invocations
       IdentitySource:
         - route.request.querystring.token
         - route.request.header.Cookie
@@ -1084,6 +1099,71 @@ Resources:
       Domain: !Ref UserPoolClient
       UserPoolId: !Ref UserPool
 
+  StaticWebBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub ${AWS::StackName}-ChatviousStaticWebBucket
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      PublicAccessBlockConfiguration:
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+  CloudFrontDistributionBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref StaticWebBucket
+      PolicyDocument:
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: cloudfront.amazonaws.com
+            Action: s3:GetObject
+            Resource: !Sub arn:aws:s3:::${StaticWebBucket}/*
+            Condition:
+              StringEquals:
+                AWS:SourceArn: !Sub arn:aws:cloudfront::${AWS::AccountId}:distribution/${CloudFrontDistribution}
+
+  CloudFrontDistribution:
+    Type: AWS::CloudFront::Distribution
+    Properties:
+      DistributionConfig:
+        Origins:
+          - DomainName: !GetAtt StaticWebBucket.RegionalDomainName
+            Id: !Sub ${AWS::StackName}-ChatviousStaticWebBucket-s3-origin
+            OriginAccessControlId: !GetAtt WebAppOriginAccessControl.Id
+            S3OriginConfig: {}
+        Enabled: true
+        DefaultRootObject: index.html
+        DefaultCacheBehavior:
+          AllowedMethods:
+            - GET
+            - HEAD
+            - OPTIONS
+          TargetOriginId: !Sub ${AWS::StackName}-ChatviousStaticWebBucket-s3-origin
+          CachePolicyId: 658327ea-f89d-4fab-a63d-7e88639e58f6 # CachingOptimized
+          OriginRequestPolicyId: 88a5eaf4-2fd4-4709-b370-b4c650ea3fcf # CORS-S3Origin
+          ViewerProtocolPolicy: redirect-to-https
+        PriceClass: PriceClass_All
+        CustomErrorResponses:
+          - ErrorCode: 404
+            ResponseCode: 200
+            ResponsePagePath: /index.html
+          - ErrorCode: 403
+            ResponseCode: 200
+            ResponsePagePath: /index.html
+  WebAppOriginAccessControl:
+    Type: AWS::CloudFront::OriginAccessControl
+    Properties:
+      OriginAccessControlConfig:
+        Name: !Sub ${AWS::StackName}-WebAppOriginAccessControl
+        OriginAccessControlOriginType: s3
+        SigningBehavior: always
+        SigningProtocol: sigv4
+
 Metadata:
   AWS::Composer::Groups:
     Group:
@@ -1127,6 +1207,11 @@ Metadata:
         - TableChatviousIndexGenericGSISortIndexWriteCapacityScalableTarget
         - TableChatviousIndexGenericGSISortIndexWriteCapacityScalingPolicy
         - ChatviousTable
+    Group5:
+      Label: Static Frontend Resources
+      Members:
+        - CloudFrontDistribution
+        - WebAppOriginAccessControl
 
 Outputs:
   DynamoDBTableName:
@@ -1144,12 +1229,19 @@ Outputs:
         - .amazonaws.com/
         - !Ref Stage
 
-  UserPool:
+  UserPoolId:
     Description: Cognito User Pool ID
     Value: !Ref UserPool
-  UserPoolClient:
+  UserPoolClientId:
     Description: Cognito User Pool Application Client ID
     Value: !Ref UserPoolClient
   CognitoLoginURL:
     Description: Cognito User Pool Application Client Hosted Login UI URL
     Value: !Sub https://${UserPoolClient}.auth.${AWS::Region}.amazoncognito.com/login?client_id=${UserPoolClient}&response_type=code&redirect_uri=http://localhost:3000/callback
+
+  WebAppDomain:
+    Value: !GetAtt CloudFrontDistribution.DomainName
+  CloudFrontDistributionId:
+    Value: !GetAtt CloudFrontDistribution.Id
+  StaticWebBucketName:
+    Value: !Ref StaticWebBucket
