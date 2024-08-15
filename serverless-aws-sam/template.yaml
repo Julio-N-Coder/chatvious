@@ -17,6 +17,17 @@ Globals:
     LoggingConfig:
       LogFormat: JSON
 
+Parameters:
+  ChatviousCertificateArn:
+    Type: String
+    Default: arn:aws:acm:us-west-1:580083607510:certificate/50b5027f-3ae1-491f-bd4e-b252cc2b953c
+    Description: The ARN of the ACM certificate for the chatvious domain
+      (chatvious.coding-wielder.com and *.chatvious.coding-wielder.com)
+  ChatviousDomainHostedZoneId:
+    Type: String
+    Default: Z0830272VPDW4QLTGOLN
+    Description: The Hosted Zone ID for the chatvious domain
+
 Resources:
   # Delete current chatvoius table in AWS account before first deployment
   ChatviousTable:
@@ -576,7 +587,7 @@ Resources:
           USER_POOL_ID: !Ref UserPool
           USER_POOL_CLIENT_ID: !Ref UserPoolClient
           USER_POOL_ARN: !GetAtt UserPool.Arn
-          CALLBACK_URL: http://localhost:3000/callback
+          CALLBACK_URL: https://chatvious.coding-wielder.com/main/callback
       Events:
         ChatviousRestApiGETcallback:
           Type: Api
@@ -721,8 +732,14 @@ Resources:
                 type: aws_proxy
                 uri: !Sub arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${promoteOrDemoteUser.Arn}/invocations
               responses: {}
-      EndpointConfiguration: REGIONAL # Ignore vscode error, this is correct syntax
-      # Set up domain configuration once I get a domain
+      EndpointConfiguration:
+        Type: REGIONAL
+      Domain:
+        DomainName: chatvious.coding-wielder.com
+        CertificateArn: !Ref ChatviousCertificateArn
+        EndpointConfiguration: REGIONAL
+        Route53:
+          HostedZoneId: !Ref ChatviousDomainHostedZoneId
       Cors:
         AllowMethods: '''OPTIONS, POST, GET'''
         AllowHeaders: '''Content-Type,Cookie'''
@@ -732,16 +749,15 @@ Resources:
   WebSocketManageConnectionsPolicy:
     Type: AWS::IAM::ManagedPolicy
     Properties:
-      ManagedPolicyName: Chatvious_WebSocketManageConnectionsPolicy
+      ManagedPolicyName: !Sub Chatvious_WebSocketManageConnectionsPolicy_${AWS::Region}
       PolicyDocument:
         Version: '2012-10-17'
         Statement:
           - Effect: Allow
             Action:
               - execute-api:ManageConnections
-            # Once api gateway websocket resource is made, change this policy to the api gateway arn to be more specific
             Resource:
-              - arn:aws:execute-api:*:*:*
+              - !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${WebsocketApi}/*
 
   WSLambdaAuthorizer:
     Type: AWS::Serverless::Function
@@ -1082,10 +1098,11 @@ Resources:
       SupportedIdentityProviders:
         - COGNITO
       AllowedOAuthFlowsUserPoolClient: true
-      # add production domain callback and logout urls. change code as well to handle local and prod urls
       CallbackURLs:
+        - https://chatvious.coding-wielder.com/main/callback
         - http://localhost:3000/callback
       LogoutURLs:
+        - https://main.chatvious.coding-wielder.com
         - http://localhost:3000
       AllowedOAuthFlows:
         - code
@@ -1148,6 +1165,13 @@ Resources:
           OriginRequestPolicyId: 88a5eaf4-2fd4-4709-b370-b4c650ea3fcf # CORS-S3Origin
           ViewerProtocolPolicy: redirect-to-https
         PriceClass: PriceClass_All
+        IPV6Enabled: true
+        Aliases:
+          - main.chatvious.coding-wielder.com
+        ViewerCertificate:
+          AcmCertificateArn: !Ref ChatviousCertificateArn
+          MinimumProtocolVersion: TLSv1.2_2021
+          SslSupportMethod: sni-only
         CustomErrorResponses:
           - ErrorCode: 404
             ResponseCode: 200
@@ -1237,11 +1261,13 @@ Outputs:
     Value: !Ref UserPoolClient
   CognitoLoginURL:
     Description: Cognito User Pool Application Client Hosted Login UI URL
-    Value: !Sub https://${UserPoolClient}.auth.${AWS::Region}.amazoncognito.com/login?client_id=${UserPoolClient}&response_type=code&redirect_uri=http://localhost:3000/callback
+    Value: !Sub https://${UserPoolClient}.auth.${AWS::Region}.amazoncognito.com/login?client_id=${UserPoolClient}&response_type=code&redirect_uri=https://chatvious.coding-wielder.com/main/callback
 
-  WebAppDomain:
+  StaticWebAppDomain:
     Value: !GetAtt CloudFrontDistribution.DomainName
   CloudFrontDistributionId:
     Value: !GetAtt CloudFrontDistribution.Id
   StaticWebBucketName:
     Value: !Ref StaticWebBucket
+  StaticWebBucketArn:
+    Value: !GetAtt StaticWebBucket.Arn

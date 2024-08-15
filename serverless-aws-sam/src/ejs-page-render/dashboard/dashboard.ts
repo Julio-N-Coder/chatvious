@@ -24,7 +24,7 @@ export const handler = async (
     username: userInfo.userName,
     profileColor: userInfo.profileColor,
     navJoinRequest: userInfo.navJoinRequests,
-    isProduction: isProduction() ? true : false,
+    isProduction: isProduction(),
   });
 
   const baseSuccess: APIGatewayProxyResult = {
