@@ -13,6 +13,10 @@ type BasicServerSuccess = {
   message: string;
 };
 
+interface BasicServerSuccessData<Data> extends BasicServerSuccess {
+  data: Data;
+}
+
 type BasicServerResponse = BasicServerError | BasicServerSuccess;
 
 interface sendMessageAction {
@@ -41,6 +45,22 @@ interface MessagePaginationKeys {
   SortKey: `MESSAGES#DATE#${string}#MESSAGEID#${string}`;
 }
 
+interface Message {
+  message: string;
+  messageId: string;
+  userID: string;
+  userName: string;
+  RoomUserStatus: "MEMBER" | "ADMIN" | "OWNER";
+  profileColor: string;
+  RoomID: string;
+  sentAt: string;
+}
+
+interface FetchNewMessagesSuccess
+  extends BasicServerSuccessData<Message[] | []> {
+  LastEvaluatedKey: MessagePaginationKeys | false;
+}
+
 export {
   TokenRefresh,
   BasicServerError,
@@ -49,4 +69,5 @@ export {
   sendMessageAction,
   MessageBoxEjsOptions,
   MessagePaginationKeys,
+  FetchNewMessagesSuccess,
 };

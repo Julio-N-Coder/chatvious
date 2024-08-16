@@ -7,7 +7,6 @@ Globals:
     Environment:
       Variables:
         NODE_ENV: production
-        # domain not set up yet
         DOMAIN: chatvious.coding-wielder.com
         DOMAIN_URL: https://chatvious.coding-wielder.com/main
         SUB_DOMAIN: main.chatvious.coding-wielder.com
@@ -942,6 +941,20 @@ Resources:
       Name: Chatvious_WebsocketApi
       ProtocolType: WEBSOCKET
       RouteSelectionExpression: $request.body.action
+  WebsocketApiDomain:
+    Type: AWS::ApiGatewayV2::DomainName
+    Properties:
+      DomainName: websocket.chatvious.coding-wielder.com
+      DomainNameConfigurations:
+        - CertificateArn: !Ref ChatviousCertificateArn
+          EndpointType: REGIONAL
+          SecurityPolicy: TLS_1_2
+  WebsocketApiMapping:
+    Type: AWS::ApiGatewayV2::ApiMapping
+    Properties:
+      ApiId: !Ref WebsocketApi
+      DomainName: !Ref WebsocketApiDomain
+      Stage: !Ref Stage
 
   WSConnectPermission:
     Type: AWS::Lambda::Permission
@@ -985,7 +998,7 @@ Resources:
       AuthorizerResultTtlInSeconds: 0
       AuthorizerUri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WSLambdaAuthorizer.Arn}/invocations
       IdentitySource:
-        - route.request.querystring.token
+        - route.request.querystring.tokens
         - route.request.header.Cookie
 
   ConnectRoute:
@@ -1081,8 +1094,8 @@ Resources:
   Stage:
     Type: AWS::ApiGatewayV2::Stage
     Properties:
-      StageName: Prod
-      Description: Prod Stage
+      StageName: prod
+      Description: prod Stage
       DeploymentId: !Ref Deployment
       ApiId: !Ref WebsocketApi
 
@@ -1288,10 +1301,8 @@ Outputs:
     Value: !Join
       - ''
       - - wss://
-        - !Ref WebsocketApi
-        - .execute-api.
-        - !Ref AWS::Region
-        - .amazonaws.com/
+        - !Ref WebsocketApiDomain
+        - /
         - !Ref Stage
 
   UserPoolId:

@@ -3,13 +3,21 @@ import {
   sendMessageAction,
   MessageBoxEjsOptions,
   MessagePaginationKeys,
+  BasicServerError,
+  FetchNewMessagesSuccess,
 } from "../types";
 import messageBoxEjs from "../../../../serverless-aws-sam/src/views/components/chatRoom/messageBox.ejs";
-// production url not decided yet (temp for now)
+import { getCookie } from "../utilities/cookies";
 // pass JWT tokens via a query string parameter. json stringify them keys: access_token and id_token
+
+const JWTTokensString = JSON.stringify({
+  access_token: getCookie("access_token"),
+  id_token: getCookie("id_token"),
+});
+
 const websocketURL = process.env.IS_DEV_SERVER
   ? "ws://localhost:8080"
-  : "apigateway websocket url(not set up yet)";
+  : `wss://websocket.chatvious.coding-wielder.com/prod?tokens=${JWTTokensString}`;
 
 const socket = new WebSocket(websocketURL);
 const RoomID = location.pathname.split("/").pop() as string;
@@ -52,8 +60,34 @@ function sendMessage() {
   }
 }
 
-function newPaginationMessages() {
-  // fetch old messages
+// fetch old messages for pagination
+async function newPaginationMessages() {
+  const fetchNewMessagesData = JSON.stringify({
+    RoomID,
+    LastEvaluatedKey,
+  });
+  const newMessagesURL = process.env.IS_DEV_SERVER
+    ? "/rooms/fetchNewMessages"
+    : "/main/rooms/fetchNewMessages";
+
+  let newMessagesResponse: Response;
+  try {
+    newMessagesResponse = await fetch(newMessagesURL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: fetchNewMessagesData,
+    });
+  } catch (error) {
+    return { error: "Failed to Fetch more messages" };
+  }
+
+  if (!newMessagesResponse.ok) {
+    const newMessagesError: BasicServerError = await newMessagesResponse.json();
+    return { error: newMessagesError.error };
+  }
+
+  const newMessages: FetchNewMessagesSuccess = await newMessagesResponse.json();
+  return newMessages;
 }
 
 button.addEventListener("click", sendMessage);
@@ -144,20 +178,42 @@ socket.addEventListener("message", (event) => {
 });
 
 // paginate messages to fetch new messages at top.
-messagesContainer.addEventListener("scroll", () => {
+messagesContainer.addEventListener("scroll", async () => {
   if (messagesContainer.scrollTop === 0) {
-    // fetch new messages
     console.log("fetch new messages");
-    let oldMessages;
+    let newMessages: FetchNewMessagesSuccess | BasicServerError;
     if (LastEvaluatedKey) {
-      oldMessages = newPaginationMessages();
-      // reasign LastEvaluatedKey to new key or false if no more messages
-    }
+      newMessages = await newPaginationMessages();
 
-    // render new messages and insert to the top
-    // messagesContainer.insertBefore(
-    //   newMessageBoxElement,
-    //   messagesContainer.firstChild
-    // );
+      if ("error" in newMessages) {
+        console.log(newMessages.error);
+        return;
+      } else if (newMessages.data.length <= 0) {
+        LastEvaluatedKey = false;
+        return;
+      }
+
+      const messages = newMessages.data;
+      for (const message of messages) {
+        const messageBoxOptions: MessageBoxEjsOptions = {
+          userName: message.userName,
+          RoomUserStatus: message.RoomUserStatus,
+          profileColor: message.profileColor,
+          message: message.message,
+          messageId: message.messageId,
+          messageDate: message.sentAt,
+        };
+
+        const newMessageBox = ejs.render(messageBoxEjs, messageBoxOptions);
+        const newMessageBoxElement = document.createElement("div");
+        newMessageBoxElement.innerHTML = newMessageBox;
+
+        messagesContainer.insertBefore(
+          newMessageBoxElement,
+          messagesContainer.firstChild
+        );
+      }
+      LastEvaluatedKey = newMessages.LastEvaluatedKey;
+    }
   }
 });

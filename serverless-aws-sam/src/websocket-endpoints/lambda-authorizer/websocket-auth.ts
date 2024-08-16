@@ -4,8 +4,8 @@ import { CognitoJwtVerifier } from "aws-jwt-verify";
 import cookie from "cookie";
 
 interface Tokens {
-  access_token: string | undefined;
-  id_token: string | undefined;
+  access_token?: string;
+  id_token?: string;
 }
 
 export const handler = async (
@@ -15,11 +15,11 @@ export const handler = async (
 
   if (!event.queryStringParameters) {
     return buildPolicy("Unauthorized", "Deny", methodArn);
-  } else if (!event.queryStringParameters.token) {
+  } else if (!event.queryStringParameters.tokens) {
     return buildPolicy("Unauthorized", "Deny", methodArn);
   }
 
-  const tokens = decomposeTokensString(event.queryStringParameters.token);
+  const tokens = decomposeTokensString(event.queryStringParameters.tokens);
   if ("error" in tokens) {
     return buildPolicy("Unauthorized", "Deny", methodArn);
   }
