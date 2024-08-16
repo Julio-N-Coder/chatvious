@@ -47,14 +47,16 @@
           <div
             id="messagesContainer"
             class="flex flex-col overflow-y-auto divide-y divide-base-content"
+            data-lastevaluatedkey="<%= LastEvaluatedKey %>"
           >
-            <% roomMessages.forEach((roomMessageData) => { %> <%-
+            <% for (let i = roomMessages.length - 1; i >= 0; i--) { %> <% const
+            roomMessageData = roomMessages[i] %> <%-
             include("./components/chatRoom/messageBox", { userName:
             roomMessageData.userName, messageId: roomMessageData.messageId,
             messageDate: roomMessageData.messageDate, profileColor:
             roomMessageData.profileColor, RoomUserStatus:
             roomMessageData.RoomUserStatus, message: roomMessageData.message})
-            %> <% }) %>
+            %> <% } %>
           </div>
           <div class="flex justify-center">
             <div

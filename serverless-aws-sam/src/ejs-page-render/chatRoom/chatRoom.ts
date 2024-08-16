@@ -4,6 +4,7 @@ import fetchNavUserInfo from "../../lib/navUserInfo.js";
 import { isProduction, addSetCookieHeaders } from "../../lib/handyUtils.js";
 import { roomManager } from "../../models/rooms.js";
 import { messagesManagerDB } from "../../models/messagesDB.js";
+import { MessageKeys } from "../../types/types.js";
 
 export async function handler(
   event: APIGatewayEvent
@@ -35,10 +36,9 @@ export async function handler(
     };
   }
 
-  // fetch all chat room messages in reverse order to render them
-  const roomMesagesResponse = await messagesManagerDB.fetchAllRoomMessages(
-    RoomID,
-    true
+  // fetch 20 first messages get LastEvaluatedKey and store in html to use
+  const roomMesagesResponse = await messagesManagerDB.roomMessagesPaginateBy20(
+    RoomID
   );
   if ("error" in roomMesagesResponse) {
     return {
@@ -48,6 +48,12 @@ export async function handler(
     };
   }
   const roomMessages = roomMesagesResponse.data;
+  let LastEvaluatedKey;
+  if ("LastEvaluatedKey" in roomMessages) {
+    LastEvaluatedKey = roomMessages.LastEvaluatedKey as MessageKeys;
+  } else {
+    LastEvaluatedKey = false;
+  }
 
   const navUserInfoResponse = await fetchNavUserInfo(userID);
   if ("error" in navUserInfoResponse) {
@@ -61,6 +67,7 @@ export async function handler(
   const userInfo = navUserInfoResponse.data;
   const chatRoomHTML = await ejs.renderFile("./views/chatRoom.ejs", {
     roomMessages,
+    LastEvaluatedKey: JSON.stringify(LastEvaluatedKey),
     username: userInfo.userName,
     profileColor: userInfo.profileColor,
     navJoinRequest: userInfo.navJoinRequests,

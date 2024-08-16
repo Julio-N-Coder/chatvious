@@ -5,6 +5,7 @@ import {
   GetCommandOutput,
   PutCommandOutput,
   QueryCommand,
+  QueryCommandInput,
   QueryCommandOutput,
 } from "@aws-sdk/lib-dynamodb";
 import { BaseModels } from "./baseModels.js";
@@ -14,6 +15,7 @@ import {
   MessageDB,
   BaseModelsReturnType,
   FetchMessageReturn,
+  RoomMessagesPaginateBy20Return,
   FetchAllMessagesReturn,
   BaseModelsReturnTypeData,
 } from "../types/types.js";
@@ -117,6 +119,78 @@ class MessagesManagerDB extends BaseModels {
       message: "Message fetched successfully",
       data: message,
       statusCode: 200,
+    };
+  }
+
+  async roomMessagesPaginateBy20(
+    RoomID: string,
+    ExclusiveStartKey?: any
+  ): RoomMessagesPaginateBy20Return {
+    const params: QueryCommandInput = {
+      TableName: this.tableName,
+      KeyConditionExpression:
+        "PartitionKey = :pk AND begins_with(SortKey, :messagesPrefix)",
+      ExpressionAttributeValues: {
+        ":pk": `ROOM#${RoomID}`,
+        ":messagesPrefix": "MESSAGES#",
+      },
+      ScanIndexForward: false,
+      Limit: 20,
+    };
+    if (ExclusiveStartKey) params.ExclusiveStartKey = ExclusiveStartKey;
+
+    let limit20MessagesResponse: QueryCommandOutput;
+    try {
+      limit20MessagesResponse = await docClient.send(new QueryCommand(params));
+    } catch (error) {
+      return {
+        error: "Server Error fetching messages",
+        statusCode: 500,
+      };
+    }
+
+    const statusCode = limit20MessagesResponse.$metadata
+      .httpStatusCode as number;
+    if (statusCode !== 200) {
+      return { error: "Something Went wrong while fetching data", statusCode };
+    } else if (!limit20MessagesResponse.Items) {
+      return {
+        message: "No Messages found",
+        data: [],
+        statusCode: 200,
+      };
+    }
+
+    const messages: Message[] = limit20MessagesResponse.Items.map((item) => {
+      return {
+        message: item.message,
+        messageId: item.messageId,
+        userID: item.userID,
+        userName: item.userName,
+        RoomUserStatus: item.RoomUserStatus,
+        RoomID: item.RoomID,
+        sentAt: item.sentAt,
+        profileColor: item.profileColor,
+      };
+    });
+    let LastEvaluatedKey;
+    if (limit20MessagesResponse.LastEvaluatedKey) {
+      LastEvaluatedKey =
+        limit20MessagesResponse.LastEvaluatedKey as MessageKeys;
+    }
+    if (!LastEvaluatedKey) {
+      return {
+        message: "Messages fetched successfully",
+        data: messages,
+        statusCode: 200,
+      };
+    }
+
+    return {
+      message: "Messages fetched successfully",
+      data: messages,
+      statusCode: 200,
+      LastEvaluatedKey,
     };
   }
 

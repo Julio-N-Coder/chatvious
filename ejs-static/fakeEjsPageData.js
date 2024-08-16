@@ -247,13 +247,12 @@ const fakeJoinRoomInfoPageAdmin = {
 
 const roomMessages = [
   {
-    message:
-      "This message is going to be a big longer to see how it looks like. This message is going to be a big longer to see how it looks like. This message is going to be a big longer to see how it looks like.",
-    messageId: "FakeMessageID3",
-    userID: "fakeUserID3",
-    userName: "UsernameFake3",
-    RoomUserStatus: "MEMBER",
-    profileColor: "orange",
+    message: "the First/latest fake message",
+    messageId: "FakeMessageID1",
+    userID: fakeUserInfo.userID,
+    userName: fakeUserInfo.userName,
+    RoomUserStatus: "ADMIN",
+    profileColor: fakeUserInfo.profileColor,
     RoomID: ownedRoomInfo.RoomID,
     sentAt: "2024-08-02T21:34:22.328Z",
   },
@@ -265,22 +264,24 @@ const roomMessages = [
     RoomUserStatus: "MEMBER",
     profileColor: "pink",
     RoomID: ownedRoomInfo.RoomID,
-    sentAt: "2024-08-02T21:34:22.328Z",
+    sentAt: "2024-08-02T21:34:22.329Z",
   },
   {
-    message: "the First fake message",
-    messageId: "FakeMessageID1",
-    userID: fakeUserInfo.userID,
-    userName: fakeUserInfo.userName,
-    RoomUserStatus: "ADMIN",
-    profileColor: fakeUserInfo.profileColor,
+    message:
+      "Oldest message. This message is going to be a big longer to see how it looks like. This message is going to be a big longer to see how it looks like. This message is going to be a big longer to see how it looks like.",
+    messageId: "FakeMessageID3",
+    userID: "fakeUserID3",
+    userName: "UsernameFake3",
+    RoomUserStatus: "MEMBER",
+    profileColor: "orange",
     RoomID: ownedRoomInfo.RoomID,
-    sentAt: "2024-08-02T21:34:22.328Z",
+    sentAt: "2024-08-02T21:34:22.330Z",
   },
 ];
 
 const fakeChatRoomOwnerData = {
   roomMessages,
+  LastEvaluatedKey: "false",
   username: fakeUserInfo.userName,
   profileColor: fakeUserInfo.profileColor,
   navJoinRequest: [],
@@ -289,6 +290,7 @@ const fakeChatRoomOwnerData = {
 
 const fakeChatRoomMemberData = {
   roomMessages,
+  LastEvaluatedKey: "false",
   username: fakeUserInfo.userName,
   profileColor: fakeUserInfo.profileColor,
   navJoinRequest: [],

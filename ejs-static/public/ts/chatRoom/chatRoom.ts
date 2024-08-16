@@ -1,5 +1,9 @@
 import "../../css/styles.css";
-import { sendMessageAction, MessageBoxEjsOptions } from "../types";
+import {
+  sendMessageAction,
+  MessageBoxEjsOptions,
+  MessagePaginationKeys,
+} from "../types";
 import messageBoxEjs from "../../../../serverless-aws-sam/src/views/components/chatRoom/messageBox.ejs";
 // production url not decided yet (temp for now)
 // pass JWT tokens via a query string parameter. json stringify them keys: access_token and id_token
@@ -18,6 +22,11 @@ const inputCharCount = document.getElementById(
 const messagesContainer = document.getElementById(
   "messagesContainer"
 ) as HTMLDivElement;
+const LastEvaluatedKeyString = messagesContainer.dataset
+  .lastevaluatedkey as string;
+let LastEvaluatedKey = JSON.parse(LastEvaluatedKeyString) as
+  | MessagePaginationKeys
+  | false;
 
 input.value = localStorage.getItem("chatInput") || "";
 let inputLength = input.value.length;
@@ -42,6 +51,11 @@ function sendMessage() {
     socket.send(sendMessageData);
   }
 }
+
+function newPaginationMessages() {
+  // fetch old messages
+}
+
 button.addEventListener("click", sendMessage);
 input.addEventListener("keydown", (event) => {
   if (event.key === "Enter") {
@@ -126,5 +140,24 @@ socket.addEventListener("message", (event) => {
         behavior: "smooth",
       });
     }
+  }
+});
+
+// paginate messages to fetch new messages at top.
+messagesContainer.addEventListener("scroll", () => {
+  if (messagesContainer.scrollTop === 0) {
+    // fetch new messages
+    console.log("fetch new messages");
+    let oldMessages;
+    if (LastEvaluatedKey) {
+      oldMessages = newPaginationMessages();
+      // reasign LastEvaluatedKey to new key or false if no more messages
+    }
+
+    // render new messages and insert to the top
+    // messagesContainer.insertBefore(
+    //   newMessageBoxElement,
+    //   messagesContainer.firstChild
+    // );
   }
 });

@@ -333,6 +333,15 @@ interface MessageKeys {
 
 type MessageDB = Message & MessageKeys;
 
+interface RoomMessagesPaginateBy20Success
+  extends BaseModelsSuccessData<Message[] | []> {
+  LastEvaluatedKey?: MessageKeys;
+}
+
+type RoomMessagesPaginateBy20Return = Promise<
+  RoomMessagesPaginateBy20Success | BaseModelsError
+>;
+
 type FetchMessageReturn = BaseModelsReturnTypeData<Message>;
 
 type FetchAllMessagesReturn = BaseModelsReturnTypeData<Message[] | []>;
@@ -375,5 +384,6 @@ export {
   MessageKeys,
   MessageDB,
   FetchMessageReturn,
+  RoomMessagesPaginateBy20Return,
   FetchAllMessagesReturn,
 };

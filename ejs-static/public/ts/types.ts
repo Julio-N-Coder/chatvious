@@ -36,6 +36,11 @@ interface MessageBoxEjsOptions {
   messageDate: string;
 }
 
+interface MessagePaginationKeys {
+  PartitionKey: `ROOM#${string}`; // RoomID
+  SortKey: `MESSAGES#DATE#${string}#MESSAGEID#${string}`;
+}
+
 export {
   TokenRefresh,
   BasicServerError,
@@ -43,4 +48,5 @@ export {
   BasicServerResponse,
   sendMessageAction,
   MessageBoxEjsOptions,
+  MessagePaginationKeys,
 };

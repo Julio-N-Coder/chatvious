@@ -569,6 +569,39 @@ Resources:
         Target: es2020
         Sourcemap: true
 
+  fetchNewMessages:
+    Type: AWS::Serverless::Function
+    Properties:
+      Description: Fetches new Messages for pagination
+      CodeUri: ./src
+      Handler: roomRoutes/fetchNewMessages/fetchNewMessages.handler
+      Runtime: nodejs20.x
+      MemorySize: 128
+      Timeout: 6
+      Architectures:
+        - x86_64
+      Environment:
+        Variables:
+          CHATVIOUSTABLE_TABLE_NAME: !Ref ChatviousTable
+          CHATVIOUSTABLE_TABLE_ARN: !GetAtt ChatviousTable.Arn
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref ChatviousTable
+      Events:
+        ChatviousRestApiGETroomsfetchNewMessages:
+          Type: Api
+          Properties:
+            Path: /rooms/fetchNewMessages
+            Method: GET
+            RestApiId: !Ref ChatviousRestApi
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        Minify: true
+        Bundle: true
+        Target: es2020
+        Sourcemap: true
+
   callback:
     Type: AWS::Serverless::Function
     Properties:
@@ -731,6 +764,13 @@ Resources:
                 httpMethod: POST
                 type: aws_proxy
                 uri: !Sub arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${promoteOrDemoteUser.Arn}/invocations
+              responses: {}
+          /rooms/fetchNewMessages:
+            get:
+              x-amazon-apigateway-integration:
+                httpMethod: POST
+                type: aws_proxy
+                uri: !Sub arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${fetchNewMessages.Arn}/invocations
               responses: {}
       EndpointConfiguration:
         Type: REGIONAL
@@ -1204,6 +1244,7 @@ Metadata:
         - deleteRoom
         - promoteOrDemoteUser
         - Group2
+        - fetchNewMessages
     Group2:
       Label: EJS Page Renderers
       Members:
