@@ -8,13 +8,11 @@ import {
 } from "../types";
 import messageBoxEjs from "../../../../serverless-aws-sam/src/views/components/chatRoom/messageBox.ejs";
 import { getCookie } from "../utilities/cookies";
-// pass JWT tokens via a query string parameter. json stringify them keys: access_token and id_token
 
 const JWTTokensString = JSON.stringify({
   access_token: getCookie("access_token"),
   id_token: getCookie("id_token"),
 });
-
 const websocketURL = process.env.IS_DEV_SERVER
   ? "ws://localhost:8080"
   : `wss://websocket.chatvious.coding-wielder.com/prod?tokens=${JWTTokensString}`;
@@ -40,6 +38,11 @@ input.value = localStorage.getItem("chatInput") || "";
 let inputLength = input.value.length;
 inputCharCount.textContent = `${inputLength}/2k`;
 button.disabled = inputLength <= 0;
+
+window.onload = () => {
+  messagesContainer.scrollTop = messagesContainer.scrollHeight;
+  input.focus();
+};
 
 function sendMessage() {
   const message = input.value;
@@ -180,7 +183,6 @@ socket.addEventListener("message", (event) => {
 // paginate messages to fetch new messages at top.
 messagesContainer.addEventListener("scroll", async () => {
   if (messagesContainer.scrollTop === 0) {
-    console.log("fetch new messages");
     let newMessages: FetchNewMessagesSuccess | BasicServerError;
     if (LastEvaluatedKey) {
       newMessages = await newPaginationMessages();
