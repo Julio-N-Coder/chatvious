@@ -20,7 +20,6 @@ let restAPIEventCopy: typeof restAPIEventBase;
 
 const userID = restAPIEvent.requestContext.authorizer.claims.sub;
 const userName = restAPIEvent.requestContext.authorizer.claims.username;
-const email = restAPIEvent.requestContext.authorizer.claims.email;
 let newUser: UserInfo;
 
 const roomName = "promoteDemoteTestRoom";

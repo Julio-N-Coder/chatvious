@@ -10,6 +10,8 @@ if (dynamodbType === "local") {
   };
 
   process.env.DYNAMODB_OPTIONS = JSON.stringify(dynamodbOptions);
+  process.env.CHATVIOUSTABLE_TABLE_NAME = "chatvious-test";
 } else {
   process.env.DYNAMODB_OPTIONS = JSON.stringify({});
+  process.env.CHATVIOUSTABLE_TABLE_NAME = "chatvious";
 }

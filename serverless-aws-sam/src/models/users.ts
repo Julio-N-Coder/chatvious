@@ -22,6 +22,9 @@ import {
   GetCommandOutput,
 } from "@aws-sdk/lib-dynamodb";
 
+const tableName = process.env.CHATVIOUSTABLE_TABLE_NAME
+  ? process.env.CHATVIOUSTABLE_TABLE_NAME
+  : "chatvious";
 const dynamodbOptionsString = process.env.DYNAMODB_OPTIONS || "{}";
 const dynamodbOptions = JSON.parse(dynamodbOptionsString);
 const client = new DynamoDBClient(dynamodbOptions);
@@ -66,7 +69,7 @@ class UserManager {
     };
 
     const createUserCommand = new PutCommand({
-      TableName: "chatvious",
+      TableName: tableName,
       Item: newUser,
     });
 
@@ -91,7 +94,7 @@ class UserManager {
 
   async deleteUser(userID: string): BaseModelsReturnType {
     const deleteUserCommand = new DeleteCommand({
-      TableName: "chatvious",
+      TableName: tableName,
       Key: { PartitionKey: `USER#${userID}`, SortKey: "PROFILE" },
     });
 
@@ -112,7 +115,7 @@ class UserManager {
 
   async fetchUserInfo(userID: string): FetchUserInfoReturn {
     const getUserInfo = new GetCommand({
-      TableName: "chatvious",
+      TableName: tableName,
       Key: { PartitionKey: `USER#${userID}`, SortKey: "PROFILE" },
       ConsistentRead: true,
     });
@@ -159,7 +162,7 @@ class UserManager {
     }
 
     const fetchUserInfoCommand = new GetCommand({
-      TableName: "chatvious",
+      TableName: tableName,
       Key: { PartitionKey: `USER#${userID}`, SortKey: "PROFILE" },
       ProjectionExpression,
     });
@@ -223,7 +226,7 @@ class UserManager {
     joinedRoom: { RoomID: string; isAdmin: boolean; roomName: string }
   ): BaseModelsReturnType {
     const updateJoinedRoomsCommand = new UpdateCommand({
-      TableName: "chatvious",
+      TableName: tableName,
       Key: { PartitionKey: `USER#${userID}`, SortKey: "PROFILE" },
       UpdateExpression:
         "SET joinedRooms = list_append(joinedRooms, :joinedRoom)",
@@ -247,7 +250,7 @@ class UserManager {
 
   async removeRoomOnUser(userID: string, RoomID: string): BaseModelsReturnType {
     const fetchUserInfoCommand = new GetCommand({
-      TableName: "chatvious",
+      TableName: tableName,
       Key: { PartitionKey: `USER#${userID}`, SortKey: "PROFILE" },
       ProjectionExpression: "joinedRooms, ownedRooms",
     });
@@ -293,7 +296,7 @@ class UserManager {
     }
 
     const removeRoomOnUserCommand = new UpdateCommand({
-      TableName: "chatvious",
+      TableName: tableName,
       Key: { PartitionKey: `USER#${userID}`, SortKey: "PROFILE" },
       UpdateExpression: `REMOVE ${roomType}[${index}]`,
     });
@@ -324,7 +327,7 @@ class UserManager {
 
     for (let i = 0; i < ownedRooms.length && i < 5; i++) {
       const joinRequestsCommand = new QueryCommand({
-        TableName: "chatvious",
+        TableName: tableName,
         KeyConditionExpression:
           "PartitionKey = :partitionkey AND begins_with(SortKey, :joinRequest)",
         ExpressionAttributeValues: {
@@ -365,7 +368,7 @@ class UserManager {
       }
 
       const joinRequestsCommand = new QueryCommand({
-        TableName: "chatvious",
+        TableName: tableName,
         KeyConditionExpression:
           "PartitionKey = :partitionkey AND begins_with(SortKey, :joinRequest)",
         ExpressionAttributeValues: {

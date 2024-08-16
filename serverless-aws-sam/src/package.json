@@ -18,6 +18,7 @@
     "test-leaveRoom": "NODE_OPTIONS=--experimental-vm-modules jest ./roomRoutes/leaveRoom",
     "test-promoteOrDemoteUser": "NODE_OPTIONS=--experimental-vm-modules jest ./roomRoutes/promoteOrDemoteUser",
     "test-rejectJoinRequest": "NODE_OPTIONS=--experimental-vm-modules jest ./roomRoutes/rejectJoinRequest",
+    "test-fetchNewMessages": "NODE_OPTIONS=--experimental-vm-modules jest ./roomRoutes/fetchNewMessages",
     "test-websocket-endpoints": "NODE_OPTIONS=--experimental-vm-modules jest ./websocket-endpoints",
     "test-WSConnect": "NODE_OPTIONS=--experimental-vm-modules jest ./websocket-endpoints/connect",
     "test-WSDisconnect": "NODE_OPTIONS=--experimental-vm-modules jest ./websocket-endpoints/disconnect",

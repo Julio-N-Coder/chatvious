@@ -12,6 +12,8 @@ const client = new DynamoDBClient({});
 const docClient = DynamoDBDocumentClient.from(client);
 
 describe("Test for saveUserData", () => {
+  const tableName = process.env.CHATVIOUSTABLE_TABLE_NAME;
+
   test("Verifies successful response", async () => {
     // check if it can run other package function
     const result = await handler(testPostConfirmationEvent);
@@ -23,7 +25,7 @@ describe("Test for saveUserData", () => {
     const id = testPostConfirmationEvent.request.userAttributes.sub;
 
     const command = new GetCommand({
-      TableName: "chatvious",
+      TableName: tableName,
       Key: {
         PartitionKey: `USER#${id}`,
         SortKey: "PROFILE",
@@ -37,7 +39,7 @@ describe("Test for saveUserData", () => {
 
     // Cleanup: delete the user after the test
     const deleteCommand = new DeleteCommand({
-      TableName: "chatvious",
+      TableName: tableName,
       Key: {
         PartitionKey: `USER#${id}`,
         SortKey: "PROFILE",

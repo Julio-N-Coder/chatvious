@@ -24,8 +24,12 @@ import {
   JoinRequestDB,
   FetchJoinRequestReturn,
   FetchJoinRequestsReturn,
+  MessageKeys,
 } from "../types/types.js";
 
+const tableName = process.env.CHATVIOUSTABLE_TABLE_NAME
+  ? process.env.CHATVIOUSTABLE_TABLE_NAME
+  : "chatvious";
 const dynamodbOptionsString = process.env.DYNAMODB_OPTIONS || "{}";
 const dynamodbOptions = JSON.parse(dynamodbOptionsString);
 const client = new DynamoDBClient(dynamodbOptions);
@@ -50,13 +54,13 @@ class RoomManager {
     };
 
     const newRoomCommand = new PutCommand({
-      TableName: "chatvious",
+      TableName: tableName,
       Item: roomData,
     });
 
     // newRoom value needs to be wrapped in an array
     const updateUserRoomCommand = new UpdateCommand({
-      TableName: "chatvious",
+      TableName: tableName,
       Key: { PartitionKey: `USER#${ownerID}`, SortKey: "PROFILE" },
       UpdateExpression: "SET ownedRooms = list_append(ownedRooms, :newRoom)",
       ExpressionAttributeValues: {
@@ -82,7 +86,7 @@ class RoomManager {
     };
 
     const roomMemberCommand = new PutCommand({
-      TableName: "chatvious",
+      TableName: tableName,
       Item: roomMemberItem,
     });
 
@@ -127,6 +131,7 @@ class RoomManager {
     };
   }
 
+  // update to handle LastEvaluatedKey on messages
   async deleteRoom(RoomID: string): BaseModelsReturnType {
     // delete all join request the room has
     const fetchJoinRequestsResponse = await this.fetchJoinRequests(RoomID);
@@ -218,7 +223,7 @@ class RoomManager {
     }
 
     const deleteRoomCommand = new DeleteCommand({
-      TableName: "chatvious",
+      TableName: tableName,
       Key: { PartitionKey: `ROOM#${RoomID}`, SortKey: "METADATA" },
       ReturnValues: "ALL_OLD",
     });
@@ -236,7 +241,7 @@ class RoomManager {
 
   async fetchRoom(RoomID: string): FetchRoomReturn {
     const roomInfoCommand = new GetCommand({
-      TableName: "chatvious",
+      TableName: tableName,
       Key: { PartitionKey: `ROOM#${RoomID}`, SortKey: "METADATA" },
     });
 
@@ -261,10 +266,11 @@ class RoomManager {
 
   async fetchRoomMembers(
     RoomID: string,
-    ConsistentRead?: boolean
+    ConsistentRead?: boolean,
+    ExclusiveStartKey?: MessageKeys
   ): FetchRoomMembersReturn {
     const roomMembersCommand = new QueryCommand({
-      TableName: "chatvious",
+      TableName: tableName,
       KeyConditionExpression:
         "PartitionKey = :partitionKey AND begins_with(SortKey, :RoomMembersPrefix)",
       ExpressionAttributeValues: {
@@ -273,6 +279,9 @@ class RoomManager {
       },
       ConsistentRead: ConsistentRead ? true : false,
     });
+    if (ExclusiveStartKey) {
+      roomMembersCommand.input.ExclusiveStartKey = ExclusiveStartKey;
+    }
 
     const roomMembersResponse = await docClient.send(roomMembersCommand);
     const memberCount = roomMembersResponse.Count as number;
@@ -309,7 +318,7 @@ class RoomManager {
 
   async fetchRoomMember(RoomID: string, userID: string): FetchRoomMemberReturn {
     const roomMemberCommand = new GetCommand({
-      TableName: "chatvious",
+      TableName: tableName,
       Key: {
         PartitionKey: `ROOM#${RoomID}`,
         SortKey: `MEMBERS#USERID#${userID}`,
@@ -360,7 +369,7 @@ class RoomManager {
     };
 
     const roomMemberCommand = new PutCommand({
-      TableName: "chatvious",
+      TableName: tableName,
       Item: roomMemberItem,
     });
 
@@ -382,7 +391,7 @@ class RoomManager {
     memberID: string
   ): BaseModelsReturnType {
     const removeMemberCommand = new DeleteCommand({
-      TableName: "chatvious",
+      TableName: tableName,
       Key: {
         PartitionKey: `ROOM#${RoomID}`,
         SortKey: `MEMBERS#USERID#${memberID}`,
@@ -409,7 +418,7 @@ class RoomManager {
     userID: string
   ): FetchJoinRequestReturn {
     const joinRequestCommand = new GetCommand({
-      TableName: "chatvious",
+      TableName: tableName,
       Key: {
         PartitionKey: `ROOM#${RoomID}`,
         SortKey: `JOIN_REQUESTS#USERID#${userID}`,
@@ -446,9 +455,12 @@ class RoomManager {
     return { message: "Join Request Fetched", joinRequest, statusCode: 200 };
   }
 
-  async fetchJoinRequests(RoomID: string): FetchJoinRequestsReturn {
+  async fetchJoinRequests(
+    RoomID: string,
+    ExclusiveStartKey?: MessageKeys
+  ): FetchJoinRequestsReturn {
     const joinRequestsCommand = new QueryCommand({
-      TableName: "chatvious",
+      TableName: tableName,
       IndexName: "Generic-GSISort-Index",
       KeyConditionExpression:
         "PartitionKey = :roomsID AND begins_with(GSISortKey, :sortDate)",
@@ -457,6 +469,9 @@ class RoomManager {
         ":sortDate": "JOIN_REQUESTS#",
       },
     });
+    if (ExclusiveStartKey) {
+      joinRequestsCommand.input.ExclusiveStartKey = ExclusiveStartKey;
+    }
 
     const joinRequestResponse = await docClient.send(joinRequestsCommand);
 
@@ -495,7 +510,7 @@ class RoomManager {
   ): BaseModelsReturnType {
     const sentJoinRequestAt = new Date().toISOString();
     const joinRequestCommand = new PutCommand({
-      TableName: "chatvious",
+      TableName: tableName,
       Item: {
         PartitionKey: `ROOM#${RoomID}`,
         SortKey: `JOIN_REQUESTS#USERID#${fromUserID}`,
@@ -526,7 +541,7 @@ class RoomManager {
     requestUserID: string
   ): BaseModelsReturnType {
     const joinRequestCommand = new DeleteCommand({
-      TableName: "chatvious",
+      TableName: tableName,
       Key: {
         PartitionKey: `ROOM#${RoomID}`,
         SortKey: `JOIN_REQUESTS#USERID#${requestUserID}`,
@@ -557,7 +572,7 @@ class RoomManager {
     newRoomUserStatus: "MEMBER" | "ADMIN" | "OWNER"
   ): BaseModelsReturnType {
     const updateMemberCommand = new UpdateCommand({
-      TableName: "chatvious",
+      TableName: tableName,
       Key: {
         PartitionKey: `ROOM#${RoomID}`,
         SortKey: `MEMBERS#USERID#${memberID}`,

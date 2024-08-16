@@ -9,11 +9,12 @@ const getRandomColor = () => {
 
 export const handler = async (event: PostConfirmationEvent) => {
   if (event.triggerSource === "PostConfirmation_ConfirmSignUp") {
+    const tableName = process.env.CHATVIOUSTABLE_TABLE_NAME;
     const client = new DynamoDBClient({});
     const docClient = DynamoDBDocumentClient.from(client);
 
     const userDataCommand = new PutCommand({
-      TableName: "chatvious",
+      TableName: tableName,
       Item: {
         PartitionKey: `USER#${event.request.userAttributes.sub}`,
         SortKey: "PROFILE",

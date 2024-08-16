@@ -22,6 +22,9 @@ import {
   FetchAllRoomConnectionsReturn,
 } from "../types/types.js";
 
+const tableName = process.env.CHATVIOUSTABLE_TABLE_NAME
+  ? process.env.CHATVIOUSTABLE_TABLE_NAME
+  : "chatvious";
 const dynamodbOptionsString = process.env.DYNAMODB_OPTIONS || "{}";
 const dynamodbOptions = JSON.parse(dynamodbOptionsString);
 const client = new DynamoDBClient(dynamodbOptions);
@@ -41,7 +44,7 @@ class WSMessagesDBManager {
     };
 
     const command = new PutCommand({
-      TableName: "chatvious",
+      TableName: tableName,
       Item: initialConnectionData,
     });
 
@@ -66,7 +69,7 @@ class WSMessagesDBManager {
 
   async fetchInitialConnection(connectionId: string): InitialConnectionReturn {
     const command = new GetCommand({
-      TableName: "chatvious",
+      TableName: tableName,
       Key: {
         PartitionKey: "CONNECTION_INFO",
         SortKey: connectionId,
@@ -109,7 +112,7 @@ class WSMessagesDBManager {
 
   async deleteInitialConnection(connectionId: string): InitialConnectionReturn {
     const command = new DeleteCommand({
-      TableName: "chatvious",
+      TableName: tableName,
       Key: {
         PartitionKey: "CONNECTION_INFO",
         SortKey: connectionId,
@@ -167,7 +170,7 @@ class WSMessagesDBManager {
     };
 
     const command = new PutCommand({
-      TableName: "chatvious",
+      TableName: tableName,
       Item: roomConnectionData,
     });
 
@@ -198,7 +201,7 @@ class WSMessagesDBManager {
     connectionId: string
   ): FetchRoomConnectionReturn {
     const command = new GetCommand({
-      TableName: "chatvious",
+      TableName: tableName,
       Key: {
         PartitionKey: `ROOM#${RoomID}`,
         SortKey: `CONNECTIONID#${connectionId}`,
@@ -245,7 +248,7 @@ class WSMessagesDBManager {
     RoomID: string
   ): BaseModelsReturnType {
     const command = new UpdateCommand({
-      TableName: "chatvious",
+      TableName: tableName,
       Key: {
         PartitionKey: "CONNECTION_INFO",
         SortKey: connectionId,
@@ -280,7 +283,7 @@ class WSMessagesDBManager {
 
   async fetchAllRoomConnections(RoomID: string): FetchAllRoomConnectionsReturn {
     const command = new QueryCommand({
-      TableName: "chatvious",
+      TableName: tableName,
       KeyConditionExpression:
         "PartitionKey = :pk AND begins_with(SortKey, :connectionIdPrefix)",
       ExpressionAttributeValues: {
@@ -328,7 +331,7 @@ class WSMessagesDBManager {
     connectionId: string
   ): BaseModelsReturnType {
     const command = new DeleteCommand({
-      TableName: "chatvious",
+      TableName: tableName,
       Key: {
         PartitionKey: `ROOM#${RoomID}`,
         SortKey: `CONNECTIONID#${connectionId}`,

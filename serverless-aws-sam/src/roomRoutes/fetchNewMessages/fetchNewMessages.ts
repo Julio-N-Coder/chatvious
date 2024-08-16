@@ -77,7 +77,7 @@ function validateBody(
   } catch (error) {
     return standardError("Invalid JSON");
   }
-  if (!parsedBody.RoomID || "LastEvaluatedKey" in parsedBody) {
+  if (!parsedBody.RoomID || !("LastEvaluatedKey" in parsedBody)) {
     return standardError("Bad Request");
   }
 

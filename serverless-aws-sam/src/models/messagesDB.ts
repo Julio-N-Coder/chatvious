@@ -124,7 +124,7 @@ class MessagesManagerDB extends BaseModels {
 
   async roomMessagesPaginateBy20(
     RoomID: string,
-    ExclusiveStartKey?: any
+    ExclusiveStartKey?: MessageKeys | false
   ): RoomMessagesPaginateBy20Return {
     const params: QueryCommandInput = {
       TableName: this.tableName,
@@ -196,9 +196,10 @@ class MessagesManagerDB extends BaseModels {
 
   async fetchAllRoomMessages(
     RoomID: string,
-    reverseOrder?: boolean
+    reverseOrder?: boolean,
+    ExclusiveStartKey?: MessageKeys
   ): FetchAllMessagesReturn {
-    const params = {
+    const params: QueryCommandInput = {
       TableName: this.tableName,
       KeyConditionExpression:
         "PartitionKey = :pk AND begins_with(SortKey, :messagesPrefix)",
@@ -208,6 +209,7 @@ class MessagesManagerDB extends BaseModels {
       },
       ScanIndexForward: reverseOrder ? false : true,
     };
+    if (ExclusiveStartKey) params.ExclusiveStartKey = ExclusiveStartKey;
 
     const command = new QueryCommand(params);
 
@@ -226,7 +228,7 @@ class MessagesManagerDB extends BaseModels {
       return { error: "Something Went wrong while fetching data", statusCode };
     } else if (
       !allMessagesResponse.Items ||
-      allMessagesResponse.Items.length > 0
+      allMessagesResponse.Items.length <= 0
     ) {
       return { message: "No Messages in Room", data: [], statusCode: 200 };
     }
@@ -285,8 +287,12 @@ class MessagesManagerDB extends BaseModels {
   }
 }
 
+const tableName = process.env.CHATVIOUSTABLE_TABLE_NAME
+  ? process.env.CHATVIOUSTABLE_TABLE_NAME
+  : "chatvious";
+
 const messagesManagerDB = new MessagesManagerDB(
-  "chatvious",
+  tableName,
   "PartitionKey",
   "SortKey"
 );
