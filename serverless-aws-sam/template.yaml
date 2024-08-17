@@ -169,36 +169,6 @@ Resources:
         ScaleInCooldown: 60
         TargetValue: 70
 
-  saveUserDataFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      CodeUri: src/cognito/post-signUp-trigger/
-      Handler: saveUserData.handler
-      Runtime: nodejs20.x
-      MemorySize: 128
-      Timeout: 4
-      Architectures:
-        - x86_64
-      Policies:
-        - DynamoDBCrudPolicy:
-            TableName: !Ref ChatviousTable
-      Environment:
-        Variables:
-          CHATVIOUSTABLE_TABLE_NAME: !Ref ChatviousTable
-          CHATVIOUSTABLE_TABLE_ARN: !GetAtt ChatviousTable.Arn
-      Events:
-        CognitoUserPoolPostConfirmationTrigger:
-          Type: Cognito
-          Properties:
-            UserPool: !Ref UserPool
-            Trigger: PostConfirmation
-    Metadata:
-      BuildMethod: esbuild
-      BuildProperties:
-        Minify: true
-        Target: es2020
-        Sourcemap: true
-
   dashboardPage:
     Type: AWS::Serverless::Function
     Properties:
@@ -1098,6 +1068,61 @@ Resources:
       DeploymentId: !Ref Deployment
       ApiId: !Ref WebsocketApi
 
+  saveUserDataFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/cognito/post-signUp-trigger/
+      Handler: saveUserData.handler
+      Runtime: nodejs20.x
+      MemorySize: 128
+      Timeout: 4
+      Architectures:
+        - x86_64
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref ChatviousTable
+      Environment:
+        Variables:
+          CHATVIOUSTABLE_TABLE_NAME: !Ref ChatviousTable
+          CHATVIOUSTABLE_TABLE_ARN: !GetAtt ChatviousTable.Arn
+      Events:
+        CognitoUserPoolPostConfirmationTrigger:
+          Type: Cognito
+          Properties:
+            UserPool: !Ref UserPool
+            Trigger: PostConfirmation
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        Minify: true
+        Target: es2020
+        Sourcemap: true
+
+  CognitoPreSignUp:
+    Type: AWS::Serverless::Function
+    Properties:
+      Description: A Cognito PreSignUp trigger for custom user input validation
+      CodeUri: ./src
+      Handler: cognito/pre-signUp-trigger/index.handler
+      Runtime: nodejs20.x
+      MemorySize: 128
+      Timeout: 6
+      Architectures:
+        - x86_64
+      Events:
+        CognitoUserPoolPreSignup:
+          Type: Cognito
+          Properties:
+            UserPool: !Ref UserPool
+            Trigger: PreSignUp
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        Minify: true
+        Bundle: true
+        Target: es2020
+        Sourcemap: true
+
   UserPool:
     Type: AWS::Cognito::UserPool
     Properties:
@@ -1106,7 +1131,7 @@ Resources:
         AllowAdminCreateUserOnly: false
       AutoVerifiedAttributes:
         - email
-      UsernameAttributes:
+      AliasAttributes:
         - email
       UsernameConfiguration:
         CaseSensitive: false
@@ -1114,14 +1139,7 @@ Resources:
         - AttributeDataType: String
           Name: email
           Required: true
-          Mutable: false
-        - AttributeDataType: String
-          Name: name
-          Required: true
           Mutable: true
-          StringAttributeConstraints:
-            MinLength: '1'
-            MaxLength: '20'
       EmailConfiguration:
         # Change to DEVELOPER once I setup ses and specify arn here by SourceArn parameter
         EmailSendingAccount: COGNITO_DEFAULT
@@ -1132,6 +1150,14 @@ Resources:
     Properties:
       Action: lambda:InvokeFunction
       FunctionName: !Ref saveUserDataFunction
+      Principal: cognito-idp.amazonaws.com
+  PreSignUpUserPoolPermission:
+    Type: AWS::Lambda::Permission
+    DependsOn:
+      - UserPool
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref CognitoPreSignUp
       Principal: cognito-idp.amazonaws.com
 
   UserPoolClient:
@@ -1171,7 +1197,7 @@ Resources:
   StaticWebBucket:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: !Sub ${AWS::StackName}-ChatviousStaticWebBucket
+      BucketName: !Sub ${AWS::StackName}-chatvious-static-web-bucket
       BucketEncryption:
         ServerSideEncryptionConfiguration:
           - ServerSideEncryptionByDefault:
@@ -1202,7 +1228,7 @@ Resources:
       DistributionConfig:
         Origins:
           - DomainName: !GetAtt StaticWebBucket.RegionalDomainName
-            Id: !Sub ${AWS::StackName}-ChatviousStaticWebBucket-s3-origin
+            Id: !Sub ${AWS::StackName}-chatvious-static-web-bucket-s3-origin
             OriginAccessControlId: !GetAtt WebAppOriginAccessControl.Id
             S3OriginConfig: {}
         Enabled: true
@@ -1212,7 +1238,7 @@ Resources:
             - GET
             - HEAD
             - OPTIONS
-          TargetOriginId: !Sub ${AWS::StackName}-ChatviousStaticWebBucket-s3-origin
+          TargetOriginId: !Sub ${AWS::StackName}-chatvious-static-web-bucket-s3-origin
           CachePolicyId: 658327ea-f89d-4fab-a63d-7e88639e58f6 # CachingOptimized
           OriginRequestPolicyId: 88a5eaf4-2fd4-4709-b370-b4c650ea3fcf # CORS-S3Origin
           ViewerProtocolPolicy: redirect-to-https
@@ -1289,6 +1315,11 @@ Metadata:
       Members:
         - CloudFrontDistribution
         - WebAppOriginAccessControl
+    Group6:
+      Label: UserPoolTriggers
+      Members:
+        - saveUserDataFunction
+        - CognitoPreSignUp
 
 Outputs:
   DynamoDBTableName:
