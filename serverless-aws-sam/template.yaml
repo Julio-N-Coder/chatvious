@@ -645,6 +645,11 @@ Resources:
               Header: Cookie
               ReauthorizeEvery: 0
         DefaultAuthorizer: LambdaAuthorizer
+      MethodSettings:
+        - HttpMethod: '*'
+          ResourcePath: /*
+          ThrottlingRateLimit: 10
+          ThrottlingBurstLimit: 15
       DefinitionBody:
         openapi: '3.0'
         info: {}
@@ -1067,6 +1072,9 @@ Resources:
       Description: prod Stage
       DeploymentId: !Ref Deployment
       ApiId: !Ref WebsocketApi
+      RouteSettings:
+        ThrottlingBurstLimit: 10
+        ThrottlingRateLimit: 15
 
   saveUserDataFunction:
     Type: AWS::Serverless::Function
