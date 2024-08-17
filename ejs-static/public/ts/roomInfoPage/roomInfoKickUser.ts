@@ -16,7 +16,8 @@ function clearFixedStatusBox() {
 for (let i = 0; i < kickButtons.length; i++) {
   kickButtons[i].addEventListener("click", async (e: Event) => {
     const kickButton = e.target as HTMLButtonElement;
-    const memberParentElem = kickButtons[i].parentElement as HTMLDivElement;
+    const memberParentElem = kickButtons[i].parentElement
+      ?.parentElement as HTMLDivElement;
     const userID = memberParentElem.dataset.userid;
     const RoomID = location.pathname.split("/").pop();
 

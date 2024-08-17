@@ -153,7 +153,10 @@ class MessagesManagerDB extends BaseModels {
       .httpStatusCode as number;
     if (statusCode !== 200) {
       return { error: "Something Went wrong while fetching data", statusCode };
-    } else if (!limit20MessagesResponse.Items) {
+    } else if (
+      !limit20MessagesResponse.Items ||
+      limit20MessagesResponse.Items.length <= 0
+    ) {
       return {
         message: "No Messages found",
         data: [],

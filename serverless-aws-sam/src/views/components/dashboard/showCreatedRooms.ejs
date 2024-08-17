@@ -1,5 +1,7 @@
 <% if (ownedRooms.length > 0) { %> <% ownedRooms.map((ownedRoom) => { %>
-<div class="bg-neutral rounded p-2 flex justify-between">
+<div
+  class="bg-neutral rounded p-2 flex flex-col items-center mdsm:flex-row mdsm:justify-between"
+>
   <span class="text-lg font-bold self-center text-neutral-content">
     <%= ownedRoom.roomName %></span
   >

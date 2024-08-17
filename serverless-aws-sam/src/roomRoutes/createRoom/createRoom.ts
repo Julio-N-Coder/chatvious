@@ -23,7 +23,18 @@ export async function handler(
     };
   }
 
-  const { profileColor } = userInfoResponse.userInfo;
+  const userInfo = userInfoResponse.userInfo;
+  const profileColor = userInfo.profileColor;
+
+  if (userInfo.ownedRooms.length > 6) {
+    return {
+      headers: { "Content-Type": "application/json" },
+      statusCode: 403,
+      body: JSON.stringify({
+        error: "You have reached the limit of rooms you can own. (6)",
+      }),
+    };
+  }
 
   const makeRoomResponse = await roomManager.makeRoom(
     userID,
@@ -79,8 +90,8 @@ function validateBody(
   if (parsedBody.roomName.length < 3) {
     return standardError("Room Name must be at least 3 characters");
   }
-  if (parsedBody.roomName.length > 25) {
-    return standardError("Room Name must be less than 25 characters");
+  if (parsedBody.roomName.length > 20) {
+    return standardError("Room Name must be less than 20 characters");
   }
   return { body: { roomName: parsedBody.roomName } };
 }

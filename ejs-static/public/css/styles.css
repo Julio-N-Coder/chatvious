@@ -16,3 +16,7 @@
 .nav-tabs-lg {
   @apply btn-ghost p-2 rounded-lg text-neutral-content text-2xl
 }
+
+.break-anywhere {
+  overflow-wrap: anywhere;
+}

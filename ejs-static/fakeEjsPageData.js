@@ -1,11 +1,13 @@
 const ownedRoomInfo = {
   roomName: "fakeRoomName",
+  // roomName: "HHHHHHHHHHHHHHHHHHHH",
   RoomID: "fakeRoomID1",
   createdAt: "2024-08-02T21:34:22.328Z",
 };
 
 const joinedRoomInfo = {
   roomName: "fakeJoinRoomName",
+  // roomName: "HHHHHHHHHHHHHHHHHHHH",
   RoomID: "fakeRoomID2",
   createdAt: "2024-08-02T21:34:22.328Z",
 };
@@ -25,6 +27,7 @@ const randomRoomIfo = {
 const fakeUserInfo = {
   userID: "fd24d28c-ef01-45dc-a1ee-2bf8f3e92540",
   userName: "TestUserRender",
+  // userName: "HHHHHHHHHHHHHHHHHHHH",
   email: "TestUserRender@test.com",
   ownedRooms: [
     {
@@ -148,6 +151,7 @@ const fakeJoinRoomInfoPageOwner = {
     {
       userID: "FakeMemberID",
       userName: "FakeRoomMember",
+      // userName: "HHHHHHHHHHHHHHHHHHHH",
       RoomID: joinedRoomInfo.RoomID,
       RoomUserStatus: "MEMBER",
       profileColor: "orange",
@@ -178,6 +182,7 @@ const fakeJoinRoomInfoPageOwner = {
       RoomID: ownedRoomInfo.RoomID,
       fromUserID: "FakeJoinUserID",
       fromUserName: "FakeJoinUserName",
+      // fromUserName: "HHHHHHHHHHHHHHHHHHHH",
       roomName: ownedRoomInfo.roomName,
       profileColor: "purple",
       sentJoinRequestAt: "2024-08-02T21:34:22.328Z",

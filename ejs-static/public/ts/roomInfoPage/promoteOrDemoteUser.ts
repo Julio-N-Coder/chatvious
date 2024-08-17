@@ -19,9 +19,13 @@ for (let i = 0; i < promoteDemoteButtons.length; i++) {
     const action = promoteDemoteButton.classList.contains("promote")
       ? "PROMOTE"
       : "DEMOTE";
-    const memberParentElem = promoteDemoteButtons[i]
-      .parentElement as HTMLDivElement;
-    const roomUserStatusElem = memberParentElem.querySelector(
+    const memberParentElem = promoteDemoteButtons[i].parentElement
+      ?.parentElement as HTMLDivElement;
+    // fetching member status from text
+    const statusButtonsElem = memberParentElem.querySelector(
+      ".StatusAndButtons"
+    ) as HTMLDivElement;
+    const roomUserStatusElem = statusButtonsElem.querySelector(
       ".RoomUserStatus"
     ) as HTMLSpanElement;
     const userID = memberParentElem.dataset.userid;

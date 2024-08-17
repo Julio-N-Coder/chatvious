@@ -24,6 +24,14 @@
         class="p-2 shadow menu dropdown-content z-[1] bg-base-100 rounded-box w-52"
       >
         <li>
+          <a 
+            href="<%= isProduction ? "https://main.chatvious.coding-wielder.com" : "http://localhost:8040" %>/" 
+            class="xsm:hidden block"
+          >
+            Chatvious
+          </a>
+        </li>
+        <li>
           <a href="<%= isProduction ? "https://main.chatvious.coding-wielder.com/about" : "http://localhost:8040/about" %>">About</a>
         </li>
         <li>
@@ -32,7 +40,9 @@
       </ul>
     </details>
     <a 
-      href="<%= isProduction ? "https://main.chatvious.coding-wielder.com" : "http://localhost:8040" %>/" class="text-3xl xsm:text-4xl text-neutral-content sm:ml-2">
+      href="<%= isProduction ? "https://main.chatvious.coding-wielder.com" : "http://localhost:8040" %>/" 
+      class="hidden xsm:block text-4xl text-neutral-content sm:ml-2"
+    >
       Chatvious
     </a>
     <%# big tabs pages for big screens %>

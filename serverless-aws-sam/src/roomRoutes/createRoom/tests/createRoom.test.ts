@@ -125,7 +125,7 @@ describe("A test suite to see if the createRoom route works correctly", () => {
     expect(body.error).toBe("Room Name must be at least 3 characters");
   });
 
-  test("createRoom should return the correct Error when roomName is greater than 25 characters", async () => {
+  test("createRoom should return the correct Error when roomName is greater than 20 characters", async () => {
     restAPIEvent.body = JSON.stringify({
       roomName: "someRandomTextGreaterThan25",
     });
@@ -133,6 +133,6 @@ describe("A test suite to see if the createRoom route works correctly", () => {
     expect(response.statusCode).toBe(400);
 
     const body = JSON.parse(response.body);
-    expect(body.error).toBe("Room Name must be less than 25 characters");
+    expect(body.error).toBe("Room Name must be less than 20 characters");
   });
 });

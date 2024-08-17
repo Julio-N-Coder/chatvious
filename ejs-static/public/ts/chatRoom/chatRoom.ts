@@ -138,15 +138,12 @@ socket.addEventListener("open", () => {
 });
 
 socket.addEventListener("message", (event) => {
-  console.log(event.data);
   const dataAction = JSON.parse(event.data);
   const action = dataAction.action;
 
   if (action === "joinroom") {
     // have loading state and remove loading state once room is joined
-    console.log("joined room");
   } else if (action === "sendmessage") {
-    console.log("message received");
     const data: sendMessageAction = dataAction;
     const userName = data.sender.userName;
     const message = data.message;

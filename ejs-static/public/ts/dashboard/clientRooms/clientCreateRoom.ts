@@ -42,9 +42,9 @@ async function createRoom(e: SubmitEvent) {
     toggleSubmitButtonState();
     return;
   }
-  if (roomName.length > 25) {
+  if (roomName.length > 20) {
     createmodelError.classList.remove("hidden");
-    createmodelError.innerText = "Room Name must be less than 25 characters";
+    createmodelError.innerText = "Room Name must be less than 20 characters";
     toggleSubmitButtonState();
     return;
   }

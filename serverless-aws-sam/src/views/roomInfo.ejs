@@ -29,33 +29,33 @@
       anyJoinRequest: false, navJoinRequest }) %> <%# Fixed Status box %>
       <div id="fixedStatusBox" class="fixed rounded-r-lg px-1 max-w-52"></div>
       <div
-        class="container mx-auto mt-4 border-2 border-base-content rounded-2xl shadow-lg shadow-base-content/30"
+        class="mdsm:container mx-auto mt-4 border-2 border-base-content rounded-2xl shadow-lg shadow-base-content/30"
       >
         <h1
-          class="font-bold text-7xl text-center border-base-content border-b-2"
+          class="font-bold text-4xl md:text-5xl lg:text-7xl text-center border-base-content border-b-2 break-words lg:break-normal"
         >
           <%= roomInfo.roomName %>
         </h1>
-        <div class="m-2 space-y-2">
+        <div class="m-2 space-y-1 md:space-y-2">
           <%# onwerName and createdAt %>
-          <div class="text-2xl flex justify-evenly items-center">
-            <div>
-              <div class="m-2 flex gap-2 items-center">
-                <span>Room Owner:</span>
-                <%- include("./components/profileIcon", {username:
-                roomOwner.userName, profileColor: roomOwner.profileColor,
-                forNav: false}) %>
-                <span><%= roomOwner.userName %></span>
-              </div>
+          <div
+            class="text-2xl flex flex-col lg:flex-row lg:justify-evenly items-center"
+          >
+            <div class="md:m-2 flex gap-2 items-center">
+              <span class="text-lg xsm:text-2xl">Room Owner:</span>
+              <%- include("./components/profileIcon", {username:
+              roomOwner.userName, profileColor: roomOwner.profileColor, forNav:
+              false}) %>
+              <span class="break-anywhere"><%= roomOwner.userName %></span>
             </div>
             <div>
-              <div class="m-2 flex gap-2">
+              <div class="md:m-2 flex gap-2 text-lg xsm:text-2xl">
                 <span>Created At:</span>
                 <span><%= roomInfo.createdAt.split("T")[0] %></span>
               </div>
             </div>
           </div>
-          <div class="text-2xl text-center">
+          <div class="text-lg xsm:text-2xl text-center">
             Room ID: <%= roomInfo.RoomID %>
           </div>
           <% if (isOwner || isAdmin || isMember) { %>
@@ -77,11 +77,15 @@
                 data-userid="<%= joinRequest.fromUserID %>"
                 class="border-2 border-base-content rounded-xl p-2"
               >
-                <div class="flex items-center gap-1">
-                  <%- include("./components/profileIcon", {forNav: false,
-                  username: joinRequest.fromUserName, profileColor:
-                  joinRequest.profileColor }) %>
-                  <div class=""><%= joinRequest.fromUserName %></div>
+                <div class="flex flex-col md:flex-row items-center gap-1">
+                  <div class="flex sm:gap-2 items-center">
+                    <%- include("./components/profileIcon", {forNav: false,
+                    username: joinRequest.fromUserName, profileColor:
+                    joinRequest.profileColor }) %>
+                    <div class="break-anywhere">
+                      <%= joinRequest.fromUserName %>
+                    </div>
+                  </div>
                   <div class="ml-4">
                     <button class="acceptJoinRequest btn btn-accent btn-sm">
                       Accept Request
@@ -125,31 +129,43 @@
                 <% if (roomMembers.length > 1) { %> <% for (let i = 0; i <
                 roomMembers.length; i++) { %> <% const member = roomMembers[i]
                 %> <% if (member.RoomUserStatus === "OWNER") continue %>
-                <div data-userid="<%= member.userID %>" class="text-2xl py-2">
-                  <%- include("./components/profileIcon", {username:
-                  member.userName, profileColor: member.profileColor, forNav:
-                  false}) %>
-                  <span class=""><%= member.userName %></span>
-                  <span class="RoomUserStatus text-lg"
-                    ><%= member.RoomUserStatus %></span
-                  >
-                  <% if (isAdmin && member.RoomUserStatus === "MEMBER") { %>
-                  <button class="kick ml-3 btn btn-accent btn-sm">Kick</button>
-                  <% } else if (isOwner) { %>
-                  <button class="kick ml-3 btn btn-accent btn-sm">Kick</button>
-                  <% if (member.RoomUserStatus === "ADMIN") { %>
-                  <button
-                    class="promoteDemote demote ml-3 btn btn-accent btn-sm"
-                  >
-                    Demote
-                  </button>
-                  <% } %> <% if (member.RoomUserStatus === "MEMBER") { %>
-                  <button
-                    class="promoteDemote promote ml-3 btn btn-accent btn-sm"
-                  >
-                    Promote
-                  </button>
-                  <% } %> <% } %>
+                <div
+                  data-userid="<%= member.userID %>"
+                  class="text-2xl py-2 flex flex-col items-center md:flex-row md:gap-2"
+                >
+                  <div class="flex gap-1 items-center">
+                    <%- include("./components/profileIcon", {username:
+                    member.userName, profileColor: member.profileColor, forNav:
+                    false}) %>
+                    <span class="break-anywhere"><%= member.userName %></span>
+                  </div>
+                  <div class="StatusAndButtons flex items-center">
+                    <span class="RoomUserStatus text-lg"
+                      ><%= member.RoomUserStatus %></span
+                    >
+                    <% if (isAdmin && member.RoomUserStatus === "MEMBER") { %>
+                    <button class="kick ml-3 btn btn-accent btn-sm">
+                      Kick
+                    </button>
+                    <% } else if (isOwner) { %>
+                    <button class="kick ml-3 btn btn-accent btn-sm">
+                      Kick
+                    </button>
+                    <% if (member.RoomUserStatus === "ADMIN") { %>
+                    <button
+                      class="promoteDemote demote ml-3 btn btn-accent btn-sm"
+                    >
+                      Demote
+                    </button>
+                    <% } %> <% if (member.RoomUserStatus === "MEMBER") { %>
+                    <button
+                      class="promoteDemote promote ml-3 btn btn-accent btn-sm"
+                    >
+                      Promote
+                    </button>
+                    <% } %>
+                  </div>
+                  <% } %>
                 </div>
                 <% } %> <% } else { %>
                 <div class="text-center text-2xl">There are no Members yet</div>
