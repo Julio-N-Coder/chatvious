@@ -452,6 +452,14 @@ class RoomManager {
       return { error: "Bad Request", statusCode: 400 };
     }
 
+    const subMemberCountResponse = await this.addSubMemberCount(RoomID, -1);
+    if ("error" in subMemberCountResponse) {
+      return {
+        error: subMemberCountResponse.error,
+        statusCode: subMemberCountResponse.statusCode,
+      };
+    }
+
     return { message: "Member Removed", statusCode: 200 };
   }
 

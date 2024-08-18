@@ -30,6 +30,15 @@ export async function handler(
     };
   }
 
+  // check if room is full (20)
+  if (fetchRoomResponse.roomInfo.roomMemberCount >= 20) {
+    return {
+      headers: { "Content-Type": "application/json" },
+      statusCode: 403,
+      body: JSON.stringify({ error: "Room is full" }),
+    };
+  }
+
   const { roomName } = fetchRoomResponse.roomInfo;
 
   const roomMembersResponse = await roomManager.fetchRoomMember(RoomID, userID);

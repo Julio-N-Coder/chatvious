@@ -11,7 +11,10 @@ import {
 import { userManager } from "../../../models/users.js";
 import { roomManager } from "../../../models/rooms.js";
 import { UserInfo } from "../../../types/types.js";
-import { newTestUser } from "../../../lib/libtest/handyTestUtils.js";
+import {
+  newTestUser,
+  checkRoomsOnUser,
+} from "../../../lib/libtest/handyTestUtils.js";
 
 let restAPIEvent: typeof restAPIEventBase = JSON.parse(
   JSON.stringify(restAPIEventBase)
@@ -43,14 +46,11 @@ afterEach(async () => {
 
 // cleanups
 afterAll(async () => {
-  // delete the room member entry made
-  const removeRoomMemberResponse = await roomManager.removeRoomMember(
-    RoomID,
-    userID
-  );
-  if ("error" in removeRoomMemberResponse) {
+  // remove the created room
+  const deleteRoomResponse = await roomManager.deleteRoom(RoomID);
+  if ("error" in deleteRoomResponse) {
     throw new Error(
-      `Failed to clean up RoomMember after test. Error: ${removeRoomMemberResponse.error}`
+      `Failed to clean up Room after test. Error: ${deleteRoomResponse.error}`
     );
   }
 
@@ -59,14 +59,6 @@ afterAll(async () => {
   if ("error" in deleteUserResponse) {
     throw new Error(
       `Failed to clean up user after test. Error: ${deleteUserResponse.error}`
-    );
-  }
-
-  // remove the created room
-  const deleteRoomResponse = await roomManager.deleteRoom(RoomID);
-  if ("error" in deleteRoomResponse) {
-    throw new Error(
-      `Failed to clean up Room after test. Error: ${deleteRoomResponse.error}`
     );
   }
 });
@@ -96,6 +88,9 @@ describe("A test suite to see if the createRoom route works correctly", () => {
     expect(fetchRoomResponse).toHaveProperty("roomInfo");
     expect(fetchRoomResponse.roomInfo).toHaveProperty("RoomID", RoomID);
     expect(fetchRoomResponse.roomInfo).toHaveProperty("roomName", roomName);
+    expect(fetchRoomResponse.roomInfo).toHaveProperty("roomMemberCount", 1);
+
+    await checkRoomsOnUser(userID, RoomID, roomName, "Owned");
   });
 
   test("Incorrect Content-Type header should return the correct Error", async () => {

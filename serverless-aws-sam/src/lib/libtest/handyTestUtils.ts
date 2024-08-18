@@ -1,3 +1,4 @@
+import { expect } from "@jest/globals";
 import { userManager } from "../../models/users.js";
 
 // check if there is a user, delete them to have the same info if they exist
@@ -31,4 +32,53 @@ async function newTestUser(userID: string, userName: string) {
   return createUserResponse.newUser;
 }
 
-export { newTestUser };
+async function checkRoomsOnUser(
+  userID: string,
+  RoomID: string,
+  roomName: string,
+  ownedJoinedOrRemoved: "Owned" | "Joined" | "Removed" = "Joined"
+) {
+  const roomOnUserResponse = await userManager.fetchSingleRoomOnUser(
+    userID,
+    RoomID
+  );
+  if (ownedJoinedOrRemoved !== "Removed") {
+    if ("error" in roomOnUserResponse) {
+      throw new Error(
+        `Failed to fetch rooms on user. Error: ${roomOnUserResponse.error}`
+      );
+    }
+
+    expect(roomOnUserResponse).toHaveProperty("statusCode", 200);
+    expect(roomOnUserResponse).toHaveProperty(
+      "message",
+      `${ownedJoinedOrRemoved} Room Found`
+    );
+    expect(roomOnUserResponse).toHaveProperty("data");
+    expect(roomOnUserResponse.data).toHaveProperty("roomName", roomName);
+    expect(roomOnUserResponse.data).toHaveProperty("RoomID", RoomID);
+    return roomOnUserResponse;
+  } else {
+    const roomOnUserResponse = await userManager.fetchSingleRoomOnUser(
+      userID,
+      RoomID
+    );
+    if (
+      "error" in roomOnUserResponse &&
+      roomOnUserResponse.error !== "Room on user not found"
+    ) {
+      throw new Error(
+        `Failed to fetch rooms on user. Error: ${roomOnUserResponse.error}`
+      );
+    }
+
+    expect(roomOnUserResponse).toHaveProperty("statusCode", 404);
+    expect(roomOnUserResponse).toHaveProperty(
+      "error",
+      "Room on user not found"
+    );
+    return roomOnUserResponse;
+  }
+}
+
+export { newTestUser, checkRoomsOnUser };

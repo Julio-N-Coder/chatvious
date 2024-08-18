@@ -11,7 +11,10 @@ import {
 import { userManager } from "../../../models/users.js";
 import { roomManager } from "../../../models/rooms.js";
 import { UserInfo, RoomInfoType } from "../../../types/types.js";
-import { newTestUser } from "../../../lib/libtest/handyTestUtils.js";
+import {
+  newTestUser,
+  checkRoomsOnUser,
+} from "../../../lib/libtest/handyTestUtils.js";
 
 let restAPIEvent: typeof restAPIEventBase = JSON.parse(
   JSON.stringify(restAPIEventBase)
@@ -89,25 +92,12 @@ afterEach(async () => {
 
 // cleanups
 afterAll(async () => {
-  // delete the users room member entries
-  const removeRoomMemberResponse = await roomManager.removeRoomMember(
-    RoomID,
-    userID
-  );
-  if ("error" in removeRoomMemberResponse) {
+  // remove the created room
+  const deleteRoomResponse = await roomManager.deleteRoom(RoomID);
+  if ("error" in deleteRoomResponse) {
     throw new Error(
-      `Failed to clean up RoomMember after test. Error: ${removeRoomMemberResponse.error}`
+      `Failed to clean up Room after test. Error: ${deleteRoomResponse.error}`
     );
-  }
-
-  const removeMemberUserBeingKickedResponse =
-    await roomManager.removeRoomMember(RoomID, userBeingKickedID);
-  if ("error" in removeMemberUserBeingKickedResponse) {
-    if (removeMemberUserBeingKickedResponse.error != "Bad Request") {
-      throw new Error(
-        `Something went wrong after cleaning up userBeingKicked from room after test. Error: ${removeMemberUserBeingKickedResponse.error}`
-      );
-    }
   }
 
   // delete the users we created
@@ -124,14 +114,6 @@ afterAll(async () => {
   if ("error" in deleteUserBeingKickedResponse) {
     throw new Error(
       `Failed to clean up requesting user after test. Error: ${deleteUserBeingKickedResponse.error}`
-    );
-  }
-
-  // remove the created room
-  const deleteRoomResponse = await roomManager.deleteRoom(RoomID);
-  if ("error" in deleteRoomResponse) {
-    throw new Error(
-      `Failed to clean up Room after test. Error: ${deleteRoomResponse.error}`
     );
   }
 });
@@ -161,6 +143,19 @@ describe("Test if kickMember route kicks the user from the chat room", () => {
 
     expect(fetchRoomMemberResponse).toHaveProperty("statusCode", 400);
     expect(fetchRoomMemberResponse).toHaveProperty("error", "Bad Request");
+
+    await checkRoomsOnUser(userBeingKickedID, RoomID, roomName, "Removed");
+
+    // check if memberCount was decreased
+    const fetchRoomResponse = await roomManager.fetchRoom(RoomID);
+    if ("error" in fetchRoomResponse) {
+      throw new Error(
+        `Failed to fetch room. Error: ${fetchRoomResponse.error}`
+      );
+    }
+
+    const memberCount = fetchRoomResponse.roomInfo.roomMemberCount;
+    expect(memberCount).toBe(1);
   });
 
   test("Incorrect Content-Type header should return the correct Error", async () => {

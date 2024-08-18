@@ -11,7 +11,10 @@ import {
 import { userManager } from "../../../models/users.js";
 import { roomManager } from "../../../models/rooms.js";
 import { UserInfo, RoomInfoType } from "../../../types/types.js";
-import { newTestUser } from "../../../lib/libtest/handyTestUtils.js";
+import {
+  newTestUser,
+  checkRoomsOnUser,
+} from "../../../lib/libtest/handyTestUtils.js";
 
 let restAPIEvent: typeof restAPIEventBase = JSON.parse(
   JSON.stringify(restAPIEventBase)
@@ -150,22 +153,7 @@ describe("Test to see if accepting the join request works", () => {
       "MEMBER"
     );
 
-    // check if the rooms the user is joined in was updated
-    const roomOnUserResponse = await userManager.fetchSingleRoomOnUser(
-      requestUserID,
-      RoomID
-    );
-    if ("error" in roomOnUserResponse) {
-      throw new Error(
-        `Failed to fetch rooms on user. Error: ${roomOnUserResponse.error}`
-      );
-    }
-
-    expect(roomOnUserResponse).toHaveProperty("statusCode", 200);
-    expect(roomOnUserResponse).toHaveProperty("message", "Joined Room Found");
-    expect(roomOnUserResponse).toHaveProperty("data");
-    expect(roomOnUserResponse.data).toHaveProperty("roomName", roomName);
-    expect(roomOnUserResponse.data).toHaveProperty("RoomID", RoomID);
+    await checkRoomsOnUser(requestUserID, RoomID, roomName, "Joined");
 
     // check if memberCount was increased
     const fetchRoomResponse = await roomManager.fetchRoom(RoomID);
