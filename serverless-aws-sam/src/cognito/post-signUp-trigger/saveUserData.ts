@@ -1,4 +1,4 @@
-import { PostConfirmationEvent } from "./types.js";
+import { PostConfirmationEvent } from "../../types/types.js";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocumentClient, PutCommand } from "@aws-sdk/lib-dynamodb";
 
@@ -10,15 +10,18 @@ const getRandomColor = () => {
 export const handler = async (event: PostConfirmationEvent) => {
   if (event.triggerSource === "PostConfirmation_ConfirmSignUp") {
     const tableName = process.env.CHATVIOUSTABLE_TABLE_NAME;
-    const client = new DynamoDBClient({});
+    const dynamodbOptionsString = process.env.DYNAMODB_OPTIONS || "{}";
+    const dynamodbOptions = JSON.parse(dynamodbOptionsString);
+    const client = new DynamoDBClient(dynamodbOptions);
     const docClient = DynamoDBDocumentClient.from(client);
+    const userID = event.request.userAttributes.sub;
 
     const userDataCommand = new PutCommand({
       TableName: tableName,
       Item: {
-        PartitionKey: `USER#${event.request.userAttributes.sub}`,
+        PartitionKey: `USER#${userID}`,
         SortKey: "PROFILE",
-        userID: event.request.userAttributes.sub,
+        userID,
         userName: event.userName,
         email: event.request.userAttributes.email,
         ownedRooms: [],

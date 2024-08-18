@@ -1,51 +1,38 @@
 import { handler } from "../saveUserData";
 import testPostConfirmationEvent from "../../../../events/saveUserDataEvent.json";
-import { expect, describe, test } from "@jest/globals";
-import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import {
-  DynamoDBDocumentClient,
-  GetCommand,
-  DeleteCommand,
-} from "@aws-sdk/lib-dynamodb";
+import { expect, describe, test, afterAll } from "@jest/globals";
+import { userManager } from "../../../models/users.js";
 
-const client = new DynamoDBClient({});
-const docClient = DynamoDBDocumentClient.from(client);
+const userID = testPostConfirmationEvent.request.userAttributes.sub;
+
+afterAll(async () => {
+  const deleteUserResponse = await userManager.deleteUser(userID);
+  if ("error" in deleteUserResponse) {
+    throw new Error(
+      `Failed to delete user during cleanup. Error: ${deleteUserResponse.error}`
+    );
+  }
+});
 
 describe("Test for saveUserData", () => {
   const tableName = process.env.CHATVIOUSTABLE_TABLE_NAME;
 
   test("Verifies successful response", async () => {
-    // check if it can run other package function
     const result = await handler(testPostConfirmationEvent);
 
     expect(result).toEqual(testPostConfirmationEvent);
   });
 
   test("Verifies Data Is stored in dynamodb", async () => {
-    const id = testPostConfirmationEvent.request.userAttributes.sub;
+    const response = await userManager.fetchUserInfo(userID);
+    if ("error" in response) {
+      throw new Error(
+        `Failed to get userInfo during test. Error: ${response.error}`
+      );
+    }
 
-    const command = new GetCommand({
-      TableName: tableName,
-      Key: {
-        PartitionKey: `USER#${id}`,
-        SortKey: "PROFILE",
-      },
-      ConsistentRead: true,
-    });
-
-    const response = await docClient.send(command);
-    expect(response["$metadata"].httpStatusCode).toBe(200);
-    expect(response.Item).not.toBeNull();
-
-    // Cleanup: delete the user after the test
-    const deleteCommand = new DeleteCommand({
-      TableName: tableName,
-      Key: {
-        PartitionKey: `USER#${id}`,
-        SortKey: "PROFILE",
-      },
-    });
-
-    await docClient.send(deleteCommand);
+    expect(response.statusCode).toBe(200);
+    expect(response).toHaveProperty("userInfo");
+    expect(response.userInfo).toHaveProperty("userID", userID);
   });
 });

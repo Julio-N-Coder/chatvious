@@ -71,7 +71,7 @@ export const handler = async (
           headers: {
             "Content-Type": "application/x-www-form-urlencoded",
           },
-          body: `grant_type=refresh_token&client_id=jet3kkqp4jnkm1v3ta7htu75g&refresh_token=${refresh_token}`,
+          body: `grant_type=refresh_token&client_id=${cognitoData.CLIENT_ID}&refresh_token=${refresh_token}`,
         }
       );
 
