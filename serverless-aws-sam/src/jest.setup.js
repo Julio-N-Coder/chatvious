@@ -20,6 +20,9 @@ if (dynamodbType === "local") {
 
   process.env.DYNAMODB_OPTIONS = JSON.stringify(dynamodbOptions);
   process.env.CHATVIOUSTABLE_TABLE_NAME = "chatvious-test";
+  process.env.USER_POOL_ID = "XXXXXXXXXXXXXXXXXXX";
+  process.env.USER_POOL_CLIENT_ID = "XXXXXXXXXXXXXXXXXXX";
+  process.env.COGNITO_DOMAIN = "XXXXXXXXXXXXXXXXXXX";
 } else {
   console.log("Using remote DynamoDB");
   process.env.DYNAMODB_OPTIONS = JSON.stringify({});
