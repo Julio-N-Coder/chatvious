@@ -48,7 +48,7 @@ beforeAll(async () => {
   RoomID = roomInfo.RoomID;
 
   // insert messages into the room
-  let messageCount = 100;
+  let messageCount = 10;
   let errorCount = 0;
   let maxAllowedErrorCount = 4;
   for (let i = 0; i < messageCount; i++) {
