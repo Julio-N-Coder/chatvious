@@ -7,20 +7,24 @@ import {
   DeleteCommand,
   QueryCommand,
   GetCommandOutput,
+  PutCommandOutput,
   UpdateCommandOutput,
 } from "@aws-sdk/lib-dynamodb";
 import { userManager } from "./users.js";
 import { messagesManagerDB } from "./messagesDB.js";
 import {
   BaseModelsReturnType,
+  RoomInfoKeys,
   RoomInfoDBType,
   FetchRoomReturn,
   RoomInfoType,
+  RoomMemberKeys,
   RoomMemberDB,
   RoomMember,
   FetchRoomMemberReturn,
   FetchRoomMembersReturn,
   JoinRequest,
+  JoinRequestKeys,
   JoinRequestDB,
   FetchJoinRequestReturn,
   FetchJoinRequestsReturn,
@@ -51,6 +55,7 @@ class RoomManager {
       RoomID,
       roomName,
       createdAt: madeDate,
+      roomMemberCount: 1,
     };
 
     const newRoomCommand = new PutCommand({
@@ -125,6 +130,7 @@ class RoomManager {
         RoomID,
         roomName,
         createdAt: madeDate,
+        roomMemberCount: 1,
       },
       message: "Room Created",
       statusCode: 201,
@@ -157,7 +163,6 @@ class RoomManager {
       }
     }
 
-    // fetch all members and loop through them deleting the room on them
     const membersResponse = await this.fetchRoomMembers(RoomID, true);
     if ("error" in membersResponse) {
       return {
@@ -195,30 +200,41 @@ class RoomManager {
     }
 
     // delete all Messages in the room
-    const fetchMessagesResponse = await messagesManagerDB.fetchAllRoomMessages(
-      RoomID
-    );
-    if ("error" in fetchMessagesResponse) {
-      return {
-        error: fetchMessagesResponse.error,
-        statusCode: fetchMessagesResponse.statusCode,
-      };
-    }
+    while (true) {
+      let LastEvaluatedKey: MessageKeys | undefined;
 
-    if (fetchMessagesResponse.message === "Messages fetched successfully") {
-      const messages = fetchMessagesResponse.data;
-      for (const message of messages) {
-        const deleteMessageResponse = await messagesManagerDB.deleteMessage(
+      const fetchMessagesResponse =
+        await messagesManagerDB.fetchAllRoomMessages(
           RoomID,
-          message.sentAt,
-          message.messageId
+          false,
+          LastEvaluatedKey
         );
-        if ("error" in deleteMessageResponse) {
-          return {
-            error: deleteMessageResponse.error,
-            statusCode: deleteMessageResponse.statusCode,
-          };
+      if ("error" in fetchMessagesResponse) {
+        return {
+          error: fetchMessagesResponse.error,
+          statusCode: fetchMessagesResponse.statusCode,
+        };
+      }
+
+      LastEvaluatedKey = fetchMessagesResponse.LastEvaluatedKey;
+
+      if (fetchMessagesResponse.message === "Messages fetched successfully") {
+        const messages = fetchMessagesResponse.data;
+        for (const message of messages) {
+          const deleteMessageResponse = await messagesManagerDB.deleteMessage(
+            RoomID,
+            message.sentAt,
+            message.messageId
+          );
+          if ("error" in deleteMessageResponse) {
+            return {
+              error: deleteMessageResponse.error,
+              statusCode: deleteMessageResponse.statusCode,
+            };
+          }
         }
+      } else {
+        break;
       }
     }
 
@@ -260,6 +276,7 @@ class RoomManager {
       RoomID: roomInfoDB.RoomID,
       roomName: roomInfoDB.roomName,
       createdAt: roomInfoDB.createdAt,
+      roomMemberCount: roomInfoDB.roomMemberCount,
     };
     return { roomInfo, message: "Room Found", statusCode: 200 };
   }
@@ -290,6 +307,9 @@ class RoomManager {
     }
 
     const roomMembersDB = roomMembersResponse.Items as RoomMemberDB[];
+    const LastEvaluatedKey = roomMembersResponse.LastEvaluatedKey as
+      | RoomMemberKeys
+      | undefined;
 
     const roomMembers: RoomMember[] = roomMembersDB.map((member) => {
       const joinedAt = member.GSISortKey.split("#")[2] as string;
@@ -305,7 +325,13 @@ class RoomManager {
     });
 
     if (roomMembersResponse.Count === 0) {
-      return { roomMembers, message: "No Users", memberCount, statusCode: 200 };
+      return {
+        roomMembers,
+        message: "No Users",
+        memberCount,
+        statusCode: 200,
+        LastEvaluatedKey,
+      };
     }
 
     return {
@@ -313,6 +339,7 @@ class RoomManager {
       message: `${memberCount} Users Found`,
       memberCount,
       statusCode: 200,
+      LastEvaluatedKey,
     };
   }
 
@@ -373,13 +400,28 @@ class RoomManager {
       Item: roomMemberItem,
     });
 
-    const makeRoomResponse = await docClient.send(roomMemberCommand);
+    let makeRoomResponse: PutCommandOutput;
+    try {
+      makeRoomResponse = await docClient.send(roomMemberCommand);
+    } catch (error) {
+      console.log("add member error", error);
+      return { error: "Failed to add Member", statusCode: 500 };
+    }
+
     const makeRoomStatusCode = makeRoomResponse.$metadata
       .httpStatusCode as number;
     if (makeRoomStatusCode !== 200) {
       return {
         error: "Failed to add Member",
         statusCode: makeRoomStatusCode,
+      };
+    }
+
+    const addMemberCountResponse = await this.addSubMemberCount(RoomID, 1);
+    if ("error" in addMemberCountResponse) {
+      return {
+        error: addMemberCountResponse.error,
+        statusCode: addMemberCountResponse.statusCode,
       };
     }
 
@@ -411,6 +453,44 @@ class RoomManager {
     }
 
     return { message: "Member Removed", statusCode: 200 };
+  }
+
+  async addSubMemberCount(
+    RoomID: string,
+    amount: number
+  ): BaseModelsReturnType {
+    const inputKeys: RoomInfoKeys = {
+      PartitionKey: `ROOM#${RoomID}`,
+      SortKey: "METADATA",
+    };
+
+    const ddSubMemberCountCommand = new UpdateCommand({
+      TableName: tableName,
+      Key: inputKeys,
+      UpdateExpression: "ADD roomMemberCount :amount",
+      ExpressionAttributeValues: { ":amount": amount },
+      ReturnValues: "UPDATED_NEW",
+    });
+
+    let ddSubMemberCountResponse: UpdateCommandOutput;
+    try {
+      ddSubMemberCountResponse = await docClient.send(ddSubMemberCountCommand);
+    } catch (error) {
+      return { error: "Failed to add Member Count", statusCode: 500 };
+    }
+
+    const statusCode = ddSubMemberCountResponse.$metadata
+      .httpStatusCode as number;
+    if (statusCode !== 200) {
+      return { error: "Failed to add Member Count", statusCode: 500 };
+    } else if (ddSubMemberCountResponse.Attributes == undefined) {
+      return { error: "Bad Request", statusCode: 400 };
+    }
+
+    return {
+      message: "Member Count added",
+      statusCode: 200,
+    };
   }
 
   async fetchJoinRequest(
@@ -478,8 +558,17 @@ class RoomManager {
     if (joinRequestResponse.$metadata.httpStatusCode !== 200) {
       return { error: "Failed to Get Join Requests", statusCode: 500 };
     } else if (joinRequestResponse.Count === 0) {
-      return { message: "No Join Requests", joinRequests: [], statusCode: 200 };
+      return {
+        message: "No Join Requests",
+        joinRequests: [],
+        LastEvaluatedKey: undefined,
+        statusCode: 200,
+      };
     }
+
+    const LastEvaluatedKey = joinRequestResponse.LastEvaluatedKey as
+      | JoinRequestKeys
+      | undefined;
     const joinRequestsDB = joinRequestResponse.Items as JoinRequestDB[];
     const joinRequests = joinRequestsDB?.map((request) => {
       const sentJoinRequestAt = request.GSISortKey.split("#").pop() as string;
@@ -498,6 +587,7 @@ class RoomManager {
       message: `${joinRequests.length} Join Request Fetched`,
       joinRequests,
       statusCode: 200,
+      LastEvaluatedKey,
     };
   }
 

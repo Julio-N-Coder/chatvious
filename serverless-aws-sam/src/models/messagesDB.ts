@@ -233,7 +233,12 @@ class MessagesManagerDB extends BaseModels {
       !allMessagesResponse.Items ||
       allMessagesResponse.Items.length <= 0
     ) {
-      return { message: "No Messages in Room", data: [], statusCode: 200 };
+      return {
+        message: "No Messages in Room",
+        data: [],
+        LastEvaluatedKey: undefined,
+        statusCode: 200,
+      };
     }
 
     const messages: Message[] = allMessagesResponse.Items.map((item) => {
@@ -249,10 +254,14 @@ class MessagesManagerDB extends BaseModels {
       };
     });
 
+    const LastEvaluatedKey = allMessagesResponse.LastEvaluatedKey as
+      | MessageKeys
+      | undefined;
     return {
       message: "Messages fetched successfully",
       data: messages,
       statusCode: 200,
+      LastEvaluatedKey,
     };
   }
 

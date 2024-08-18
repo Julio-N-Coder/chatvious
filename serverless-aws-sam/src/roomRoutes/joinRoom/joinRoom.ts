@@ -30,21 +30,23 @@ export async function handler(
     };
   }
 
-  const roomMembersResponse = await roomManager.fetchRoomMembers(RoomID);
-  if ("error" in roomMembersResponse) {
+  const { roomName } = fetchRoomResponse.roomInfo;
+
+  const roomMembersResponse = await roomManager.fetchRoomMember(RoomID, userID);
+  if (
+    "error" in roomMembersResponse &&
+    roomMembersResponse.error !== "Bad Request"
+  ) {
     return {
       headers: { "Content-Type": "application/json" },
       statusCode: roomMembersResponse.statusCode,
       body: JSON.stringify({ error: roomMembersResponse.error }),
     };
   }
-
-  const { roomName } = fetchRoomResponse.roomInfo;
-  const { roomMembers } = roomMembersResponse;
-  if (roomMembers.find((member) => member.userID === userID)) {
+  if (roomMembersResponse.statusCode === 200) {
     return {
       headers: { "Content-Type": "application/json" },
-      statusCode: 400,
+      statusCode: 403,
       body: JSON.stringify({ error: "You are already a member of this room" }),
     };
   }

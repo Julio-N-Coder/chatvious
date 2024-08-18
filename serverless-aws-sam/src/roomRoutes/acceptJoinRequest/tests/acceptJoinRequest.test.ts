@@ -89,36 +89,11 @@ afterEach(async () => {
 
 // cleanups
 afterAll(async () => {
-  // delete the sent join request
-  const removeJoinRequestResponse = await roomManager.removeJoinRequest(
-    RoomID,
-    requestUserID
-  );
-  if (
-    "error" in removeJoinRequestResponse &&
-    removeJoinRequestResponse.error !== "Bad Request"
-  ) {
+  // remove the created room which removes all related room info
+  const deleteRoomResponse = await roomManager.deleteRoom(RoomID);
+  if ("error" in deleteRoomResponse) {
     throw new Error(
-      `Failed to clean up JoinRequest after test. Error: ${removeJoinRequestResponse.error}`
-    );
-  }
-
-  // delete the users room member entries
-  const removeRoomMemberResponse = await roomManager.removeRoomMember(
-    RoomID,
-    userID
-  );
-  if ("error" in removeRoomMemberResponse) {
-    throw new Error(
-      `Failed to clean up RoomMember after test. Error: ${removeRoomMemberResponse.error}`
-    );
-  }
-
-  const removeRequestingUserRoomMemberResponse =
-    await roomManager.removeRoomMember(RoomID, requestUserID);
-  if ("error" in removeRequestingUserRoomMemberResponse) {
-    throw new Error(
-      `Failed to clean up requesting RoomMember after test. Error: ${removeRequestingUserRoomMemberResponse.error}`
+      `Failed to clean up Room after test. Error: ${deleteRoomResponse.error}`
     );
   }
 
@@ -136,14 +111,6 @@ afterAll(async () => {
   if ("error" in deleteRequestingUserResponse) {
     throw new Error(
       `Failed to clean up requesting user after test. Error: ${deleteRequestingUserResponse.error}`
-    );
-  }
-
-  // remove the created room
-  const deleteRoomResponse = await roomManager.deleteRoom(RoomID);
-  if ("error" in deleteRoomResponse) {
-    throw new Error(
-      `Failed to clean up Room after test. Error: ${deleteRoomResponse.error}`
     );
   }
 });
@@ -199,6 +166,17 @@ describe("Test to see if accepting the join request works", () => {
     expect(roomOnUserResponse).toHaveProperty("data");
     expect(roomOnUserResponse.data).toHaveProperty("roomName", roomName);
     expect(roomOnUserResponse.data).toHaveProperty("RoomID", RoomID);
+
+    // check if memberCount was increased
+    const fetchRoomResponse = await roomManager.fetchRoom(RoomID);
+    if ("error" in fetchRoomResponse) {
+      throw new Error(
+        `Failed to fetch room. Error: ${fetchRoomResponse.error}`
+      );
+    }
+
+    const memberCount = fetchRoomResponse.roomInfo.roomMemberCount;
+    expect(memberCount).toBe(roomInfo.roomMemberCount + 1);
   });
 
   test("Incorrect Content-Type header should return the correct Error", async () => {

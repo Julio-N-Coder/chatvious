@@ -48,7 +48,7 @@ beforeAll(async () => {
   RoomID = roomInfo.RoomID;
 
   // insert messages into the room
-  let messageCount = 10;
+  let messageCount = 100;
   let errorCount = 0;
   let maxAllowedErrorCount = 4;
   for (let i = 0; i < messageCount; i++) {
@@ -102,12 +102,10 @@ afterAll(async () => {
   // remove the created room which removes all other room resouces as well
   const deleteRoomResponse = await roomManager.deleteRoom(RoomID);
   if ("error" in deleteRoomResponse) {
-    console.log("delete room Error?");
     throw new Error(
       `Failed to clean up Room after test. Error: ${deleteRoomResponse.error}`
     );
   }
-  console.log(deleteRoomResponse);
 
   // delete the user
   const deleteUserResponse = await userManager.deleteUser(userID);
@@ -120,9 +118,7 @@ afterAll(async () => {
 
 describe("tests to see if the fetchNewMessages route works correctly", () => {
   test("Route Successfully fetches new messages with the LastEvaluatedKey", async () => {
-    console.log(restAPIEvent);
     const response = await handler(restAPIEvent);
-    console.log(response);
     expect(response).toHaveProperty("statusCode", 200);
 
     const body = JSON.parse(response.body);

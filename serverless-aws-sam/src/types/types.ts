@@ -27,10 +27,18 @@ interface BaseModelsSuccessData<Data> extends BaseModelsSuccess {
   data: Data;
 }
 
+interface BaseModelsSuccessKey<Data, Keys> extends BaseModelsSuccessData<Data> {
+  LastEvaluatedKey: Keys | undefined;
+}
+
 type BaseModelsReturnType = Promise<BaseModelsError | BaseModelsSuccess>;
 
 type BaseModelsReturnTypeData<Data> = Promise<
   BaseModelsError | BaseModelsSuccessData<Data>
+>;
+
+type BaseModelsReturnDataKey<Data, Keys> = Promise<
+  BaseModelsError | BaseModelsSuccessKey<Data, Keys>
 >;
 
 type RoomsOnUser =
@@ -86,11 +94,15 @@ interface RoomMember extends BaseRoomMember {
   joinedAt: string; // ISODate
 }
 
-interface RoomMemberDB extends BaseRoomMember {
+interface RoomMemberKeys {
   PartitionKey: `ROOM#${string}`; // RoomID // gsi partition key
   SortKey: `MEMBERS#USERID#${string}`;
-  GSISortKey: `MEMBERS#DATE#${string}`; // ISODate // gsi sort
 }
+
+type RoomMemberDB = BaseRoomMember &
+  RoomMemberKeys & {
+    GSISortKey: `MEMBERS#DATE#${string}`; // ISODate // gsi sort
+  };
 
 type FetchRoomMemberSuccess = {
   roomMember: RoomMember;
@@ -102,6 +114,7 @@ type FetchRoomMemberReturn = Promise<BaseModelsError | FetchRoomMemberSuccess>;
 interface FetchRoomMembersSuccess extends BaseModelsSuccess {
   roomMembers: RoomMember[];
   memberCount: number;
+  LastEvaluatedKey: RoomMemberKeys | undefined;
 }
 
 type FetchRoomMembersReturn = Promise<
@@ -112,12 +125,15 @@ type RoomInfoType = {
   RoomID: string;
   roomName: string;
   createdAt: string;
+  roomMemberCount: number;
 };
 
-type RoomInfoDBType = RoomInfoType & {
-  PartitionKey: `ROOM#${string}`; // Room ID
+interface RoomInfoKeys {
+  PartitionKey: `ROOM#${string}`; // RoomID
   SortKey: `METADATA`;
-};
+}
+
+type RoomInfoDBType = RoomInfoType & RoomInfoKeys;
 
 interface FetchRoomSuccessReturn extends BaseModelsSuccess {
   roomInfo: RoomInfoType;
@@ -137,11 +153,15 @@ interface JoinRequest extends BaseJoinRequest {
   sentJoinRequestAt: string;
 }
 
-interface JoinRequestDB extends BaseJoinRequest {
+interface JoinRequestKeys {
   PartitionKey: `ROOM#${string}`; // RoomID
   SortKey: `JOIN_REQUESTS#USERID#${string}`;
-  GSISortKey: `JOIN_REQUESTS#DATE#${string}`;
 }
+
+type JoinRequestDB = BaseJoinRequest &
+  JoinRequestKeys & {
+    GSISortKey: `JOIN_REQUESTS#DATE#${string}`;
+  };
 [];
 
 interface FetchJoinRequestSuccess extends BaseModelsSuccess {
@@ -154,6 +174,7 @@ type FetchJoinRequestReturn = Promise<
 
 interface FetchJoinRequestsSuccess extends BaseModelsSuccess {
   joinRequests: JoinRequest[] | [];
+  LastEvaluatedKey: JoinRequestKeys | undefined;
 }
 
 type FetchJoinRequestsReturn = Promise<
@@ -344,7 +365,10 @@ type RoomMessagesPaginateBy20Return = Promise<
 
 type FetchMessageReturn = BaseModelsReturnTypeData<Message>;
 
-type FetchAllMessagesReturn = BaseModelsReturnTypeData<Message[] | []>;
+type FetchAllMessagesReturn = BaseModelsReturnDataKey<
+  Message[] | [],
+  MessageKeys
+>;
 
 export {
   AuthCodeTokenResponse,
@@ -352,8 +376,10 @@ export {
   BaseModelsReturnType,
   BaseModelsReturnTypeData,
   RoomsOnUser,
+  RoomInfoKeys,
   RoomInfoDBType,
   RoomInfoType,
+  RoomMemberKeys,
   RoomMemberDB,
   RoomMember,
   FetchRoomMemberReturn,
@@ -366,6 +392,7 @@ export {
   FetchUserInfoReturn,
   FetchRoomReturn,
   JoinRequest,
+  JoinRequestKeys,
   JoinRequestDB,
   FetchJoinRequestReturn,
   FetchJoinRequestsReturn,
