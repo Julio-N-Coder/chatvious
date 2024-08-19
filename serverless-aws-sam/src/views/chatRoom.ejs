@@ -3,34 +3,11 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <% if (isProduction) { %>
-    <link
-      rel="stylesheet"
-      href="https://main.chatvious.coding-wielder.com/ejs/styles.css"
-    />
-    <script
-      defer
-      src="https://main.chatvious.coding-wielder.com/ejs/runtime.js"
-    ></script>
-    <script
-      defer
-      src="https://main.chatvious.coding-wielder.com/ejs/navBar.js"
-    ></script>
-    <script
-      defer
-      src="https://main.chatvious.coding-wielder.com/ejs/chatRoom.js"
-    ></script>
-    <script
-      defer
-      src="https://main.chatvious.coding-wielder.com/ejs/ejs.min.js"
-    ></script>
-    <% } else { %>
-    <link rel="stylesheet" href="http://localhost:8040/ejs/styles.css" />
-    <script defer src="http://localhost:8040/ejs/runtime.js"></script>
-    <script defer src="http://localhost:8040/ejs/navBar.js"></script>
-    <script defer src="http://localhost:8040/ejs/chatRoom.js"></script>
-    <script defer src="http://localhost:8040/ejs/ejs.min.js"></script>
-    <% } %>
+    <link rel="stylesheet" href="<%= staticContentUrl %>/ejs/styles.css" />
+    <script defer src="<%= staticContentUrl %>/ejs/runtime.js"></script>
+    <script defer src="<%= staticContentUrl %>/ejs/navBar.js"></script>
+    <script defer src="<%= staticContentUrl %>/ejs/chatRoom.js"></script>
+    <script defer src="<%= staticContentUrl %>/ejs/ejs.min.js"></script>
     <title>Room Page</title>
   </head>
   <body>

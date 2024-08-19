@@ -45,7 +45,6 @@ app.get(`/rooms/${joinedRoomInfo.RoomID}`, (req, res) => {
 app.get(`/rooms/${joinedRoomAdminInfo.RoomID}`, (req, res) => {
   res.render(
     path.resolve("..", "serverless-aws-sam", "src", "views", "roomInfo"),
-    // change
     fakeJoinRoomInfoPageAdmin
   );
 });
@@ -57,7 +56,6 @@ app.get("/rooms/randomRoom", (req, res) => {
   );
 });
 
-// add fake chat messages data
 app.get(`/chat-room/${ownedRoomInfo.RoomID}`, (req, res) => {
   res.render(
     path.resolve("..", "serverless-aws-sam", "src", "views", "chatRoom"),

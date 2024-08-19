@@ -14,21 +14,21 @@ function getCookie(cookieName: string) {
   return "";
 }
 
+const client_id = process.env.USER_POOL_CLIENT_ID;
+const cognito_domain_url = process.env.COGNITO_DOMAIN_URL;
+
 async function signOut() {
   const refresh_token = getCookie("refresh_token");
 
   try {
-    const response = await fetch(
-      "https://chatvious.auth.us-west-1.amazoncognito.com/oauth2/revoke",
-      {
-        method: "POST",
-        headers: {
-          Accept: "application/json",
-          "Content-Type": "application/x-www-form-urlencoded",
-        },
-        body: `token=${refresh_token}&client_id=jet3kkqp4jnkm1v3ta7htu75g`,
-      }
-    );
+    const response = await fetch(`${cognito_domain_url}/oauth2/revoke`, {
+      method: "POST",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body: `token=${refresh_token}&client_id=${client_id}`,
+    });
 
     if (response.ok === true) {
       document.cookie =

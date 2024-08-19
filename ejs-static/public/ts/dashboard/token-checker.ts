@@ -1,22 +1,22 @@
 import { setCookie, getCookie } from "../utilities/cookies";
 import { TokenRefresh } from "../types";
 
+const client_id = process.env.USER_POOL_CLIENT_ID;
+const cognito_domain_url = process.env.COGNITO_DOMAIN_URL;
+
 // handle sign out error to show ui a problem.
 async function signOut() {
   const refresh_token = getCookie("refresh_token");
 
   try {
-    const response = await fetch(
-      "https://chatvious.auth.us-west-1.amazoncognito.com/oauth2/revoke",
-      {
-        method: "POST",
-        headers: {
-          Accept: "application/json",
-          "Content-Type": "application/x-www-form-urlencoded",
-        },
-        body: `token=${refresh_token}&client_id=jet3kkqp4jnkm1v3ta7htu75g`,
-      }
-    );
+    const response = await fetch(`${cognito_domain_url}/oauth2/revoke`, {
+      method: "POST",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body: `token=${refresh_token}&client_id=${client_id}`,
+    });
 
     if (response.ok === true) {
       document.cookie =
@@ -56,16 +56,13 @@ setInterval(async () => {
     const refresh_token = getCookie("refresh_token");
 
     try {
-      const tokenResponse = await fetch(
-        "https://chatvious.auth.us-west-1.amazoncognito.com/oauth2/token",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/x-www-form-urlencoded",
-          },
-          body: `grant_type=refresh_token&client_id=jet3kkqp4jnkm1v3ta7htu75g&refresh_token=${refresh_token}`,
-        }
-      );
+      const tokenResponse = await fetch(`${cognito_domain_url}/oauth2/token`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body: `grant_type=refresh_token&client_id=${client_id}&refresh_token=${refresh_token}`,
+      });
       const tokenData: TokenRefresh = await tokenResponse.json();
 
       setCookie("access_token", tokenData.access_token, tokenData.expires_in);

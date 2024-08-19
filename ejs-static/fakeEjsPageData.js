@@ -57,6 +57,7 @@ const fakeDashboardData = {
   profileColor: fakeUserInfo.profileColor,
   navJoinRequest: [],
   isProduction: false,
+  staticContentUrl: "http://localhost:8040",
 };
 
 const fakeJoinRoomInfoPage = {
@@ -96,6 +97,7 @@ const fakeJoinRoomInfoPage = {
   profileColor: fakeUserInfo.profileColor,
   username: fakeUserInfo.userName,
   isProduction: false,
+  staticContentUrl: "http://localhost:8040",
 };
 
 const fakeJoinRoomInfoPageMember = {
@@ -135,6 +137,7 @@ const fakeJoinRoomInfoPageMember = {
   profileColor: fakeUserInfo.profileColor,
   username: fakeUserInfo.userName,
   isProduction: false,
+  staticContentUrl: "http://localhost:8040",
 };
 
 const fakeJoinRoomInfoPageOwner = {
@@ -192,6 +195,7 @@ const fakeJoinRoomInfoPageOwner = {
   profileColor: fakeUserInfo.profileColor,
   username: fakeUserInfo.userName,
   isProduction: false,
+  staticContentUrl: "http://localhost:8040",
 };
 
 const fakeJoinRoomInfoPageAdmin = {
@@ -248,6 +252,7 @@ const fakeJoinRoomInfoPageAdmin = {
   profileColor: fakeUserInfo.profileColor,
   username: fakeUserInfo.userName,
   isProduction: false,
+  staticContentUrl: "http://localhost:8040",
 };
 
 const roomMessages = [
@@ -291,6 +296,7 @@ const fakeChatRoomOwnerData = {
   profileColor: fakeUserInfo.profileColor,
   navJoinRequest: [],
   isProduction: false,
+  staticContentUrl: "http://localhost:8040",
 };
 
 const fakeChatRoomMemberData = {
@@ -300,6 +306,7 @@ const fakeChatRoomMemberData = {
   profileColor: fakeUserInfo.profileColor,
   navJoinRequest: [],
   isProduction: false,
+  staticContentUrl: "http://localhost:8040",
 };
 
 export {

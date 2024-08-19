@@ -3,35 +3,17 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <% if (isProduction) { %>
-    <link
-      rel="stylesheet"
-      href="https://main.chatvious.coding-wielder.com/ejs/styles.css"
-    />
-    <script
-      defer
-      src="https://main.chatvious.coding-wielder.com/ejs/runtime.js"
-    ></script>
-    <script
-      defer
-      src="https://main.chatvious.coding-wielder.com/ejs/navBar.js"
-    ></script>
-    <script
-      defer
-      src="https://main.chatvious.coding-wielder.com/ejs/dashboard.js"
-    ></script>
-    <% } else { %>
-    <link rel="stylesheet" href="http://localhost:8040/ejs/styles.css" />
-    <script defer src="http://localhost:8040/ejs/runtime.js"></script>
-    <script defer src="http://localhost:8040/ejs/navBar.js"></script>
-    <script defer src="http://localhost:8040/ejs/dashboard.js"></script>
-    <% } %>
+    <link rel="stylesheet" href="<%= staticContentUrl %>/ejs/styles.css" />
+    <script defer src="<%= staticContentUrl %>/ejs/runtime.js"></script>
+    <script defer src="<%= staticContentUrl %>/ejs/navBar.js"></script>
+    <script defer src="<%= staticContentUrl %>/ejs/dashboard.js"></script>
     <title>DashBoard</title>
   </head>
   <body class="min-h-screen bg-base-300">
     <div class="roboto antialiased">
       <%- include('./components/navBar', { profileColor, username,
-      anyJoinRequest: false, navJoinRequest, isProduction}); %>
+      anyJoinRequest: false, navJoinRequest, isProduction, staticContentUrl});
+      %>
       <div
         class="xl:container mx-auto rounded-b px-2 pb-2 pt-4 flex gap-2 max-[1122px]:flex-col"
       >
@@ -65,18 +47,10 @@
     <!--prettier-ignore-->
     <%- include("./components/dashboard/make-join-room-model", { type: "create" }) %>
     <%- include("./components/dashboard/make-join-room-model", { type: "join" }) %>
-    <% if (isProduction) { %>
     <script
       defer
-      src="https://main.chatvious.coding-wielder.com/ejs/clientCreateRoom.js"
+      src="<%= staticContentUrl %>/ejs/clientCreateRoom.js"
     ></script>
-    <script
-      defer
-      src="https://main.chatvious.coding-wielder.com/ejs/clientJoinRoom.js"
-    ></script>
-    <% } else { %>
-    <script defer src="http://localhost:8040/ejs/clientCreateRoom.js"></script>
-    <script defer src="http://localhost:8040/ejs/clientJoinRoom.js"></script>
-    <% } %>
+    <script defer src="<%= staticContentUrl %>/ejs/clientJoinRoom.js"></script>
   </body>
 </html>

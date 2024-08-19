@@ -3,24 +3,9 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <% if (isProduction) { %>
-    <link
-      rel="stylesheet"
-      href="https://main.chatvious.coding-wielder.com/ejs/styles.css"
-    />
-    <script
-      defer
-      src="https://main.chatvious.coding-wielder.com/ejs/runtime.js"
-    ></script>
-    <script
-      defer
-      src="https://main.chatvious.coding-wielder.com/ejs/navBar.js"
-    ></script>
-    <% } else { %>
-    <link rel="stylesheet" href="http://localhost:8040/ejs/styles.css" />
-    <script defer src="http://localhost:8040/ejs/runtime.js"></script>
-    <script defer src="http://localhost:8040/ejs/navBar.js"></script>
-    <% } %>
+    <link rel="stylesheet" href="<%= staticContentUrl %>/ejs/styles.css" />
+    <script defer src="<%= staticContentUrl %>/ejs/runtime.js"></script>
+    <script defer src="<%= staticContentUrl %>/ejs/navBar.js"></script>
     <title>Document</title>
   </head>
   <body class="min-h-screen bg-base-300">
@@ -200,55 +185,29 @@
         </div>
       </div>
     </div>
-    <% if (isProduction) { %> <% if (isOwner || isAdmin) { %>
+    <% if (isOwner || isAdmin) { %>
     <script
       defer
-      src="https://main.chatvious.coding-wielder.com/ejs/roomInfoKickUser.js"
+      src="<%= staticContentUrl %>/ejs/roomInfoKickUser.js"
     ></script>
     <% if (joinRequests.length > 0) { %>
     <script
       defer
-      src="https://main.chatvious.coding-wielder.com/ejs/clientAcceptOrReject.js"
+      src="<%= staticContentUrl %>/ejs/clientAcceptOrReject.js"
     ></script>
     <% } %> <% } else { %>
     <script
       defer
-      src="https://main.chatvious.coding-wielder.com/ejs/roomInfoJoinRequest.js"
+      src="<%= staticContentUrl %>/ejs/roomInfoJoinRequest.js"
     ></script>
     <% } %> <% if (isOwner) { %>
+    <script defer src="<%= staticContentUrl %>/ejs/deleteRoom.js"></script>
     <script
       defer
-      src="https://main.chatvious.coding-wielder.com/ejs/deleteRoom.js"
+      src="<%= staticContentUrl %>/ejs/promoteOrDemoteUser.js"
     ></script>
     <% } else if (isMember || isAdmin) { %>
-    <script
-      defer
-      src="https://main.chatvious.coding-wielder.com/ejs/leaveRoom.js"
-    ></script>
-    <script
-      defer
-      src="https://main.chatvious.coding-wielder.com/ejs/promoteOrDemoteUser.js"
-    ></script>
-    <% } %> <% } else { %> <% if (isOwner || isAdmin) { %>
-    <script defer src="http://localhost:8040/ejs/roomInfoKickUser.js"></script>
-    <% if (joinRequests.length > 0) { %>
-    <script
-      defer
-      src="http://localhost:8040/ejs/clientAcceptOrReject.js"
-    ></script>
-    <% } %> <% } else { %>
-    <script
-      defer
-      src="http://localhost:8040/ejs/roomInfoJoinRequest.js"
-    ></script>
-    <% } %> <% if (isOwner) { %>
-    <script defer src="http://localhost:8040/ejs/deleteRoom.js"></script>
-    <script
-      defer
-      src="http://localhost:8040/ejs/promoteOrDemoteUser.js"
-    ></script>
-    <% } else if (isMember || isAdmin) { %>
-    <script defer src="http://localhost:8040/ejs/leaveRoom.js"></script>
-    <% } %> <% } %>
+    <script defer src="<%= staticContentUrl %>/ejs/leaveRoom.js"></script>
+    <% } %>
   </body>
 </html>

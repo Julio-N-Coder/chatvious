@@ -17,6 +17,8 @@ export const handler = async (
     };
   }
 
+  const staticContentUrl =
+    process.env.SUB_DOMAIN_URL || "https://main.chatvious.coding-wielder.com";
   const userInfo = navUserInfoResponse.data;
   const dashboardHTML = await ejs.renderFile("./views/dashboard.ejs", {
     ownedRooms: userInfo.ownedRooms,
@@ -25,6 +27,7 @@ export const handler = async (
     profileColor: userInfo.profileColor,
     navJoinRequest: userInfo.navJoinRequests,
     isProduction: isProduction(),
+    staticContentUrl,
   });
 
   const baseSuccess: APIGatewayProxyResult = {
