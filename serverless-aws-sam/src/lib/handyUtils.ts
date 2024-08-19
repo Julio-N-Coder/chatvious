@@ -1,4 +1,8 @@
-import { APIGatewayEvent, APIGatewayProxyResult } from "aws-lambda";
+import {
+  APIGatewayAuthorizerResult,
+  APIGatewayEvent,
+  APIGatewayProxyResult,
+} from "aws-lambda";
 import { CognitoJwtVerifier } from "aws-jwt-verify";
 import cookie from "cookie";
 import { CognitoAccessTokenPayload } from "aws-jwt-verify/jwt-model";
@@ -61,8 +65,51 @@ async function addSetCookieHeaders(
   return returnSuccessObject;
 }
 
+function buildPolicy(
+  principalId: string,
+  effect: "Deny" | "Allow",
+  methodArn: string,
+  context?: {
+    claims: any;
+    scopes?: any;
+    access_token?: string;
+    id_token?: string;
+  }
+): APIGatewayAuthorizerResult {
+  if (context) {
+    return {
+      principalId: principalId,
+      policyDocument: {
+        Version: "2012-10-17",
+        Statement: [
+          {
+            Action: "execute-api:Invoke",
+            Effect: effect,
+            Resource: methodArn,
+          },
+        ],
+      },
+      context: context,
+    };
+  } else {
+    return {
+      principalId: principalId,
+      policyDocument: {
+        Version: "2012-10-17",
+        Statement: [
+          {
+            Action: "execute-api:Invoke",
+            Effect: effect,
+            Resource: methodArn,
+          },
+        ],
+      },
+    };
+  }
+}
+
 function isProduction() {
   return process.env.NODE_ENV === "production";
 }
 
-export { isProduction, addSetCookieHeaders };
+export { isProduction, addSetCookieHeaders, buildPolicy };

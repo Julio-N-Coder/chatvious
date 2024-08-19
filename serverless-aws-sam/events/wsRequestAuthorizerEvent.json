@@ -54,7 +54,7 @@
       ]
   },
   "queryStringParameters": {
-      "QueryString1": "queryValue1"
+      "tokens": "queryValue1"
   },
   "multiValueQueryStringParameters": {
       "QueryString1": [

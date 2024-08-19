@@ -1,7 +1,7 @@
 import { APIGatewayAuthorizerResult } from "aws-lambda";
 import { APIGatewayWebSocketAuthorizerEvent } from "../../types/types.js";
 import { CognitoJwtVerifier } from "aws-jwt-verify";
-import cookie from "cookie";
+import { buildPolicy } from "../../lib/handyUtils.js";
 
 interface Tokens {
   access_token?: string;
@@ -64,53 +64,12 @@ export const handler = async (
   return buildPolicy("Unauthorized", "Deny", methodArn);
 };
 
-function buildPolicy(
-  principalId: string,
-  effect: "Deny" | "Allow",
-  methodArn: string,
-  context?: {
-    claims: any;
-    scopes?: any;
-  }
-): APIGatewayAuthorizerResult {
-  if (context) {
-    return {
-      principalId: principalId,
-      policyDocument: {
-        Version: "2012-10-17",
-        Statement: [
-          {
-            Action: "execute-api:Invoke",
-            Effect: effect,
-            Resource: methodArn,
-          },
-        ],
-      },
-      context: context,
-    };
-  } else {
-    return {
-      principalId: principalId,
-      policyDocument: {
-        Version: "2012-10-17",
-        Statement: [
-          {
-            Action: "execute-api:Invoke",
-            Effect: effect,
-            Resource: methodArn,
-          },
-        ],
-      },
-    };
-  }
-}
-
 function decomposeTokensString(
-  cookieString: string
+  tokenQueryString: string
 ): Tokens | { error: string } {
-  let cookiesWithTokens;
+  let parsedOjbWithTokens;
   try {
-    cookiesWithTokens = cookie.parse(cookieString);
+    parsedOjbWithTokens = JSON.parse(tokenQueryString);
   } catch (err) {
     return {
       error: "Invalid token format",
@@ -118,8 +77,8 @@ function decomposeTokensString(
   }
 
   const tokens = {
-    access_token: cookiesWithTokens.access_token || undefined,
-    id_token: cookiesWithTokens.id_token || undefined,
+    access_token: parsedOjbWithTokens.access_token,
+    id_token: parsedOjbWithTokens.id_token,
   };
 
   return tokens;

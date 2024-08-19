@@ -6,6 +6,7 @@ import { CognitoJwtVerifier } from "aws-jwt-verify";
 import { decomposeUnverifiedJwt } from "aws-jwt-verify/jwt";
 import cookie from "cookie";
 import { TokenRefresh } from "../../types/types.js";
+import { buildPolicy } from "../../lib/handyUtils.js";
 
 interface Tokens {
   refresh_token: string;
@@ -109,49 +110,6 @@ export const handler = async (
   }
   return buildPolicy("Unauthorized", "Deny", methodArn);
 };
-
-function buildPolicy(
-  principalId: string,
-  effect: "Deny" | "Allow",
-  methodArn: string,
-  context?: {
-    claims: any;
-    scopes?: any;
-    access_token?: string;
-    id_token?: string;
-  }
-): APIGatewayAuthorizerResult {
-  if (context) {
-    return {
-      principalId: principalId,
-      policyDocument: {
-        Version: "2012-10-17",
-        Statement: [
-          {
-            Action: "execute-api:Invoke",
-            Effect: effect,
-            Resource: methodArn,
-          },
-        ],
-      },
-      context: context,
-    };
-  } else {
-    return {
-      principalId: principalId,
-      policyDocument: {
-        Version: "2012-10-17",
-        Statement: [
-          {
-            Action: "execute-api:Invoke",
-            Effect: effect,
-            Resource: methodArn,
-          },
-        ],
-      },
-    };
-  }
-}
 
 function decomposeTokensString(
   cookieString: string

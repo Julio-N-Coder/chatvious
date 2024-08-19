@@ -3,10 +3,8 @@ import { jest, describe, test, expect } from "@jest/globals";
 import tokenAuthorizerEventBase from "../../../../events/token_authorizer_event.json";
 import { CognitoJwtVerifier } from "aws-jwt-verify";
 import cookie from "cookie";
-import {
-  APIGatewayAuthorizerResult,
-  APIGatewayTokenAuthorizerEvent,
-} from "aws-lambda";
+import { APIGatewayTokenAuthorizerEvent } from "aws-lambda";
+import { buildPolicy } from "../../../lib/handyUtils.js";
 
 let tokenAuthorizerEvent: APIGatewayTokenAuthorizerEvent = JSON.parse(
   JSON.stringify(tokenAuthorizerEventBase)
@@ -74,46 +72,3 @@ describe("tests for api gateways lambda-authorizer", () => {
   //   console.log("result", result);
   // });
 });
-
-function buildPolicy(
-  principalId: string,
-  effect: "Deny" | "Allow",
-  methodArn: string,
-  context?: {
-    claims: any;
-    scopes?: any;
-    access_token?: string;
-    id_token?: string;
-  }
-): APIGatewayAuthorizerResult {
-  if (context) {
-    return {
-      principalId: principalId,
-      policyDocument: {
-        Version: "2012-10-17",
-        Statement: [
-          {
-            Action: "execute-api:Invoke",
-            Effect: effect,
-            Resource: methodArn,
-          },
-        ],
-      },
-      context: context,
-    };
-  } else {
-    return {
-      principalId: principalId,
-      policyDocument: {
-        Version: "2012-10-17",
-        Statement: [
-          {
-            Action: "execute-api:Invoke",
-            Effect: effect,
-            Resource: methodArn,
-          },
-        ],
-      },
-    };
-  }
-}
