@@ -16,17 +16,6 @@ import {
 import { APIGatewayProxyWebsocketEventV2 } from "aws-lambda";
 import { UserInfo, RoomInfoType } from "../../../types/types.js";
 
-jest.mock("@aws-sdk/client-apigatewaymanagementapi", () => {
-  return {
-    ApiGatewayManagementApiClient: jest.fn().mockImplementation(() => {
-      return {
-        send: jest.fn(),
-      };
-    }),
-    PostToConnectionCommand: jest.fn(),
-  };
-});
-
 let restAPIEvent = restAPIEventBase as APIGatewayProxyWebsocketEventV2;
 let restAPIEventCopy: APIGatewayProxyWebsocketEventV2;
 const connectionId = restAPIEvent.requestContext.connectionId;

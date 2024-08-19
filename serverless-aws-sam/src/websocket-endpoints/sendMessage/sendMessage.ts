@@ -82,7 +82,6 @@ export const handler = async (event: APIGatewayProxyWebsocketEventV2) => {
 
   // loop through them to send messages to each of them. even the connected user
   const messageData = {
-    // send userName and profileColor
     action: body.action,
     sender: {
       userName,
@@ -95,7 +94,7 @@ export const handler = async (event: APIGatewayProxyWebsocketEventV2) => {
   };
   const messageDataString = JSON.stringify(messageData);
 
-  allRoomConnections.forEach(async (connection) => {
+  for (const connection of allRoomConnections) {
     const requestParams = {
       ConnectionId: connection.connectionId,
       Data: messageDataString,
@@ -103,11 +102,10 @@ export const handler = async (event: APIGatewayProxyWebsocketEventV2) => {
     const command = new PostToConnectionCommand(requestParams);
     try {
       await client.send(command);
-    } catch (error) {
-      console.log("Error sending message");
-      console.log(error);
+    } catch (error: any) {
+      console.log("Error sending message", error.$response);
     }
-  });
+  }
 
   // store the message
   const messageResponse = await messagesManagerDB.storeMessage(

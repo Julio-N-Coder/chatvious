@@ -161,7 +161,6 @@ describe("A test for the custom joinRoom route on the api gateway websocket", ()
     }
 
     const initialConnectionData = fetchInitialConnectionResponse.data;
-    console.log(initialConnectionData);
     expect(initialConnectionData).toHaveProperty("RoomID", RoomID);
     expect(initialConnectionData).toHaveProperty("userID", userID);
     expect(initialConnectionData).toHaveProperty("connectionId", connectionId);
