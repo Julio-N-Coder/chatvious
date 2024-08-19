@@ -23,6 +23,8 @@ if (dynamodbType === "local") {
   process.env.USER_POOL_ID = "XXXXXXXXXXXXXXXXXXX";
   process.env.USER_POOL_CLIENT_ID = "XXXXXXXXXXXXXXXXXXX";
   process.env.COGNITO_DOMAIN = "XXXXXXXXXXXXXXXXXXX";
+  process.env.CALLBACK_URL = "http://localhost:3000/callback";
+  process.env.DOMAIN = "localhost";
 } else {
   console.log("Using remote DynamoDB");
   process.env.DYNAMODB_OPTIONS = JSON.stringify({});

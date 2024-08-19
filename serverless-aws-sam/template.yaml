@@ -1189,7 +1189,7 @@ Resources:
         - http://localhost:3000/callback
       LogoutURLs:
         - https://main.chatvious.coding-wielder.com
-        - http://localhost:3000
+        - http://localhost:8040
       AllowedOAuthFlows:
         - code
       AllowedOAuthScopes:

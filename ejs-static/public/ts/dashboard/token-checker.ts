@@ -26,9 +26,7 @@ async function signOut() {
       document.cookie =
         "refresh_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
 
-      const redirect_uri = process.env.IS_DEV_SERVER
-        ? "http://localhost:8040/"
-        : (process.env.SUB_DOMAIN_URL as string);
+      const redirect_uri = process.env.SUB_DOMAIN_URL as string;
 
       window.location.href = redirect_uri;
     }
