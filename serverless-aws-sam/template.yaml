@@ -571,6 +571,46 @@ Resources:
         Target: es2020
         Sourcemap: false
 
+  deleteAccount:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: Chatvious_deleteAccount
+      Description: Deletes a user account from the chatvious cognito userPool
+      CodeUri: ./src
+      Handler: userRoutes/deleteAccount/deleteAccount.handler
+      Runtime: nodejs20.x
+      MemorySize: 128
+      Timeout: 6
+      Architectures:
+        - x86_64
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref ChatviousTable
+        - Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Action:
+                - cognito-idp:AdminDeleteUser
+              Resource: !GetAtt UserPool.Arn
+      Events:
+        ChatviousRestApiPOSTuserdeleteAccount:
+          Type: Api
+          Properties:
+            Path: /user/deleteAccount
+            Method: POST
+            RestApiId: !Ref ChatviousRestApi
+      Environment:
+        Variables:
+          CHATVIOUSTABLE_TABLE_NAME: !Ref ChatviousTable
+          CHATVIOUSTABLE_TABLE_ARN: !GetAtt ChatviousTable.Arn
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        Minify: true
+        Bundle: true
+        Target: es2020
+        Sourcemap: false
+
   callback:
     Type: AWS::Serverless::Function
     Properties:
@@ -1198,6 +1238,7 @@ Metadata:
         - promoteOrDemoteUser
         - Group2
         - fetchNewMessages
+        - deleteAccount
     Group2:
       Label: EJS Page Renderers
       Members:
@@ -1256,6 +1297,9 @@ Outputs:
   UserPoolClientId:
     Description: Cognito User Pool Application Client ID
     Value: !Ref UserPoolClient
+  UserPoolDomain:
+    Description: Cognito User Pool Domain
+    Value: !Ref UserPoolDomain
   CognitoLoginURL:
     Description: Cognito User Pool Application Client Hosted Login UI URL
     Value: !Sub https://${UserPoolClient}.auth.${AWS::Region}.amazoncognito.com/login?client_id=${UserPoolClient}&response_type=code&redirect_uri=https://chatvious.coding-wielder.com/main/callback

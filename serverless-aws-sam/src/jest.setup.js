@@ -25,6 +25,9 @@ if (dynamodbType === "local") {
   process.env.COGNITO_DOMAIN = "XXXXXXXXXXXXXXXXXXX";
   process.env.CALLBACK_URL = "http://localhost:3000/callback";
   process.env.DOMAIN = "localhost";
+  process.env.DOMAIN_URL = "https://chatvious.coding-wielder.com/main";
+  process.env.SUB_DOMAIN = "main.chatvious.coding-wielder.com";
+  process.env.SUB_DOMAIN_URL = "https://main.chatvious.coding-wielder.com";
 } else {
   console.log("Using remote DynamoDB");
   process.env.DYNAMODB_OPTIONS = JSON.stringify({});
