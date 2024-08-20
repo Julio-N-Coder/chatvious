@@ -11,6 +11,7 @@ Globals:
         DOMAIN_URL: https://chatvious.coding-wielder.com/main
         SUB_DOMAIN: main.chatvious.coding-wielder.com
         SUB_DOMAIN_URL: https://main.chatvious.coding-wielder.com
+        DYNAMODB_OPTIONS: '{}'
         IS_LOCAL_SERVER: false
     LoggingConfig:
       LogFormat: JSON
@@ -297,7 +298,7 @@ Resources:
         Minify: true
         Bundle: true
         Target: es2020
-        Sourcemap: true
+        Sourcemap: false
 
   joinRoom:
     Type: AWS::Serverless::Function
@@ -331,7 +332,7 @@ Resources:
         Minify: true
         Bundle: true
         Target: es2020
-        Sourcemap: true
+        Sourcemap: false
 
   acceptJoinRequest:
     Type: AWS::Serverless::Function
@@ -365,7 +366,7 @@ Resources:
         Minify: true
         Bundle: true
         Target: es2020
-        Sourcemap: true
+        Sourcemap: false
 
   rejectJoinRequest:
     Type: AWS::Serverless::Function
@@ -399,7 +400,7 @@ Resources:
         Minify: true
         Bundle: true
         Target: es2020
-        Sourcemap: true
+        Sourcemap: false
 
   kickMember:
     Type: AWS::Serverless::Function
@@ -433,7 +434,7 @@ Resources:
         Minify: true
         Bundle: true
         Target: es2020
-        Sourcemap: true
+        Sourcemap: false
 
   leaveRoom:
     Type: AWS::Serverless::Function
@@ -467,7 +468,7 @@ Resources:
         Minify: true
         Bundle: true
         Target: es2020
-        Sourcemap: true
+        Sourcemap: false
 
   deleteRoom:
     Type: AWS::Serverless::Function
@@ -501,7 +502,7 @@ Resources:
         Minify: true
         Bundle: true
         Target: es2020
-        Sourcemap: true
+        Sourcemap: false
 
   promoteOrDemoteUser:
     Type: AWS::Serverless::Function
@@ -535,7 +536,7 @@ Resources:
         Minify: true
         Bundle: true
         Target: es2020
-        Sourcemap: true
+        Sourcemap: false
 
   fetchNewMessages:
     Type: AWS::Serverless::Function
@@ -568,7 +569,7 @@ Resources:
         Minify: true
         Bundle: true
         Target: es2020
-        Sourcemap: true
+        Sourcemap: false
 
   callback:
     Type: AWS::Serverless::Function
@@ -604,7 +605,7 @@ Resources:
         Minify: true
         Bundle: true
         Target: es2020
-        Sourcemap: true
+        Sourcemap: false
 
   LambdaAuthorizer:
     Type: AWS::Serverless::Function
@@ -630,7 +631,7 @@ Resources:
         Minify: true
         Bundle: true
         Target: es2020
-        Sourcemap: true
+        Sourcemap: false
 
   ChatviousRestApi:
     Type: AWS::Serverless::Api
@@ -641,6 +642,7 @@ Resources:
         Authorizers:
           LambdaAuthorizer:
             FunctionArn: !GetAtt LambdaAuthorizer.Arn
+            FunctionPayloadType: TOKEN
             Identity:
               Header: Cookie
               ReauthorizeEvery: 0
@@ -650,101 +652,6 @@ Resources:
           ResourcePath: /*
           ThrottlingRateLimit: 10
           ThrottlingBurstLimit: 15
-      DefinitionBody:
-        openapi: '3.0'
-        info: {}
-        paths:
-          /dashboard:
-            get:
-              x-amazon-apigateway-integration:
-                httpMethod: GET
-                type: aws_proxy
-                uri: !Sub arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${dashboardPage.Arn}/invocations
-              responses: {}
-          /callback:
-            get:
-              x-amazon-apigateway-integration:
-                httpMethod: GET
-                type: aws_proxy
-                uri: !Sub arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${callback.Arn}/invocations
-              responses: {}
-          /rooms/createRoom:
-            post:
-              x-amazon-apigateway-integration:
-                httpMethod: POST
-                type: aws_proxy
-                uri: !Sub arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${createRoom.Arn}/invocations
-              responses: {}
-          /rooms/joinRoom:
-            post:
-              x-amazon-apigateway-integration:
-                httpMethod: POST
-                type: aws_proxy
-                uri: !Sub arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${joinRoom.Arn}/invocations
-              responses: {}
-          /rooms/{RoomID}:
-            get:
-              x-amazon-apigateway-integration:
-                httpMethod: GET
-                type: aws_proxy
-                uri: !Sub arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${roomInfoPage.Arn}/invocations
-              responses: {}
-          /rooms/acceptJoinRequest:
-            post:
-              x-amazon-apigateway-integration:
-                httpMethod: POST
-                type: aws_proxy
-                uri: !Sub arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${acceptJoinRequest.Arn}/invocations
-              responses: {}
-          /rooms/rejectJoinRequest:
-            post:
-              x-amazon-apigateway-integration:
-                httpMethod: POST
-                type: aws_proxy
-                uri: !Sub arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${rejectJoinRequest.Arn}/invocations
-              responses: {}
-          /rooms/kickMember:
-            post:
-              x-amazon-apigateway-integration:
-                httpMethod: POST
-                type: aws_proxy
-                uri: !Sub arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${kickMember.Arn}/invocations
-              responses: {}
-          /rooms/leaveRoom:
-            post:
-              x-amazon-apigateway-integration:
-                httpMethod: POST
-                type: aws_proxy
-                uri: !Sub arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${leaveRoom.Arn}/invocations
-              responses: {}
-          /rooms/deleteRoom:
-            post:
-              x-amazon-apigateway-integration:
-                httpMethod: POST
-                type: aws_proxy
-                uri: !Sub arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${deleteRoom.Arn}/invocations
-              responses: {}
-          /chat-room/{RoomID}:
-            get:
-              x-amazon-apigateway-integration:
-                httpMethod: GET
-                type: aws_proxy
-                uri: !Sub arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${chatRoom.Arn}/invocations
-              responses: {}
-          /rooms/promoteOrDemoteUser:
-            post:
-              x-amazon-apigateway-integration:
-                httpMethod: POST
-                type: aws_proxy
-                uri: !Sub arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${promoteOrDemoteUser.Arn}/invocations
-              responses: {}
-          /rooms/fetchNewMessages:
-            get:
-              x-amazon-apigateway-integration:
-                httpMethod: POST
-                type: aws_proxy
-                uri: !Sub arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${fetchNewMessages.Arn}/invocations
-              responses: {}
       EndpointConfiguration:
         Type: REGIONAL
       Domain:
@@ -796,7 +703,7 @@ Resources:
         Minify: true
         Bundle: true
         Target: es2020
-        Sourcemap: true
+        Sourcemap: false
 
   WSConnect:
     Type: AWS::Serverless::Function
@@ -823,7 +730,7 @@ Resources:
         Minify: true
         Bundle: true
         Target: es2020
-        Sourcemap: true
+        Sourcemap: false
 
   WSDisconnect:
     Type: AWS::Serverless::Function
@@ -851,7 +758,7 @@ Resources:
         Minify: true
         Bundle: true
         Target: es2020
-        Sourcemap: true
+        Sourcemap: false
 
   joinRoomWS:
     Type: AWS::Serverless::Function
@@ -879,7 +786,7 @@ Resources:
         Minify: true
         Bundle: true
         Target: es2020
-        Sourcemap: true
+        Sourcemap: false
 
   sendMessageWS:
     Type: AWS::Serverless::Function
@@ -907,7 +814,7 @@ Resources:
         Minify: true
         Bundle: true
         Target: es2020
-        Sourcemap: true
+        Sourcemap: false
 
   WebsocketApi:
     Type: AWS::ApiGatewayV2::Api
@@ -1079,8 +986,8 @@ Resources:
   saveUserDataFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: src/cognito/post-signUp-trigger/
-      Handler: saveUserData.handler
+      CodeUri: ./src
+      Handler: cognito/post-signUp-trigger/saveUserData.handler
       Runtime: nodejs20.x
       MemorySize: 128
       Timeout: 4
@@ -1104,7 +1011,7 @@ Resources:
       BuildProperties:
         Minify: true
         Target: es2020
-        Sourcemap: true
+        Sourcemap: false
 
   CognitoPreSignUp:
     Type: AWS::Serverless::Function
@@ -1129,7 +1036,7 @@ Resources:
         Minify: true
         Bundle: true
         Target: es2020
-        Sourcemap: true
+        Sourcemap: false
 
   UserPool:
     Type: AWS::Cognito::UserPool

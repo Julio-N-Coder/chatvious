@@ -120,6 +120,14 @@ const fakeJoinRoomInfoPageMember = {
       joinedAt: "2024-08-02T21:34:22.328Z",
     },
     {
+      userID: "FakeMemberID",
+      userName: "FakeMemberID",
+      RoomID: joinedRoomInfo.RoomID,
+      RoomUserStatus: "MEMBER",
+      profileColor: "yellow",
+      joinedAt: "2024-08-02T21:34:22.328Z",
+    },
+    {
       userID: fakeUserInfo.userID,
       userName: fakeUserInfo.userName,
       RoomID: joinedRoomInfo.RoomID,

@@ -40,16 +40,10 @@ const config = {
     }),
     new webpack.DefinePlugin({
       "process.env.IS_DEV_SERVER": JSON.stringify(true),
-      "process.env.DOMAIN": JSON.stringify("chatvious.coding-wielder.com"),
-      "process.env.DOMAIN_URL": JSON.stringify(
-        "https://chatvious.coding-wielder.com/main"
-      ),
-      "process.env.SUB_DOMAIN": JSON.stringify(
-        "main.chatvious.coding-wielder.com"
-      ),
-      "process.env.SUB_DOMAIN_URL": JSON.stringify(
-        "https://main.chatvious.coding-wielder.com"
-      ),
+      "process.env.DOMAIN": JSON.stringify("localhost"),
+      "process.env.DOMAIN_URL": JSON.stringify("http://localhost:3000"),
+      "process.env.SUB_DOMAIN": JSON.stringify("localhost"),
+      "process.env.SUB_DOMAIN_URL": JSON.stringify("http://localhost:8040"),
       // update these values below once deployed
       "process.env.USER_POOL_ID": JSON.stringify("us-west-1_iJn1nk3N1"),
       "process.env.USER_POOL_CLIENT_ID": JSON.stringify(
