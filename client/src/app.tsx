@@ -85,7 +85,7 @@ export default function App() {
     ctx.shadowOffsetX = 0;
     ctx.shadowOffsetY = 0;
 
-    ctx.font = "150px roboto";
+    ctx.font = "150px 'roboto', sans-serif";
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
 

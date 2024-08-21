@@ -24,7 +24,7 @@ const config = {
       // filename: "./index.html",
     }),
     new webpack.DefinePlugin({
-      "process.env.IS_DEV_SERVER": JSON.stringify(false),
+      "process.env.IS_DEV_SERVER": false,
       "process.env.DOMAIN": JSON.stringify("chatvious.coding-wielder.com"),
       "process.env.DOMAIN_URL": JSON.stringify(
         "https://chatvious.coding-wielder.com/main"

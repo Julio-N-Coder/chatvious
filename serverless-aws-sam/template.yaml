@@ -12,7 +12,7 @@ Globals:
         SUB_DOMAIN: main.chatvious.coding-wielder.com
         SUB_DOMAIN_URL: https://main.chatvious.coding-wielder.com
         DYNAMODB_OPTIONS: '{}'
-        IS_LOCAL_SERVER: false
+        IS_DEV_SERVER: false
     LoggingConfig:
       LogFormat: JSON
 

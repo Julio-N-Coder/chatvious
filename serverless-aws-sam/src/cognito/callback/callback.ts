@@ -62,7 +62,7 @@ export async function handler(
       const domain = process.env.DOMAIN;
       const domainURL = process.env.DOMAIN_URL;
 
-      const secure = process.env.IS_LOCAL_SERVER === "false";
+      const secure = process.env.IS_DEV_SERVER === "false";
       const cookieExpires = new Date(Date.now() + expires_in * 1000);
 
       const access_token_cookie = cookie.serialize(

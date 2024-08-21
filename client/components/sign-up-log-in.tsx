@@ -4,7 +4,7 @@ const client_id = process.env.USER_POOL_CLIENT_ID;
 const cognito_domain_url = process.env.COGNITO_DOMAIN_URL;
 
 export function SignUp({ className }: { className?: string }) {
-  const callbackUrl = process.env.IS_LOCAL_SERVER
+  const callbackUrl = process.env.IS_DEV_SERVER
     ? "http://localhost:3000/callback"
     : "https://chatvious.coding-wielder.com/main/callback";
   return (
@@ -18,7 +18,7 @@ export function SignUp({ className }: { className?: string }) {
 }
 
 export function LogIn({ className }: { className?: string }) {
-  const callbackUrl = process.env.IS_LOCAL_SERVER
+  const callbackUrl = process.env.IS_DEV_SERVER
     ? "http://localhost:3000/callback"
     : "https://chatvious.coding-wielder.com/main/callback";
   return (
