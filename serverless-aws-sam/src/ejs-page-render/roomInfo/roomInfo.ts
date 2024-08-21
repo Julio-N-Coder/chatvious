@@ -82,6 +82,8 @@ export async function handler(
   const navJoinRequest = navUserInfo.navJoinRequests;
   const staticContentUrl =
     process.env.SUB_DOMAIN_URL || "https://main.chatvious.coding-wielder.com";
+  const domainUrl =
+    process.env.DOMAIN_URL || "https://chatvious.coding-wielder.com/main";
 
   if (isOwner || isAdmin) {
     const joinRequestResponse = await roomManager.fetchJoinRequests(RoomID);
@@ -107,6 +109,7 @@ export async function handler(
       username: userName,
       isProduction: isProduction(),
       staticContentUrl,
+      domainUrl,
     });
 
     const ownerAdminSucess = {
@@ -153,6 +156,7 @@ export async function handler(
     username: userName,
     isProduction: isProduction(),
     staticContentUrl,
+    domainUrl,
   });
 
   const memberVisitorSuccess = {

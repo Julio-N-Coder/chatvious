@@ -557,9 +557,8 @@ class RoomManager {
   ): FetchJoinRequestsReturn {
     const joinRequestsCommand = new QueryCommand({
       TableName: tableName,
-      IndexName: "Generic-GSISort-Index",
       KeyConditionExpression:
-        "PartitionKey = :roomsID AND begins_with(GSISortKey, :sortDate)",
+        "PartitionKey = :roomsID AND begins_with(SortKey, :sortDate)",
       ExpressionAttributeValues: {
         ":roomsID": `ROOM#${RoomID}`,
         ":sortDate": "JOIN_REQUESTS#",

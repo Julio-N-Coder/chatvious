@@ -93,8 +93,8 @@ export const handler = async (
     UserPoolId: process.env.USER_POOL_ID,
   });
 
-  const homePage =
-    process.env.SUB_DOMAIN_URL || "https://main.chatvious.coding-wielder.com";
+  // const homePage =
+  //   process.env.SUB_DOMAIN_URL || "https://main.chatvious.coding-wielder.com";
   let adminDeleteUserResponse: AdminDeleteUserCommandOutput;
 
   try {
@@ -121,11 +121,19 @@ export const handler = async (
     };
   }
 
+  const domain = process.env.DOMAIN || "chatvious.coding-wielder.com";
   return {
-    statusCode: 302,
-    headers: {
-      Location: homePage,
+    statusCode: 200,
+    multiValueHeaders: {
+      "Set-Cookie": [
+        `access_token=; Path=/; Domain=${domain}; Expires=Thu, 01 Jan 1970 00:00:00 GMT`,
+        `id_token=; Path=/; Domain=${domain}; Expires=Thu, 01 Jan 1970 00:00:00 GMT`,
+        `refresh_token=; Path=/; Domain=${domain}; Expires=Thu, 01 Jan 1970 00:00:00 GMT`,
+      ],
     },
-    body: "",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ message: "successfully Deleted Account" }),
   };
 };

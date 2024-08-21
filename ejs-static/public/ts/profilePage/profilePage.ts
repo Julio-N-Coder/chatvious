@@ -12,8 +12,6 @@ const deleteRoomButtonLoader = document.getElementById(
   "delete-room-button-loader"
 ) as HTMLElement;
 
-Delete_Account_Model.showModal();
-
 function toggleConfirmDeleteButtonState() {
   deleteAccountConfirmButton.classList.toggle("btn-disabled");
   deleteRoomButtonLoader.classList.toggle("hidden");

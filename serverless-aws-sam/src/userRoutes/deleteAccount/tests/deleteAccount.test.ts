@@ -172,13 +172,12 @@ describe("Tests for the deleteAccount route", () => {
     });
 
     const response = await handler(restAPIEvent);
-    expect(response).toHaveProperty("statusCode", 302);
-    expect(response).toHaveProperty(
-      "headers",
-      expect.objectContaining({
-        Location: homePage,
-      })
-    );
+    expect(response).toHaveProperty("statusCode", 200);
+    expect(response).toHaveProperty("multiValueHeaders");
+    expect(response.multiValueHeaders).toHaveProperty("Set-Cookie");
+
+    const body = JSON.parse(response.body);
+    expect(body).toHaveProperty("message", "successfully Deleted Account");
     expect(CognitoIdentityProviderClient.prototype.send).toHaveBeenCalledTimes(
       1
     );

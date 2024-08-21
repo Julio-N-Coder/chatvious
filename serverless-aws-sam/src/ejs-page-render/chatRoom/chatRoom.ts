@@ -66,6 +66,8 @@ export async function handler(
 
   const staticContentUrl =
     process.env.SUB_DOMAIN_URL || "https://main.chatvious.coding-wielder.com";
+  const domainUrl =
+    process.env.DOMAIN_URL || "https://chatvious.coding-wielder.com/main";
   const userInfo = navUserInfoResponse.data;
   const chatRoomHTML = await ejs.renderFile("./views/chatRoom.ejs", {
     roomMessages,
@@ -75,6 +77,7 @@ export async function handler(
     navJoinRequest: userInfo.navJoinRequests,
     isProduction: isProduction(),
     staticContentUrl,
+    domainUrl,
   });
 
   const response = {
