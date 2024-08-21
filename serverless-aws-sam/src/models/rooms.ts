@@ -115,7 +115,16 @@ class RoomManager {
       };
     }
 
-    const updateUsersResponse = await docClient.send(updateUserRoomCommand);
+    let updateUsersResponse: UpdateCommandOutput;
+    try {
+      updateUsersResponse = await docClient.send(updateUserRoomCommand);
+    } catch (error) {
+      return {
+        error: "Failed to update user",
+        statusCode: 500,
+      };
+    }
+
     const updateStatusCode = updateUsersResponse.$metadata
       .httpStatusCode as number;
     if (updateStatusCode !== 200) {
@@ -404,7 +413,6 @@ class RoomManager {
     try {
       makeRoomResponse = await docClient.send(roomMemberCommand);
     } catch (error) {
-      console.log("add member error", error);
       return { error: "Failed to add Member", statusCode: 500 };
     }
 

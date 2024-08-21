@@ -1,6 +1,7 @@
 import {
   CognitoIdentityProviderClient,
   AdminDeleteUserCommand,
+  AdminDeleteUserCommandOutput,
 } from "@aws-sdk/client-cognito-identity-provider";
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { userManager } from "../../models/users.js";
@@ -94,17 +95,12 @@ export const handler = async (
 
   const homePage =
     process.env.SUB_DOMAIN_URL || "https://main.chatvious.coding-wielder.com";
+  let adminDeleteUserResponse: AdminDeleteUserCommandOutput;
+
   try {
-    await client.send(command);
-    return {
-      statusCode: 302,
-      headers: {
-        Location: homePage,
-      },
-      body: "",
-    };
-  } catch (error) {
-    console.error(error);
+    adminDeleteUserResponse = await client.send(command);
+  } catch (error: any) {
+    console.error("sending delete command error: ", error);
     return {
       statusCode: 500,
       headers: {
@@ -113,4 +109,23 @@ export const handler = async (
       body: JSON.stringify({ error: "Failed to delete user" }),
     };
   }
+
+  const statusCode = adminDeleteUserResponse.$metadata.httpStatusCode as number;
+  if (statusCode !== 200) {
+    return {
+      statusCode,
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ error: "Failed to delete user" }),
+    };
+  }
+
+  return {
+    statusCode: 302,
+    headers: {
+      Location: homePage,
+    },
+    body: "",
+  };
 };

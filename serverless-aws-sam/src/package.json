@@ -24,6 +24,8 @@
     "test-promoteOrDemoteUser": "NODE_OPTIONS=--experimental-vm-modules jest ./roomRoutes/promoteOrDemoteUser",
     "test-rejectJoinRequest": "NODE_OPTIONS=--experimental-vm-modules jest ./roomRoutes/rejectJoinRequest",
     "test-fetchNewMessages": "NODE_OPTIONS=--experimental-vm-modules jest ./roomRoutes/fetchNewMessages",
+    "test-userRoutes": "NODE_OPTIONS=--experimental-vm-modules jest --runInBand ./userRoutes",
+    "test-deleteAccount": "NODE_OPTIONS=--experimental-vm-modules jest --runInBand ./userRoutes/deleteAccount",
     "test-websocket-endpoints": "NODE_OPTIONS=--experimental-vm-modules jest --runInBand ./websocket-endpoints",
     "test-WSConnect": "NODE_OPTIONS=--experimental-vm-modules jest ./websocket-endpoints/connect",
     "test-WSDisconnect": "NODE_OPTIONS=--experimental-vm-modules jest ./websocket-endpoints/disconnect",
