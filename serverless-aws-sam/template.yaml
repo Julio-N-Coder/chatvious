@@ -42,25 +42,11 @@ Resources:
           AttributeType: S
         - AttributeName: SortKey
           AttributeType: S
-        - AttributeName: GSISortKey
-          AttributeType: S
       KeySchema:
         - AttributeName: PartitionKey
           KeyType: HASH
         - AttributeName: SortKey
           KeyType: RANGE
-      GlobalSecondaryIndexes:
-        - IndexName: Generic-GSISort-Index
-          KeySchema:
-            - AttributeName: PartitionKey
-              KeyType: HASH
-            - AttributeName: GSISortKey
-              KeyType: RANGE
-          Projection:
-            ProjectionType: ALL
-          ProvisionedThroughput:
-            ReadCapacityUnits: 1
-            WriteCapacityUnits: 1
 
   TableChatviousReadCapacityScalableTarget:
     Type: AWS::ApplicationAutoScaling::ScalableTarget
@@ -108,60 +94,6 @@ Resources:
       ResourceId: table/chatvious
       ScalableDimension: dynamodb:table:WriteCapacityUnits
       PolicyName: chatvious-write-capacity-scaling-policy
-      PolicyType: TargetTrackingScaling
-      TargetTrackingScalingPolicyConfiguration:
-        PredefinedMetricSpecification:
-          PredefinedMetricType: DynamoDBWriteCapacityUtilization
-        ScaleOutCooldown: 60
-        ScaleInCooldown: 60
-        TargetValue: 70
-
-  TableChatviousIndexGenericGSISortIndexReadCapacityScalableTarget:
-    Type: AWS::ApplicationAutoScaling::ScalableTarget
-    DependsOn: ChatviousTable
-    Properties:
-      ServiceNamespace: dynamodb
-      ResourceId: table/chatvious/index/Generic-GSISort-Index
-      ScalableDimension: dynamodb:index:ReadCapacityUnits
-      MinCapacity: 1
-      MaxCapacity: 6
-      RoleARN: !Sub arn:aws:iam::${AWS::AccountId}:role/aws-service-role/dynamodb.application-autoscaling.amazonaws.com/AWSServiceRoleForApplicationAutoScaling_DynamoDBTable
-
-  TableChatviousIndexGenericGSISortIndexReadCapacityScalingPolicy:
-    Type: AWS::ApplicationAutoScaling::ScalingPolicy
-    DependsOn: TableChatviousIndexGenericGSISortIndexReadCapacityScalableTarget
-    Properties:
-      ServiceNamespace: dynamodb
-      ResourceId: table/chatvious/index/Generic-GSISort-Index
-      ScalableDimension: dynamodb:index:ReadCapacityUnits
-      PolicyName: chatvious-index-Generic-GSISort-Index-read-capacity-scaling-policy
-      PolicyType: TargetTrackingScaling
-      TargetTrackingScalingPolicyConfiguration:
-        PredefinedMetricSpecification:
-          PredefinedMetricType: DynamoDBReadCapacityUtilization
-        ScaleOutCooldown: 60
-        ScaleInCooldown: 60
-        TargetValue: 70
-
-  TableChatviousIndexGenericGSISortIndexWriteCapacityScalableTarget:
-    Type: AWS::ApplicationAutoScaling::ScalableTarget
-    DependsOn: ChatviousTable
-    Properties:
-      ServiceNamespace: dynamodb
-      ResourceId: table/chatvious/index/Generic-GSISort-Index
-      ScalableDimension: dynamodb:index:WriteCapacityUnits
-      MinCapacity: 1
-      MaxCapacity: 6
-      RoleARN: !Sub arn:aws:iam::${AWS::AccountId}:role/aws-service-role/dynamodb.application-autoscaling.amazonaws.com/AWSServiceRoleForApplicationAutoScaling_DynamoDBTable
-
-  TableChatviousIndexGenericGSISortIndexWriteCapacityScalingPolicy:
-    Type: AWS::ApplicationAutoScaling::ScalingPolicy
-    DependsOn: TableChatviousIndexGenericGSISortIndexWriteCapacityScalableTarget
-    Properties:
-      ServiceNamespace: dynamodb
-      ResourceId: table/chatvious/index/Generic-GSISort-Index
-      ScalableDimension: dynamodb:index:WriteCapacityUnits
-      PolicyName: chatvious-index-Generic-GSISort-Index-write-capacity-scaling-policy
       PolicyType: TargetTrackingScaling
       TargetTrackingScalingPolicyConfiguration:
         PredefinedMetricSpecification:
@@ -1262,7 +1194,7 @@ Metadata:
       Label: Chatvious RestAPI Compute
       Members:
         - LambdaAuthorizer
-        - callback
+        - Group2
         - createRoom
         - joinRoom
         - acceptJoinRequest
@@ -1271,9 +1203,9 @@ Metadata:
         - leaveRoom
         - deleteRoom
         - promoteOrDemoteUser
-        - Group2
         - fetchNewMessages
         - deleteAccount
+        - callback
     Group2:
       Label: EJS Page Renderers
       Members:
@@ -1297,10 +1229,6 @@ Metadata:
         - TableChatviousReadCapacityScalingPolicy
         - TableChatviousWriteCapacityScalableTarget
         - TableChatviousWriteCapacityScalingPolicy
-        - TableChatviousIndexGenericGSISortIndexReadCapacityScalableTarget
-        - TableChatviousIndexGenericGSISortIndexReadCapacityScalingPolicy
-        - TableChatviousIndexGenericGSISortIndexWriteCapacityScalableTarget
-        - TableChatviousIndexGenericGSISortIndexWriteCapacityScalingPolicy
         - ChatviousTable
     Group5:
       Label: Static Frontend Resources

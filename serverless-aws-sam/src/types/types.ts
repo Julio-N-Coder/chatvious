@@ -95,13 +95,13 @@ interface RoomMember extends BaseRoomMember {
 }
 
 interface RoomMemberKeys {
-  PartitionKey: `ROOM#${string}`; // RoomID // gsi partition key
+  PartitionKey: `ROOM#${string}`; // RoomID
   SortKey: `MEMBERS#USERID#${string}`;
 }
 
 type RoomMemberDB = BaseRoomMember &
   RoomMemberKeys & {
-    GSISortKey: `MEMBERS#DATE#${string}`; // ISODate // gsi sort
+    GSISortKey: `MEMBERS#DATE#${string}`; // ISODate
   };
 
 type FetchRoomMemberSuccess = {
