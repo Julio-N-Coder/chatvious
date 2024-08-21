@@ -266,6 +266,38 @@ Resources:
       Dockerfile: chatRoom.Dockerfile
       DockerTag: latest
 
+  profilePage:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: Chatvious_profilePage
+      Description: Renders profile Page for Chatvious
+      PackageType: Image
+      MemorySize: 256
+      Timeout: 6
+      Architectures:
+        - x86_64
+      Environment:
+        Variables:
+          CHATVIOUSTABLE_TABLE_NAME: !Ref ChatviousTable
+          CHATVIOUSTABLE_TABLE_ARN: !GetAtt ChatviousTable.Arn
+          USER_POOL_ID: !Ref UserPool
+          USER_POOL_CLIENT_ID: !Ref UserPoolClient
+          USER_POOL_ARN: !GetAtt UserPool.Arn
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref ChatviousTable
+      Events:
+        ChatviousRestApiGETchatroomRoomID:
+          Type: Api
+          Properties:
+            Path: /user/profilePage
+            Method: GET
+            RestApiId: !Ref ChatviousRestApi
+    Metadata:
+      DockerContext: ./src
+      Dockerfile: profilePage.Dockerfile
+      DockerTag: latest
+
   createRoom:
     Type: AWS::Serverless::Function
     Properties:
@@ -1245,6 +1277,7 @@ Metadata:
         - dashboardPage
         - roomInfoPage
         - chatRoom
+        - profilePage
     Group3:
       Label: Chatvious WebSocket Routes
       Members:

@@ -12,7 +12,9 @@
   <div
     class="dropdown-content w-64 bg-base-200 text-base-content rounded-md text-lg divide-base-content divide-y"
   >
-    <div class="py-1 hover:bg-base-100">Profile Info</div>
+    <a href="<% domainUrl %>/user/profilePage" class="py-1 hover:bg-base-100"
+      ><div>Profile Info</div>
+    </a>
     <% if (navJoinRequest.length > 0) { %> <% navJoinRequest.map(function
     (joinRequest) { %>
     <div

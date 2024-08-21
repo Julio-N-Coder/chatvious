@@ -11,6 +11,7 @@ import {
   fakeJoinRoomInfoPageMember,
   fakeChatRoomOwnerData,
   fakeChatRoomMemberData,
+  fakeProfilePageData,
 } from "./fakeEjsPageData.js";
 const app = express();
 
@@ -71,9 +72,9 @@ app.get(`/chat-room/${joinedRoomInfo.RoomID}`, (req, res) => {
 });
 
 app.get("/user/profilePage", (req, res) => {
-  // not set up yet
   res.render(
-    path.resolve("..", "serverless-aws-sam", "src", "views", "profilePage")
+    path.resolve("..", "serverless-aws-sam", "src", "views", "profilePage"),
+    fakeProfilePageData
   );
 });
 

@@ -24,6 +24,9 @@ const randomRoomIfo = {
   createdAt: "2024-08-02T21:34:22.328Z",
 };
 
+const staticContentUrl = "http://localhost:8040";
+const domainUrl = "http://localhost:3000";
+
 const fakeUserInfo = {
   userID: "fd24d28c-ef01-45dc-a1ee-2bf8f3e92540",
   userName: "TestUserRender",
@@ -57,7 +60,8 @@ const fakeDashboardData = {
   profileColor: fakeUserInfo.profileColor,
   navJoinRequest: [],
   isProduction: false,
-  staticContentUrl: "http://localhost:8040",
+  staticContentUrl,
+  domainUrl,
 };
 
 const fakeJoinRoomInfoPage = {
@@ -97,7 +101,8 @@ const fakeJoinRoomInfoPage = {
   profileColor: fakeUserInfo.profileColor,
   username: fakeUserInfo.userName,
   isProduction: false,
-  staticContentUrl: "http://localhost:8040",
+  staticContentUrl,
+  domainUrl,
 };
 
 const fakeJoinRoomInfoPageMember = {
@@ -145,7 +150,8 @@ const fakeJoinRoomInfoPageMember = {
   profileColor: fakeUserInfo.profileColor,
   username: fakeUserInfo.userName,
   isProduction: false,
-  staticContentUrl: "http://localhost:8040",
+  staticContentUrl,
+  domainUrl,
 };
 
 const fakeJoinRoomInfoPageOwner = {
@@ -203,7 +209,8 @@ const fakeJoinRoomInfoPageOwner = {
   profileColor: fakeUserInfo.profileColor,
   username: fakeUserInfo.userName,
   isProduction: false,
-  staticContentUrl: "http://localhost:8040",
+  staticContentUrl,
+  domainUrl,
 };
 
 const fakeJoinRoomInfoPageAdmin = {
@@ -260,7 +267,8 @@ const fakeJoinRoomInfoPageAdmin = {
   profileColor: fakeUserInfo.profileColor,
   username: fakeUserInfo.userName,
   isProduction: false,
-  staticContentUrl: "http://localhost:8040",
+  staticContentUrl,
+  domainUrl,
 };
 
 const roomMessages = [
@@ -304,7 +312,8 @@ const fakeChatRoomOwnerData = {
   profileColor: fakeUserInfo.profileColor,
   navJoinRequest: [],
   isProduction: false,
-  staticContentUrl: "http://localhost:8040",
+  staticContentUrl,
+  domainUrl,
 };
 
 const fakeChatRoomMemberData = {
@@ -314,7 +323,18 @@ const fakeChatRoomMemberData = {
   profileColor: fakeUserInfo.profileColor,
   navJoinRequest: [],
   isProduction: false,
-  staticContentUrl: "http://localhost:8040",
+  staticContentUrl,
+  domainUrl,
+};
+
+const fakeProfilePageData = {
+  username: fakeUserInfo.userName,
+  email: fakeUserInfo.email,
+  profileColor: fakeUserInfo.profileColor,
+  navJoinRequest: [],
+  isProduction: false,
+  staticContentUrl,
+  domainUrl,
 };
 
 export {
@@ -330,4 +350,5 @@ export {
   fakeChatRoomOwnerData,
   fakeChatRoomMemberData,
   roomMessages,
+  fakeProfilePageData,
 };

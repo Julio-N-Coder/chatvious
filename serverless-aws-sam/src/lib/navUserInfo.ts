@@ -33,6 +33,7 @@ export default async function fetchNavUserInfo(
     message: "Successfully Fetched navUserInfo",
     data: {
       userName: userInfo.userName,
+      email: userInfo.email,
       profileColor: userInfo.profileColor,
       ownedRooms: userInfo.ownedRooms,
       joinedRooms: userInfo.joinedRooms,

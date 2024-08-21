@@ -192,6 +192,7 @@ type FetchNavJoinRequestsReturn = Promise<
 interface FetchNavUserInfoSuccess extends BaseModelsSuccess {
   data: {
     userName: string;
+    email: string;
     profileColor: string;
     ownedRooms: RoomsOnUser;
     joinedRooms: RoomsOnUser;
