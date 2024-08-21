@@ -20,6 +20,7 @@ const config = {
     leaveRoom: "./public/ts/roomInfoPage/leaveRoom.ts",
     deleteRoom: "./public/ts/roomInfoPage/deleteRoom.ts",
     promoteOrDemoteUser: "./public/ts/roomInfoPage/promoteOrDemoteUser.ts",
+    profilePage: "./public/ts/profilePage/profilePage.ts",
   },
   output: {
     filename: "[name].js",

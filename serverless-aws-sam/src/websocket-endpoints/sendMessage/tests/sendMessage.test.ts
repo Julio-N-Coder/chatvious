@@ -15,6 +15,7 @@ import {
 } from "@jest/globals";
 import { APIGatewayProxyWebsocketEventV2 } from "aws-lambda";
 import { UserInfo, RoomInfoType } from "../../../types/types.js";
+import { ApiGatewayManagementApiClient } from "@aws-sdk/client-apigatewaymanagementapi";
 
 let restAPIEvent = restAPIEventBase as APIGatewayProxyWebsocketEventV2;
 let restAPIEventCopy: APIGatewayProxyWebsocketEventV2;
@@ -146,11 +147,19 @@ afterAll(async () => {
 });
 
 afterEach(async () => {
+  jest.clearAllMocks();
   restAPIEvent = JSON.parse(JSON.stringify(restAPIEventCopy));
 });
 
 describe("A test for the custom joinRoom route on the api gateway websocket", () => {
   test("Should return a successfull response and correctly store message information correclty", async () => {
+    // @ts-ignore
+    ApiGatewayManagementApiClient.prototype.send = jest
+      .fn()
+      .mockImplementationOnce(() => ({
+        promise: () => Promise.resolve(),
+      }));
+
     const response = await handler(restAPIEvent);
     expect(response).toHaveProperty("statusCode", 200);
     expect(response).toHaveProperty("body", "Message sent successfully");

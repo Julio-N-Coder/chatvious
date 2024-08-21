@@ -30,8 +30,6 @@ const fakeAccessTokenPayload = {
   jti: "jwt-id-value",
 };
 
-jest.mock("aws-jwt-verify");
-
 describe("Tests for the Websocket Lambda authorizer", () => {
   afterEach(() => {
     wsRequestAuthorizerEvent.queryStringParameters = {

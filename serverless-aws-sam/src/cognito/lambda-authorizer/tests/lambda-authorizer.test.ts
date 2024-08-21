@@ -35,8 +35,6 @@ const fakePayload = {
 
 global.fetch = jest.fn() as jest.MockedFunction<typeof fetch>;
 
-jest.mock("aws-jwt-verify");
-
 describe("tests for api gateways lambda-authorizer", () => {
   test("should return a policy when the token is valid", async () => {
     // @ts-ignore
