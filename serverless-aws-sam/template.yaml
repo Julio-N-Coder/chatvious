@@ -22,13 +22,18 @@ Parameters:
     Default: arn:aws:acm:us-west-1:580083607510:certificate/50b5027f-3ae1-491f-bd4e-b252cc2b953c
     Description: The ARN of the ACM certificate for the chatvious domain
       (chatvious.coding-wielder.com and *.chatvious.coding-wielder.com)
+  ChatviousUsEastCertificateArn:
+    Type: String
+    Default: arn:aws:acm:us-east-1:580083607510:certificate/51f9f2a0-a159-4bdc-8096-de519d8e7180
+    Description: The ARN of the ACM certificate for chatvious cloudfront
+      distribution which requires the certificate to be created in us-east-1
+      region (*.chatvious.coding-wielder.com)
   ChatviousDomainHostedZoneId:
     Type: String
     Default: Z0830272VPDW4QLTGOLN
     Description: The Hosted Zone ID for the chatvious domain
 
 Resources:
-  # Delete current chatvoius table in AWS account before first deployment
   ChatviousTable:
     Type: AWS::DynamoDB::Table
     Properties:
@@ -592,7 +597,7 @@ Resources:
       Runtime: nodejs20.x
       Environment:
         Variables:
-          COGNITO_DOMAIN: https://chatvious.auth.us-west-1.amazoncognito.com
+          COGNITO_DOMAIN: !Sub https://${UserPoolDomain}
           USER_POOL_ID: !Ref UserPool
           USER_POOL_CLIENT_ID: !Ref UserPoolClient
           USER_POOL_ARN: !GetAtt UserPool.Arn
@@ -628,7 +633,7 @@ Resources:
         - x86_64
       Environment:
         Variables:
-          COGNITO_DOMAIN: https://chatvious.auth.us-west-1.amazoncognito.com
+          COGNITO_DOMAIN: !Sub https://${UserPoolDomain}
           USER_POOL_ID: !Ref UserPool
           USER_POOL_CLIENT_ID: !Ref UserPoolClient
           USER_POOL_ARN: !GetAtt UserPool.Arn
@@ -700,7 +705,7 @@ Resources:
         - x86_64
       Environment:
         Variables:
-          COGNITO_DOMAIN: https://chatvious.auth.us-west-1.amazoncognito.com
+          COGNITO_DOMAIN: !Sub https://${UserPoolDomain}
           USER_POOL_ID: !Ref UserPool
           USER_POOL_CLIENT_ID: !Ref UserPoolClient
           USER_POOL_ARN: !GetAtt UserPool.Arn
@@ -883,7 +888,6 @@ Resources:
       ApiId: !Ref WebsocketApi
       AuthorizerType: REQUEST
       Name: Chatvious_WebsocketAuthorizer
-      AuthorizerResultTtlInSeconds: 0
       AuthorizerUri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WSLambdaAuthorizer.Arn}/invocations
       IdentitySource:
         - route.request.querystring.tokens
@@ -896,10 +900,7 @@ Resources:
       RouteKey: $connect
       AuthorizationType: NONE
       OperationName: ConnectRoute
-      Target: !Join
-        - /
-        - - integrations
-          - !Ref ConnectInteg # Ignore vscode validation error
+      Target: !Sub integrations/${ConnectInteg}
 
   ConnectInteg:
     Type: AWS::ApiGatewayV2::Integration
@@ -916,10 +917,7 @@ Resources:
       RouteKey: $disconnect
       AuthorizationType: NONE
       OperationName: DisconnectRoute
-      Target: !Join
-        - /
-        - - integrations
-          - !Ref DisconnectInteg # Ignore vscode validation error
+      Target: !Sub integrations/${DisconnectInteg}
 
   DisconnectInteg:
     Type: AWS::ApiGatewayV2::Integration
@@ -936,10 +934,7 @@ Resources:
       RouteKey: joinroom
       AuthorizationType: NONE
       OperationName: JoinRoomRoute
-      Target: !Join
-        - /
-        - - integrations
-          - !Ref JoinRoomInteg # Ignore vscode validation error
+      Target: !Sub integrations/${JoinRoomInteg}
 
   JoinRoomInteg:
     Type: AWS::ApiGatewayV2::Integration
@@ -956,10 +951,7 @@ Resources:
       RouteKey: sendmessage
       AuthorizationType: NONE
       OperationName: SendMessageRoute
-      Target: !Join
-        - /
-        - - integrations
-          - !Ref SendMessageInteg # Ignore vscode validation error
+      Target: !Sub integrations/${SendMessageInteg}
 
   SendMessageInteg:
     Type: AWS::ApiGatewayV2::Integration
@@ -986,7 +978,7 @@ Resources:
       Description: prod Stage
       DeploymentId: !Ref Deployment
       ApiId: !Ref WebsocketApi
-      RouteSettings:
+      DefaultRouteSettings:
         ThrottlingBurstLimit: 10
         ThrottlingRateLimit: 15
 
@@ -1113,7 +1105,7 @@ Resources:
   UserPoolDomain:
     Type: AWS::Cognito::UserPoolDomain
     Properties:
-      Domain: !Ref UserPoolClient
+      Domain: chatvious
       UserPoolId: !Ref UserPool
 
   StaticWebBucket:
@@ -1169,7 +1161,7 @@ Resources:
         Aliases:
           - main.chatvious.coding-wielder.com
         ViewerCertificate:
-          AcmCertificateArn: !Ref ChatviousCertificateArn
+          AcmCertificateArn: !Ref ChatviousUsEastCertificateArn
           MinimumProtocolVersion: TLSv1.2_2021
           SslSupportMethod: sni-only
         CustomErrorResponses:
@@ -1266,7 +1258,10 @@ Outputs:
     Value: !Ref UserPoolDomain
   CognitoLoginURL:
     Description: Cognito User Pool Application Client Hosted Login UI URL
-    Value: !Sub https://${UserPoolClient}.auth.${AWS::Region}.amazoncognito.com/login?client_id=${UserPoolClient}&response_type=code&redirect_uri=https://chatvious.coding-wielder.com/main/callback
+    Value: !Sub https://chatvious.auth.${AWS::Region}.amazoncognito.com/login?client_id=${UserPoolClient}&response_type=code&redirect_uri=https://chatvious.coding-wielder.com/main/callback
+  CognitoSignUpURL:
+    Description: Cognito User Pool Application Client Hosted Sign Up UI URL
+    Value: !Sub https://chatvious.auth.${AWS::Region}.amazoncognito.com/signup?client_id=${UserPoolClient}&response_type=code&redirect_uri=https://chatvious.coding-wielder.com/main/callback
 
   StaticWebAppDomain:
     Value: !GetAtt CloudFrontDistribution.DomainName

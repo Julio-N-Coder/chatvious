@@ -45,10 +45,9 @@ const config = {
       "process.env.SUB_DOMAIN_URL": JSON.stringify(
         "https://main.chatvious.coding-wielder.com"
       ),
-      // update these values below once deployed
-      "process.env.USER_POOL_ID": JSON.stringify("us-west-1_iJn1nk3N1"),
+      "process.env.USER_POOL_ID": JSON.stringify("us-west-1_gmrxTddmt"),
       "process.env.USER_POOL_CLIENT_ID": JSON.stringify(
-        "jet3kkqp4jnkm1v3ta7htu75g"
+        "2ot92gv0u6sivjbonnl13m487r"
       ),
       "process.env.COGNITO_DOMAIN_URL": JSON.stringify(
         "https://chatvious.auth.us-west-1.amazoncognito.com"

@@ -1,10 +1,8 @@
-# More information about the configuration file can be found here:
-# https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/serverless-sam-cli-config.html
 version = 0.1
 
 [default]
 [default.global.parameters]
-stack_name = "lambda-signUp-saveData"
+stack_name = "chatvious-app"
 
 [default.build.parameters]
 cached = true
@@ -14,14 +12,14 @@ parallel = true
 lint = true
 
 [default.deploy.parameters]
-capabilities = "CAPABILITY_IAM"
+capabilities = "CAPABILITY_IAM CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND"
 confirm_changeset = false
 resolve_s3 = true
-stack_name = "Chatvious-Lambdas"
-s3_prefix = "Chatvious-Lambdas"
+s3_prefix = "chatvious-app"
 region = "us-west-1"
-image_repositories = []
 # s3_bucket = "your-new-bucket-name"
+parameter_overrides = "ChatviousCertificateArn=\"arn:aws:acm:us-west-1:580083607510:certificate/50b5027f-3ae1-491f-bd4e-b252cc2b953c\" ChatviousUsEastCertificateArn=\"arn:aws:acm:us-east-1:580083607510:certificate/51f9f2a0-a159-4bdc-8096-de519d8e7180\" ChatviousDomainHostedZoneId=\"Z0830272VPDW4QLTGOLN\""
+image_repositories = ["dashboardPage=580083607510.dkr.ecr.us-west-1.amazonaws.com/chatviousapp2844e76c/dashboardpageb3213de0repo", "roomInfoPage=580083607510.dkr.ecr.us-west-1.amazonaws.com/chatviousapp2844e76c/roominfopage3f687fc3repo", "chatRoom=580083607510.dkr.ecr.us-west-1.amazonaws.com/chatviousapp2844e76c/chatroomf4ccdb70repo", "profilePage=580083607510.dkr.ecr.us-west-1.amazonaws.com/chatviousapp2844e76c/profilepagee5248becrepo"]
 
 [default.package.parameters]
 resolve_s3 = true
