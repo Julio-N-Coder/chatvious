@@ -104,6 +104,14 @@ export default function Navbar({ isDarkMode, setIsDarkMode }: NavbarProps) {
           <ul className="p-2 shadow menu dropdown-content z-[1] bg-base-100 rounded-box w-52">
             <li>
               <NavLink
+                to="/"
+                className={({ isActive }) => (isActive ? `btn-active` : ``)}
+              >
+                Chatvious
+              </NavLink>
+            </li>
+            <li>
+              <NavLink
                 to="/about"
                 className={({ isActive }) => (isActive ? `btn-active` : ``)}
               >
@@ -123,7 +131,10 @@ export default function Navbar({ isDarkMode, setIsDarkMode }: NavbarProps) {
             </li>
           </ul>
         </details>
-        <Link to="/" className="text-3xl xsm:text-4xl text-neutral-content">
+        <Link
+          to="/"
+          className="text-3xl xsm:text-4xl text-neutral-content hidden md:block"
+        >
           Chatvious
         </Link>
         {/* big tabs pages for big screens */}
