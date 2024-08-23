@@ -15,7 +15,7 @@ const JWTTokensString = JSON.stringify({
 });
 const websocketURL = process.env.IS_DEV_SERVER
   ? "ws://localhost:8080"
-  : `wss://websocket.chatvious.coding-wielder.com/prod?tokens=${JWTTokensString}`;
+  : `wss://websocket.chatvious.coding-wielder.com?tokens=${JWTTokensString}`;
 
 const socket = new WebSocket(websocketURL);
 const RoomID = location.pathname.split("/").pop() as string;

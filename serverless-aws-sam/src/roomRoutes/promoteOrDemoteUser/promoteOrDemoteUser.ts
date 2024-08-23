@@ -103,7 +103,9 @@ function validateBody(
     };
   }
 
-  if (event.headers["Content-Type"] !== "application/json") {
+  const contentType =
+    event.headers["content-type"] || event.headers["Content-Type"];
+  if (contentType !== "application/json") {
     return standardError("Invalid Content Type");
   }
   if (!event.body) {

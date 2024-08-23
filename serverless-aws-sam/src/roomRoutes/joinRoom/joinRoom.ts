@@ -1,9 +1,9 @@
-import { APIGatewayEvent, APIGatewayProxyResult } from "aws-lambda";
+import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { roomManager } from "../../models/rooms.js";
 import { userManager } from "../../models/users.js";
 
 export async function handler(
-  event: APIGatewayEvent
+  event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> {
   const bodyValidation = validateBody(event);
   if ("statusCode" in bodyValidation) {
@@ -117,7 +117,7 @@ export async function handler(
 }
 
 function validateBody(
-  event: APIGatewayEvent
+  event: APIGatewayProxyEvent
 ): APIGatewayProxyResult | { body: { RoomID: string } } {
   function standardError(error: string): APIGatewayProxyResult {
     return {
@@ -127,7 +127,9 @@ function validateBody(
     };
   }
 
-  if (event.headers["Content-Type"] !== "application/json") {
+  const contentType =
+    event.headers["content-type"] || event.headers["Content-Type"];
+  if (contentType !== "application/json") {
     return standardError("Invalid Content Type");
   }
   if (!event.body) {
