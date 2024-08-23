@@ -27,9 +27,7 @@ async function sendJoinRequest() {
   }
   toggleSubmitButtonState();
 
-  const joinRoomURL = process.env.IS_DEV_SERVER
-    ? "/rooms/joinRoom"
-    : "/main/rooms/joinRoom";
+  const joinRoomURL = "/rooms/joinRoom";
   let joinRequestStatus: Response;
   try {
     joinRequestStatus = await fetch(joinRoomURL, {

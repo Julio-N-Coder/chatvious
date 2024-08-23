@@ -47,9 +47,7 @@ async function joinRoom(e: SubmitEvent) {
     return;
   }
 
-  const joinRoomURL = process.env.IS_DEV_SERVER
-    ? "/rooms/joinRoom"
-    : "/main/rooms/joinRoom";
+  const joinRoomURL = "/rooms/joinRoom";
   try {
     const joinRoomResponse = await fetch(joinRoomURL, {
       method: "POST",
@@ -60,9 +58,7 @@ async function joinRoom(e: SubmitEvent) {
     });
 
     if (joinRoomResponse.ok === true) {
-      const dashboardURL = process.env.IS_DEV_SERVER
-        ? "/dashboard"
-        : "/main/dashboard";
+      const dashboardURL = "/dashboard";
       window.location.href = dashboardURL;
       return;
     }

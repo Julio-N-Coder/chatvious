@@ -17,9 +17,7 @@ leaveRoomButton.addEventListener("click", async () => {
   }
   toggleSubmitButtonState();
 
-  const leaveRoomURL = process.env.IS_DEV_SERVER
-    ? "/rooms/leaveRoom"
-    : "/main/rooms/leaveRoom";
+  const leaveRoomURL = "/rooms/leaveRoom";
   let leaveRoomStatus: Response;
   try {
     leaveRoomStatus = await fetch(leaveRoomURL, {
@@ -73,8 +71,6 @@ leaveRoomButton.addEventListener("click", async () => {
     return;
   }
 
-  const dashboardURL = process.env.IS_DEV_SERVER
-    ? "/dashboard"
-    : "/main/dashboard";
+  const dashboardURL = "/dashboard";
   window.location.href = dashboardURL;
 });

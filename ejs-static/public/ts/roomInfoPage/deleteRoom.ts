@@ -17,9 +17,7 @@ deleteRoomButton.addEventListener("click", async () => {
   }
   toggleSubmitButtonState();
 
-  const deleteRoomURL = process.env.IS_DEV_SERVER
-    ? "/rooms/deleteRoom"
-    : "/main/rooms/deleteRoom";
+  const deleteRoomURL = "/rooms/deleteRoom";
   let deleteRoomStatus: Response;
   try {
     deleteRoomStatus = await fetch(deleteRoomURL, {
@@ -76,8 +74,6 @@ deleteRoomButton.addEventListener("click", async () => {
     return;
   }
 
-  const dashboardURL = process.env.IS_DEV_SERVER
-    ? "/dashboard"
-    : "/main/dashboard";
+  const dashboardURL = "/dashboard";
   window.location.href = dashboardURL;
 });

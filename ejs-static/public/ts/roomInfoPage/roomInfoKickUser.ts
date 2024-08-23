@@ -23,9 +23,7 @@ for (let i = 0; i < kickButtons.length; i++) {
 
     kickButton.disabled = true;
 
-    const kickMemberURL = process.env.IS_DEV_SERVER
-      ? "/rooms/kickMember"
-      : "/main/rooms/kickMember";
+    const kickMemberURL = "/rooms/kickMember";
     let kickMemberResponse: Response;
     try {
       kickMemberResponse = await fetch(kickMemberURL, {

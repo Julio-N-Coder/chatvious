@@ -69,9 +69,7 @@ async function newPaginationMessages() {
     RoomID,
     LastEvaluatedKey,
   });
-  const newMessagesURL = process.env.IS_DEV_SERVER
-    ? "/rooms/fetchNewMessages"
-    : "/main/rooms/fetchNewMessages";
+  const newMessagesURL = "/rooms/fetchNewMessages";
 
   let newMessagesResponse: Response;
   try {

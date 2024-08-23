@@ -33,9 +33,7 @@ for (let i = 0; i < promoteDemoteButtons.length; i++) {
 
     promoteDemoteButton.disabled = true;
 
-    const promoteDemoteUserURL = process.env.IS_DEV_SERVER
-      ? "/rooms/promoteOrDemoteUser"
-      : "/main/rooms/promoteOrDemoteUser";
+    const promoteDemoteUserURL = "/rooms/promoteOrDemoteUser";
     let promoteDemoteUserResponse: Response;
     try {
       promoteDemoteUserResponse = await fetch(promoteDemoteUserURL, {

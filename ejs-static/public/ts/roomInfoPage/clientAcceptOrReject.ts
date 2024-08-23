@@ -18,9 +18,7 @@ for (let i = 0; i < acceptJoinRequest.length; i++) {
 
     button.disabled = true;
 
-    const acceptJoinRequestURL = process.env.IS_DEV_SERVER
-      ? "/rooms/acceptJoinRequest"
-      : "/main/rooms/acceptJoinRequest";
+    const acceptJoinRequestURL = "/rooms/acceptJoinRequest";
     let acceptJoinRequestResponse: Response;
     try {
       acceptJoinRequestResponse = await fetch(acceptJoinRequestURL, {
@@ -78,9 +76,7 @@ for (let i = 0; i < rejectJoinRequest.length; i++) {
 
     button.disabled = true;
 
-    const rejectJoinRequestURL = process.env.IS_DEV_SERVER
-      ? "/rooms/rejectJoinRequest"
-      : "/main/rooms/rejectJoinRequest";
+    const rejectJoinRequestURL = "/rooms/rejectJoinRequest";
     let rejectJoinRequestResponse: Response;
     try {
       rejectJoinRequestResponse = await fetch(rejectJoinRequestURL, {
