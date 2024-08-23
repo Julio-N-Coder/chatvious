@@ -2,7 +2,10 @@ import { handler } from "../websocket-auth.js";
 import { jest, describe, test, expect, afterEach } from "@jest/globals";
 import { CognitoJwtVerifier } from "aws-jwt-verify";
 import wsRequestAuthorizerEventBase from "../../../../events/wsRequestAuthorizerEvent.json";
-import { APIGatewayWebSocketAuthorizerEvent } from "../../../types/types.js";
+import {
+  APIGatewayWebSocketAuthorizerEvent,
+  LambdaAuthorizerClaims,
+} from "../../../types/types.js";
 import { buildPolicy } from "../../../lib/handyUtils.js";
 
 let wsRequestAuthorizerEvent: APIGatewayWebSocketAuthorizerEvent = JSON.parse(
@@ -16,9 +19,10 @@ wsRequestAuthorizerEvent.queryStringParameters = {
   tokens: tokensString,
 };
 
-const fakeAccessTokenPayload = {
+const fakeAccessTokenPayload: LambdaAuthorizerClaims = {
   sub: "1234567890",
   username: "testuser",
+  email: "test@example.com",
   iss: "https://example.com",
   client_id: "my-client-id",
   origin_jti: "origin-jti-value",
@@ -51,7 +55,7 @@ describe("Tests for the Websocket Lambda authorizer", () => {
         fakeAccessTokenPayload.sub,
         "Allow",
         wsRequestAuthorizerEvent.methodArn,
-        { claims: fakeAccessTokenPayload }
+        fakeAccessTokenPayload
       )
     );
   });

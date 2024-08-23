@@ -12,8 +12,8 @@ const client = new CognitoIdentityProviderClient({});
 export const handler = async (
   event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> => {
-  const userName = event.requestContext.authorizer?.claims.username as string;
-  const userID = event.requestContext.authorizer?.claims.sub as string;
+  const userName = event.requestContext.authorizer?.username as string;
+  const userID = event.requestContext.authorizer?.sub as string;
 
   if (!userName) {
     return {

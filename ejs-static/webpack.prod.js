@@ -37,7 +37,7 @@ const config = {
       "process.env.IS_DEV_SERVER": false,
       "process.env.DOMAIN": JSON.stringify("chatvious.coding-wielder.com"),
       "process.env.DOMAIN_URL": JSON.stringify(
-        "https://chatvious.coding-wielder.com/main"
+        "https://chatvious.coding-wielder.com"
       ),
       "process.env.SUB_DOMAIN": JSON.stringify(
         "main.chatvious.coding-wielder.com"

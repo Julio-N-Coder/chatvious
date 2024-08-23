@@ -10,8 +10,8 @@ export async function handler(
     return bodyValidation;
   }
 
-  const userID = event.requestContext.authorizer?.claims.sub as string;
-  const userName = event.requestContext.authorizer?.claims.username as string;
+  const userID = event.requestContext.authorizer?.sub as string;
+  const userName = event.requestContext.authorizer?.username as string;
   const RoomID = bodyValidation.body.RoomID;
 
   const fetchRoomResponse = await roomManager.fetchRoom(RoomID);

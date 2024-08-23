@@ -4,13 +4,13 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "cp ./public/client-ejs/ejs.min.js ../dist/public/ejs/ && webpack --mode=development",
-    "build:prod": "cp ./public/client-ejs/ejs.min.js ../dist/public/ejs/ && webpack --config webpack.prod.js --node-env=production",
+    "build": "mkdir -p ../dist/public/ejs && cp ./public/client-ejs/ejs.min.js ../dist/public/ejs/ && webpack --mode=development",
+    "build:prod": "mkdir -p ../dist/public/ejs && cp ./public/client-ejs/ejs.min.js ../dist/public/ejs/ && webpack --config webpack.prod.js --node-env=production",
     "fullBuild": "npm --prefix ../client run build && npm run build",
     "fullBuild:prod": "npm --prefix ../client run build:prod && npm run build:prod",
     "ejs-lint": "./ejs-lint.sh",
-    "static": "cp ./public/client-ejs/ejs.min.js ../dist/public/ejs/ && concurrently 'node static.js' 'nodemon webSocket.js' 'webpack watch --node-env=development'",
-    "static:prod": "cp ./public/client-ejs/ejs.min.js ../dist/public/ejs/ && concurrently 'node static.js' 'nodemon webSocket.js' 'webpack watch --mode=production --node-env=production'",
+    "static": "mkdir -p ../dist/public/ejs && cp ./public/client-ejs/ejs.min.js ../dist/public/ejs/ && concurrently 'node static.js' 'nodemon webSocket.js' 'webpack watch --node-env=development'",
+    "static:prod": "mkdir -p ../dist/public/ejs && cp ./public/client-ejs/ejs.min.js ../dist/public/ejs/ && concurrently 'node static.js' 'nodemon webSocket.js' 'webpack watch --mode=production --node-env=production'",
     "dev": "nodemon -e js,css,html,ejs --exec \"node script.js\""
   },
   "devDependencies": {

@@ -9,7 +9,7 @@ import {
   FetchNavJoinRequestsReturn,
   CreateUserInfoReturn,
 } from "../types/types.js";
-import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
+import { DynamoDBClient, QueryCommandOutput } from "@aws-sdk/client-dynamodb";
 import {
   DynamoDBDocumentClient,
   GetCommand,
@@ -20,6 +20,7 @@ import {
   DeleteCommand,
   DeleteCommandOutput,
   GetCommandOutput,
+  UpdateCommandOutput,
 } from "@aws-sdk/lib-dynamodb";
 
 const tableName = process.env.CHATVIOUSTABLE_TABLE_NAME
@@ -120,7 +121,12 @@ class UserManager {
       ConsistentRead: true,
     });
 
-    const getUserResponse = await docClient.send(getUserInfo);
+    let getUserResponse: GetCommandOutput;
+    try {
+      getUserResponse = await docClient.send(getUserInfo);
+    } catch (error: any) {
+      return { error: "Failed to Get User Info", statusCode: 500 };
+    }
     const statusCode = getUserResponse.$metadata.httpStatusCode as number;
 
     if (statusCode !== 200) {
@@ -235,9 +241,15 @@ class UserManager {
       },
     });
 
-    const updateJoinedRoomsResponse = await docClient.send(
-      updateJoinedRoomsCommand
-    );
+    let updateJoinedRoomsResponse: UpdateCommandOutput;
+    try {
+      updateJoinedRoomsResponse = await docClient.send(
+        updateJoinedRoomsCommand
+      );
+    } catch (error) {
+      return { error: "Failed to Update Joined Rooms", statusCode: 500 };
+    }
+
     const statusCode = updateJoinedRoomsResponse.$metadata
       .httpStatusCode as number;
 
@@ -255,7 +267,13 @@ class UserManager {
       ProjectionExpression: "joinedRooms, ownedRooms",
     });
 
-    const fetchUserInfoResponse = await docClient.send(fetchUserInfoCommand);
+    let fetchUserInfoResponse: GetCommandOutput;
+    try {
+      fetchUserInfoResponse = await docClient.send(fetchUserInfoCommand);
+    } catch (error) {
+      return { error: "Failed to Get User Info", statusCode: 500 };
+    }
+
     const userInfoStatusCode = fetchUserInfoResponse.$metadata
       .httpStatusCode as number;
     if (userInfoStatusCode !== 200) {
@@ -301,9 +319,13 @@ class UserManager {
       UpdateExpression: `REMOVE ${roomType}[${index}]`,
     });
 
-    const removeRoomOnUserResponse = await docClient.send(
-      removeRoomOnUserCommand
-    );
+    let removeRoomOnUserResponse: UpdateCommandOutput;
+    try {
+      removeRoomOnUserResponse = await docClient.send(removeRoomOnUserCommand);
+    } catch (error) {
+      return { error: "Failed to remove Room on user", statusCode: 500 };
+    }
+
     const statusCode = removeRoomOnUserResponse.$metadata
       .httpStatusCode as number;
 
@@ -338,16 +360,26 @@ class UserManager {
         ProjectionExpression: "RoomID, roomName",
       });
 
-      const joinRequestsResponse = await docClient.send(joinRequestsCommand);
+      let joinRequestsResponse: QueryCommandOutput;
+      try {
+        joinRequestsResponse = await docClient.send(joinRequestsCommand);
+      } catch (error) {
+        return { error: "Failed to Get Join Requests", statusCode: 500 };
+      }
+
       const statusCode = joinRequestsResponse.$metadata
         .httpStatusCode as number;
 
       if (statusCode !== 200 || !joinRequestsResponse.Items) {
         return { error: "Failed to Get Join Requests", statusCode };
       }
+
       if (joinRequestsResponse.Count === 1) {
         navJoinRequest.push(
-          joinRequestsResponse.Items[0] as { RoomID: string; roomName: string }
+          joinRequestsResponse.Items[0] as unknown as {
+            RoomID: string;
+            roomName: string;
+          }
         );
       } else break;
     }
@@ -379,7 +411,13 @@ class UserManager {
         ProjectionExpression: "RoomID, roomName",
       });
 
-      const joinRequestsResponse = await docClient.send(joinRequestsCommand);
+      let joinRequestsResponse: QueryCommandOutput;
+      try {
+        joinRequestsResponse = await docClient.send(joinRequestsCommand);
+      } catch (error) {
+        return { error: "Failed to Get Join Requests", statusCode: 500 };
+      }
+
       const statusCode = joinRequestsResponse.$metadata
         .httpStatusCode as number;
 
@@ -388,7 +426,10 @@ class UserManager {
       }
       if (joinRequestsResponse.Count === 1) {
         navJoinRequest.push(
-          joinRequestsResponse.Items[0] as { RoomID: string; roomName: string }
+          joinRequestsResponse.Items[0] as unknown as {
+            RoomID: string;
+            roomName: string;
+          }
         );
       } else break;
     }

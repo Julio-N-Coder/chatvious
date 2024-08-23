@@ -4,7 +4,7 @@ import { roomManager } from "../../models/rooms.js";
 export async function handler(
   event: APIGatewayEvent
 ): Promise<APIGatewayProxyResult> {
-  const userID = event.requestContext.authorizer?.claims.sub as string;
+  const userID = event.requestContext.authorizer?.sub as string;
   const bodyValidation = validateBody(event);
   if ("statusCode" in bodyValidation) {
     return bodyValidation;

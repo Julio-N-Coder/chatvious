@@ -120,16 +120,18 @@
       "user": null
     },
     "authorizer": {
-      "claims": {
-        "sub": "12345678-abcd-1234-efgh-123456789012",
-        "username":"testUser",
-        "email": "testuser@example.com",
-        "email_verified": true,
-        "phone_number": "+12345678901",
-        "phone_number_verified": false,
-        "token_use": "access"
-      },
-      "scopes": null
+      "sub": "12345678-abcd-1234-efgh-123456789012",
+      "username":"testUser",
+      "email": "testuser@example.com",
+      "iss": "https://cognito-idp.us-west-2.amazonaws.com/us-west-2_example",
+      "client_id": "xxxxxxxxxxxxexample",
+      "origin_jti": "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee",
+      "event_id": "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee",
+      "token_use": "access",
+      "auth_time": 1676313851,
+      "exp": 1676313851,
+      "iat": 1676313851,
+      "jti": "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"
     },
     "path": "/prod/path",
     "resourcePath": "/{proxy}",

@@ -18,8 +18,8 @@ let restAPIEvent: typeof restAPIEventBase = JSON.parse(
 );
 let restAPIEventCopy: typeof restAPIEventBase;
 
-const userID = restAPIEvent.requestContext.authorizer.claims.sub;
-const userName = restAPIEvent.requestContext.authorizer.claims.username;
+const userID = restAPIEvent.requestContext.authorizer.sub;
+const userName = restAPIEvent.requestContext.authorizer.username;
 let newUser: UserInfo;
 
 const roomName = "joinRoomTestRoom";

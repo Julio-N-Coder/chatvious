@@ -6,6 +6,7 @@ import {
 import { CognitoJwtVerifier } from "aws-jwt-verify";
 import cookie from "cookie";
 import { CognitoAccessTokenPayload } from "aws-jwt-verify/jwt-model";
+import { LambdaAuthorizerClaims } from "../types/types.js";
 
 async function addSetCookieHeaders(
   event: APIGatewayEvent,
@@ -69,9 +70,7 @@ function buildPolicy(
   principalId: string,
   effect: "Deny" | "Allow",
   methodArn: string,
-  context?: {
-    claims: any;
-    scopes?: any;
+  context?: LambdaAuthorizerClaims & {
     access_token?: string;
     id_token?: string;
   }

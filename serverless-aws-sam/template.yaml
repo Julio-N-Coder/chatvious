@@ -8,7 +8,7 @@ Globals:
       Variables:
         NODE_ENV: production
         DOMAIN: chatvious.coding-wielder.com
-        DOMAIN_URL: https://chatvious.coding-wielder.com/main
+        DOMAIN_URL: https://chatvious.coding-wielder.com
         SUB_DOMAIN: main.chatvious.coding-wielder.com
         SUB_DOMAIN_URL: https://main.chatvious.coding-wielder.com
         DYNAMODB_OPTIONS: '{}'
@@ -112,7 +112,9 @@ Resources:
     Properties:
       FunctionName: Chatvious_dashboardPage
       Description: Renders dashboard Page for Chatvious
-      PackageType: Image
+      CodeUri: ./src
+      Handler: dashboard.handler
+      Runtime: nodejs20.x
       MemorySize: 256
       Timeout: 6
       Architectures:
@@ -135,16 +137,16 @@ Resources:
           USER_POOL_CLIENT_ID: !Ref UserPoolClient
           USER_POOL_ARN: !GetAtt UserPool.Arn
     Metadata:
-      DockerContext: ./src
-      Dockerfile: dashboardPage.Dockerfile
-      DockerTag: latest
+      BuildMethod: makefile
 
   roomInfoPage:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: Chatvious_roomInfoPage
       Description: Renders roomInfo Page for Chatvious
-      PackageType: Image
+      CodeUri: ./src
+      Handler: roomInfo.handler
+      Runtime: nodejs20.x
       MemorySize: 256
       Timeout: 6
       Architectures:
@@ -167,16 +169,16 @@ Resources:
           USER_POOL_CLIENT_ID: !Ref UserPoolClient
           USER_POOL_ARN: !GetAtt UserPool.Arn
     Metadata:
-      DockerContext: ./src
-      Dockerfile: roomInfoPage.Dockerfile
-      DockerTag: latest
+      BuildMethod: makefile
 
   chatRoom:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: Chatvious_chatRoom
       Description: Renders chatRoom Page for Chatvious
-      PackageType: Image
+      CodeUri: ./src
+      Handler: chatRoom.handler
+      Runtime: nodejs20.x
       MemorySize: 256
       Timeout: 6
       Architectures:
@@ -199,16 +201,16 @@ Resources:
           USER_POOL_CLIENT_ID: !Ref UserPoolClient
           USER_POOL_ARN: !GetAtt UserPool.Arn
     Metadata:
-      DockerContext: ./src
-      Dockerfile: chatRoom.Dockerfile
-      DockerTag: latest
+      BuildMethod: makefile
 
   profilePage:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: Chatvious_profilePage
       Description: Renders profile Page for Chatvious
-      PackageType: Image
+      CodeUri: ./src
+      Handler: profilePage.handler
+      Runtime: nodejs20.x
       MemorySize: 256
       Timeout: 6
       Architectures:
@@ -231,9 +233,7 @@ Resources:
             Method: GET
             RestApiId: !Ref ChatviousRestApi
     Metadata:
-      DockerContext: ./src
-      Dockerfile: profilePage.Dockerfile
-      DockerTag: latest
+      BuildMethod: makefile
 
   createRoom:
     Type: AWS::Serverless::Function
@@ -597,11 +597,11 @@ Resources:
       Runtime: nodejs20.x
       Environment:
         Variables:
-          COGNITO_DOMAIN: !Sub https://${UserPoolDomain}
+          COGNITO_DOMAIN: !Sub https://${UserPoolDomain}.auth.${AWS::Region}.amazoncognito.com
           USER_POOL_ID: !Ref UserPool
           USER_POOL_CLIENT_ID: !Ref UserPoolClient
           USER_POOL_ARN: !GetAtt UserPool.Arn
-          CALLBACK_URL: https://chatvious.coding-wielder.com/main/callback
+          CALLBACK_URL: https://chatvious.coding-wielder.com/callback
       Events:
         ChatviousRestApiGETcallback:
           Type: Api
@@ -611,6 +611,15 @@ Resources:
             RestApiId: !Ref ChatviousRestApi
             Auth:
               Authorizer: NONE
+        ChatviousRestApiOPTIONSCallback:
+          Type: Api
+          Properties:
+            Path: /callback
+            Method: OPTIONS
+            RestApiId: !Ref ChatviousRestApi
+            Auth:
+              Authorizer: NONE
+
     Metadata:
       BuildMethod: esbuild
       BuildProperties:
@@ -633,7 +642,7 @@ Resources:
         - x86_64
       Environment:
         Variables:
-          COGNITO_DOMAIN: !Sub https://${UserPoolDomain}
+          COGNITO_DOMAIN: !Sub https://${UserPoolDomain}.auth.${AWS::Region}.amazoncognito.com
           USER_POOL_ID: !Ref UserPool
           USER_POOL_CLIENT_ID: !Ref UserPoolClient
           USER_POOL_ARN: !GetAtt UserPool.Arn
@@ -705,7 +714,7 @@ Resources:
         - x86_64
       Environment:
         Variables:
-          COGNITO_DOMAIN: !Sub https://${UserPoolDomain}
+          COGNITO_DOMAIN: !Sub https://${UserPoolDomain}.auth.${AWS::Region}.amazoncognito.com
           USER_POOL_ID: !Ref UserPool
           USER_POOL_CLIENT_ID: !Ref UserPoolClient
           USER_POOL_ARN: !GetAtt UserPool.Arn
@@ -898,7 +907,8 @@ Resources:
     Properties:
       ApiId: !Ref WebsocketApi
       RouteKey: $connect
-      AuthorizationType: NONE
+      AuthorizationType: CUSTOM
+      AuthorizerId: !Ref WebsocketAuthorizer
       OperationName: ConnectRoute
       Target: !Sub integrations/${ConnectInteg}
 
@@ -1091,7 +1101,7 @@ Resources:
         - COGNITO
       AllowedOAuthFlowsUserPoolClient: true
       CallbackURLs:
-        - https://chatvious.coding-wielder.com/main/callback
+        - https://chatvious.coding-wielder.com/callback
         - http://localhost:3000/callback
       LogoutURLs:
         - https://main.chatvious.coding-wielder.com
@@ -1256,12 +1266,15 @@ Outputs:
   UserPoolDomain:
     Description: Cognito User Pool Domain
     Value: !Ref UserPoolDomain
+  UserPoolDomainURL:
+    Description: Cognito User Pool Application Client Hosted Domain URL
+    Value: !Sub https://${UserPoolDomain}.auth.${AWS::Region}.amazoncognito.com
   CognitoLoginURL:
     Description: Cognito User Pool Application Client Hosted Login UI URL
-    Value: !Sub https://chatvious.auth.${AWS::Region}.amazoncognito.com/login?client_id=${UserPoolClient}&response_type=code&redirect_uri=https://chatvious.coding-wielder.com/main/callback
+    Value: !Sub https://${UserPoolDomain}.auth.${AWS::Region}.amazoncognito.com/login?client_id=${UserPoolClient}&response_type=code&redirect_uri=https://chatvious.coding-wielder.com/callback
   CognitoSignUpURL:
     Description: Cognito User Pool Application Client Hosted Sign Up UI URL
-    Value: !Sub https://chatvious.auth.${AWS::Region}.amazoncognito.com/signup?client_id=${UserPoolClient}&response_type=code&redirect_uri=https://chatvious.coding-wielder.com/main/callback
+    Value: !Sub https://${UserPoolDomain}.auth.${AWS::Region}.amazoncognito.com/signup?client_id=${UserPoolClient}&response_type=code&redirect_uri=https://chatvious.coding-wielder.com/callback
 
   StaticWebAppDomain:
     Value: !GetAtt CloudFrontDistribution.DomainName

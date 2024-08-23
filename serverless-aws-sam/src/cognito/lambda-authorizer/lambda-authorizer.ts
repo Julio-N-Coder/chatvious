@@ -5,7 +5,7 @@ import {
 import { CognitoJwtVerifier } from "aws-jwt-verify";
 import { decomposeUnverifiedJwt } from "aws-jwt-verify/jwt";
 import cookie from "cookie";
-import { TokenRefresh } from "../../types/types.js";
+import { TokenRefresh, LambdaAuthorizerClaims } from "../../types/types.js";
 import { buildPolicy } from "../../lib/handyUtils.js";
 
 interface Tokens {
@@ -42,21 +42,22 @@ export const handler = async (
     try {
       const payload = await verifier.verify(access_token);
 
-      const claims = {
+      const context: LambdaAuthorizerClaims = {
         sub: payload.sub,
         username: payload.username,
         iss: payload.iss,
         client_id: payload.client_id,
         origin_jti: payload.origin_jti,
-        event_id: payload.event_id,
+        event_id: payload.event_id as string,
         token_use: payload.token_use,
         auth_time: payload.auth_time,
         exp: payload.exp,
         iat: payload.iat,
         jti: payload.jti,
+        email: payload.email as string,
       };
 
-      return buildPolicy(payload.sub, "Allow", methodArn, { claims });
+      return buildPolicy(payload.sub, "Allow", methodArn, context);
     } catch (err) {
       return buildPolicy("Unauthorized", "Deny", methodArn);
     }
@@ -85,20 +86,19 @@ export const handler = async (
 
       const { payload } = decomposeUnverifiedJwt(access_token);
 
-      const context = {
-        claims: {
-          sub: payload.sub,
-          username: payload.username,
-          iss: payload.iss,
-          client_id: payload.client_id,
-          origin_jti: payload.origin_jti,
-          event_id: payload.event_id,
-          token_use: payload.token_use,
-          auth_time: payload.auth_time,
-          exp: payload.exp,
-          iat: payload.iat,
-          jti: payload.jti,
-        },
+      const context: LambdaAuthorizerClaims = {
+        sub: payload.sub as string,
+        username: payload.username as string,
+        email: payload.email as string,
+        iss: payload.iss as string,
+        client_id: payload.client_id as string,
+        origin_jti: payload.origin_jti as string,
+        event_id: payload.event_id as string,
+        token_use: payload.token_use as "access" | "id",
+        auth_time: payload.auth_time as number,
+        exp: payload.exp as number,
+        iat: payload.iat as number,
+        jti: payload.jti as string,
         access_token,
         id_token,
       };

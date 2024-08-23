@@ -9,7 +9,7 @@ export const handler = async (
     return bodyValidation;
   }
 
-  const userID = event.requestContext.authorizer?.claims.sub as string;
+  const userID = event.requestContext.authorizer?.sub as string;
   const RoomID = bodyValidation.body.RoomID;
   const memberUserID = bodyValidation.body.userID;
   const action = bodyValidation.body.action;

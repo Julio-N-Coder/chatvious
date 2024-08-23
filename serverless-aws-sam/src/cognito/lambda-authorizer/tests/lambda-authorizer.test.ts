@@ -5,6 +5,7 @@ import { CognitoJwtVerifier } from "aws-jwt-verify";
 import cookie from "cookie";
 import { APIGatewayTokenAuthorizerEvent } from "aws-lambda";
 import { buildPolicy } from "../../../lib/handyUtils.js";
+import { LambdaAuthorizerClaims } from "../../../types/types.js";
 
 let tokenAuthorizerEvent: APIGatewayTokenAuthorizerEvent = JSON.parse(
   JSON.stringify(tokenAuthorizerEventBase)
@@ -19,9 +20,10 @@ let idTokenCookie = cookie.serialize("id_token", id_token);
 let cookieHeader = `${refreshTokenCookie}; ${accessTokenCookie}; ${idTokenCookie}`;
 tokenAuthorizerEvent.authorizationToken = cookieHeader;
 
-const fakePayload = {
+const fakePayload: LambdaAuthorizerClaims = {
   sub: "1234567890",
   username: "testuser",
+  email: "test@example.com",
   iss: "https://example.com",
   client_id: "my-client-id",
   origin_jti: "origin-jti-value",
@@ -45,13 +47,12 @@ describe("tests for api gateways lambda-authorizer", () => {
 
     const result = await handler(tokenAuthorizerEvent);
 
-    const claims = { claims: fakePayload };
     expect(result).toEqual(
       buildPolicy(
         fakePayload.sub,
         "Allow",
         tokenAuthorizerEvent.methodArn,
-        claims
+        fakePayload
       )
     );
   });

@@ -6,10 +6,11 @@ import { isProduction, addSetCookieHeaders } from "../../lib/handyUtils.js";
 export const handler = async (
   event: APIGatewayEvent
 ): Promise<APIGatewayProxyResult> => {
-  const userID = event.requestContext.authorizer?.claims.sub as string;
+  const userID = event.requestContext.authorizer?.sub as string;
 
   const navUserInfoResponse = await fetchNavUserInfo(userID);
   if ("error" in navUserInfoResponse) {
+    console.log("fetch user error: userID: ", userID);
     return {
       headers: { "Content-Type": "application/json" },
       statusCode: navUserInfoResponse.statusCode,
@@ -20,7 +21,7 @@ export const handler = async (
   const staticContentUrl =
     process.env.SUB_DOMAIN_URL || "https://main.chatvious.coding-wielder.com";
   const domainUrl =
-    process.env.DOMAIN_URL || "https://chatvious.coding-wielder.com/main";
+    process.env.DOMAIN_URL || "https://chatvious.coding-wielder.com";
   const userInfo = navUserInfoResponse.data;
   const dashboardHTML = await ejs.renderFile("./views/dashboard.ejs", {
     ownedRooms: userInfo.ownedRooms,

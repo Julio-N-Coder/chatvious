@@ -2,6 +2,7 @@ import path from "path";
 import MiniCssExtractPlugin from "mini-css-extract-plugin";
 import HtmlWebpackPlugin from "html-webpack-plugin";
 import webpack from "webpack";
+import TerserPlugin from "terser-webpack-plugin";
 
 const isProduction = process.env.NODE_ENV == "production";
 
@@ -27,7 +28,7 @@ const config = {
       "process.env.IS_DEV_SERVER": false,
       "process.env.DOMAIN": JSON.stringify("chatvious.coding-wielder.com"),
       "process.env.DOMAIN_URL": JSON.stringify(
-        "https://chatvious.coding-wielder.com/main"
+        "https://chatvious.coding-wielder.com"
       ),
       "process.env.SUB_DOMAIN": JSON.stringify(
         "main.chatvious.coding-wielder.com"
@@ -65,6 +66,17 @@ const config = {
     extensions: [".tsx", ".ts", ".jsx", ".js", "..."],
   },
   optimization: {
+    minimize: true,
+    minimizer: [
+      new TerserPlugin({
+        terserOptions: {
+          format: {
+            comments: false,
+          },
+        },
+        extractComments: false,
+      }),
+    ],
     runtimeChunk: "single",
     splitChunks: {
       chunks: "all",

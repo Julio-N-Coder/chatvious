@@ -4,8 +4,10 @@ import { wsMessagesDBManager } from "../../../models/web-socket-messages.js";
 import { describe, test, expect, afterAll } from "@jest/globals";
 import { APIGatewayWebSocketConnectEvent } from "../../../types/types.js";
 
-const restAPIEvent = restAPIEventBase as APIGatewayWebSocketConnectEvent;
-const userID = restAPIEvent.requestContext.authorizer?.claims.sub as string;
+const restAPIEvent: APIGatewayWebSocketConnectEvent = JSON.parse(
+  JSON.stringify(restAPIEventBase)
+);
+const userID = restAPIEvent.requestContext.authorizer?.sub as string;
 const connectionId = restAPIEvent.requestContext.connectionId;
 
 afterAll(async () => {

@@ -4,7 +4,7 @@ import { APIGatewayWebSocketConnectEvent } from "../../types/types.js";
 export const handler = async (
   event: APIGatewayWebSocketConnectEvent
 ): Promise<{ statusCode: number }> => {
-  const userID = event.requestContext.authorizer?.claims.sub as string;
+  const userID = event.requestContext.authorizer?.sub as string;
   const connectionId = event.requestContext.connectionId;
 
   const storeConnectionResponse =

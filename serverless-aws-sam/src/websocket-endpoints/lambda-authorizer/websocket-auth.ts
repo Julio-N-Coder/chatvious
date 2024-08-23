@@ -1,5 +1,8 @@
 import { APIGatewayAuthorizerResult } from "aws-lambda";
-import { APIGatewayWebSocketAuthorizerEvent } from "../../types/types.js";
+import {
+  APIGatewayWebSocketAuthorizerEvent,
+  LambdaAuthorizerClaims,
+} from "../../types/types.js";
 import { CognitoJwtVerifier } from "aws-jwt-verify";
 import { buildPolicy } from "../../lib/handyUtils.js";
 
@@ -42,13 +45,14 @@ export const handler = async (
     try {
       const payload = await verifier.verify(access_token);
 
-      const claims = {
+      const context: LambdaAuthorizerClaims = {
         sub: payload.sub,
         username: payload.username,
+        email: payload.email as string,
         iss: payload.iss,
         client_id: payload.client_id,
         origin_jti: payload.origin_jti,
-        event_id: payload.event_id,
+        event_id: payload.event_id as string,
         token_use: payload.token_use,
         auth_time: payload.auth_time,
         exp: payload.exp,
@@ -56,7 +60,7 @@ export const handler = async (
         jti: payload.jti,
       };
 
-      return buildPolicy(payload.sub, "Allow", methodArn, { claims });
+      return buildPolicy(payload.sub, "Allow", methodArn, context);
     } catch (err) {
       return buildPolicy("Unauthorized", "Deny", methodArn);
     }

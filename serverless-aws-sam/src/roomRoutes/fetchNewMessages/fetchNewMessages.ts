@@ -11,7 +11,7 @@ export const handler = async (
     return bodyValidation;
   }
 
-  const userID = event.requestContext.authorizer?.claims.sub;
+  const userID = event.requestContext.authorizer?.sub;
   const RoomID = bodyValidation.body.RoomID;
   const LastEvaluatedKey = bodyValidation.body.LastEvaluatedKey;
 

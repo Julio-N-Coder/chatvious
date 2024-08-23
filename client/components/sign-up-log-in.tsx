@@ -6,7 +6,7 @@ const cognito_domain_url = process.env.COGNITO_DOMAIN_URL;
 export function SignUp({ className }: { className?: string }) {
   const callbackUrl = process.env.IS_DEV_SERVER
     ? "http://localhost:3000/callback"
-    : "https://chatvious.coding-wielder.com/main/callback";
+    : "https://chatvious.coding-wielder.com/callback";
   return (
     <a
       href={`${cognito_domain_url}/signup?response_type=code&client_id=${client_id}&redirect_uri=${callbackUrl}`}
@@ -20,7 +20,7 @@ export function SignUp({ className }: { className?: string }) {
 export function LogIn({ className }: { className?: string }) {
   const callbackUrl = process.env.IS_DEV_SERVER
     ? "http://localhost:3000/callback"
-    : "https://chatvious.coding-wielder.com/main/callback";
+    : "https://chatvious.coding-wielder.com/callback";
   return (
     <a
       href={`${cognito_domain_url}/login?response_type=code&client_id=${client_id}&redirect_uri=${callbackUrl}`}

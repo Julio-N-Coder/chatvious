@@ -23,9 +23,8 @@ let restAPIEventCopy: APIGatewayProxyEvent;
 const homePage =
   process.env.SUB_DOMAIN_URL || "https://main.chatvious.coding-wielder.com";
 
-const userID = restAPIEvent.requestContext.authorizer?.claims.sub as string;
-const userName = restAPIEvent.requestContext.authorizer?.claims
-  .username as string;
+const userID = restAPIEvent.requestContext.authorizer?.sub as string;
+const userName = restAPIEvent.requestContext.authorizer?.username as string;
 
 let userInfo: UserInfo;
 

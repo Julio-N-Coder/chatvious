@@ -11,8 +11,8 @@ export async function handler(
   }
 
   const roomName = bodyValidation.body.roomName;
-  const userID = event.requestContext.authorizer?.claims.sub as string;
-  const userName = event.requestContext.authorizer?.claims.username as string;
+  const userID = event.requestContext.authorizer?.sub as string;
+  const userName = event.requestContext.authorizer?.username as string;
 
   const userInfoResponse = await userManager.fetchUserInfo(userID);
   if ("error" in userInfoResponse) {

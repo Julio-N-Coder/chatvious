@@ -9,7 +9,7 @@ export async function handler(
     return bodyValidation;
   }
   const RoomID = bodyValidation.body.RoomID;
-  const userID = event.requestContext.authorizer?.claims.sub as string;
+  const userID = event.requestContext.authorizer?.sub as string;
 
   // check if they are owner
   const roomMemberResponse = await roomManager.fetchRoomMember(RoomID, userID);

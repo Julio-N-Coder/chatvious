@@ -209,6 +209,22 @@ type FetchNavUserInfoReturn = Promise<
   BaseModelsError | FetchNavUserInfoSuccess
 >;
 
+interface LambdaAuthorizerClaims {
+  [stringKey: string]: string | number;
+  sub: string;
+  username: string;
+  email: string;
+  iss: string;
+  client_id: string;
+  origin_jti: string;
+  event_id: string;
+  token_use: "access" | "id";
+  auth_time: number;
+  exp: number;
+  iat: number;
+  jti: string;
+}
+
 type PostConfirmationEvent = {
   version: string;
   triggerSource: string;
@@ -293,18 +309,7 @@ interface APIGatewayWebSocketConnectEvent {
     domainName: string;
     connectionId: string;
     apiId: string;
-    authorizer?: {
-      claims: {
-        sub: string;
-        username: string;
-        email: string;
-        email_verified: boolean;
-        phone_number: string;
-        phone_number_verified: boolean;
-        token_use: "access" | "id";
-      };
-      scopes: null;
-    };
+    authorizer?: LambdaAuthorizerClaims;
   };
   isBase64Encoded: boolean;
 }
@@ -434,6 +439,7 @@ export {
   FetchNavJoinRequestsReturn,
   FetchNavUserInfoReturn,
   PostConfirmationEvent,
+  LambdaAuthorizerClaims,
   APIGatewayWebSocketAuthorizerEvent,
   APIGatewayWebSocketConnectEvent,
   APIGatewayWebSocketDisconnectEvent,

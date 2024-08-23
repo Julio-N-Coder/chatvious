@@ -12,7 +12,7 @@ export async function handler(
   const RoomID = bodyValidation.body.RoomID;
   const requestUserID = bodyValidation.body.userID;
 
-  const userID = event.requestContext.authorizer?.claims.sub as string;
+  const userID = event.requestContext.authorizer?.sub as string;
 
   const userInfoResponse = await userManager.fetchUserInfo(userID);
   if ("error" in userInfoResponse) {

@@ -2,6 +2,7 @@ import path from "path";
 import MiniCssExtractPlugin from "mini-css-extract-plugin";
 import HtmlWebpackPlugin from "html-webpack-plugin";
 import webpack from "webpack";
+import TerserPlugin from "terser-webpack-plugin";
 
 const isProduction = process.env.NODE_ENV == "production";
 
@@ -65,6 +66,17 @@ const config = {
     extensions: [".tsx", ".ts", ".jsx", ".js", "..."],
   },
   optimization: {
+    minimize: true,
+    minimizer: [
+      new TerserPlugin({
+        terserOptions: {
+          format: {
+            comments: false,
+          },
+        },
+        extractComments: false,
+      }),
+    ],
     runtimeChunk: "single",
     splitChunks: {
       chunks: "all",
@@ -77,6 +89,8 @@ export default () => {
     config.mode = "production";
   } else {
     config.mode = "development";
+    delete config.optimization.minimize;
+    delete config.optimization.minimizer;
   }
   return config;
 };

@@ -16,7 +16,7 @@ export async function handler(
     };
   }
 
-  const userID = event.requestContext.authorizer?.claims.sub as string;
+  const userID = event.requestContext.authorizer?.sub as string;
 
   const roomInfoResponse = await roomManager.fetchRoom(RoomID);
   if ("error" in roomInfoResponse) {
@@ -83,7 +83,7 @@ export async function handler(
   const staticContentUrl =
     process.env.SUB_DOMAIN_URL || "https://main.chatvious.coding-wielder.com";
   const domainUrl =
-    process.env.DOMAIN_URL || "https://chatvious.coding-wielder.com/main";
+    process.env.DOMAIN_URL || "https://chatvious.coding-wielder.com";
 
   if (isOwner || isAdmin) {
     const joinRequestResponse = await roomManager.fetchJoinRequests(RoomID);
