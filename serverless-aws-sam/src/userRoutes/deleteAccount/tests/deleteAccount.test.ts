@@ -13,7 +13,10 @@ import {
 } from "@jest/globals";
 import { APIGatewayProxyEvent } from "aws-lambda";
 import { UserInfo, RoomInfoType } from "../../../types/types.js";
-import { newTestUser } from "../../../lib/libtest/handyTestUtils.js";
+import {
+  newTestUser,
+  clearDynamoDB,
+} from "../../../lib/libtest/handyTestUtils.js";
 import { CognitoIdentityProviderClient } from "@aws-sdk/client-cognito-identity-provider";
 
 let restAPIEvent: APIGatewayProxyEvent = JSON.parse(
@@ -114,53 +117,7 @@ afterEach(async () => {
 });
 
 afterAll(async () => {
-  // remove the created rooms which removes all related room info
-  const deleteRoomResponse = await roomManager.deleteRoom(RoomID);
-  if (
-    "error" in deleteRoomResponse &&
-    deleteRoomResponse.error !== "Bad Request" &&
-    deleteRoomResponse.error !== "User not found" &&
-    deleteRoomResponse.error !== "User has not joined this room"
-  ) {
-    throw new Error(
-      `Failed to clean up Room after test. Error: ${deleteRoomResponse.error}`
-    );
-  }
-
-  const deleteJoinRoomResponse = await roomManager.deleteRoom(joinRoomID);
-  if (
-    "error" in deleteJoinRoomResponse &&
-    deleteJoinRoomResponse.error !== "Bad Request" &&
-    deleteJoinRoomResponse.error !== "User not found" &&
-    deleteJoinRoomResponse.error !== "User has not joined this room"
-  ) {
-    throw new Error(
-      `Failed to clean up Joined Room after test. Error: ${deleteJoinRoomResponse.error}`
-    );
-  }
-
-  // delete the users we created
-  const deleteUserResponse = await userManager.deleteUser(userID);
-  if (
-    "error" in deleteUserResponse &&
-    deleteUserResponse.error !== "User not found"
-  ) {
-    throw new Error(
-      `Failed to clean up user after test. Error: ${deleteUserResponse.error}`
-    );
-  }
-
-  const deleteJoinRoomOwnerUserResponse = await userManager.deleteUser(
-    joinRoomOwnerID
-  );
-  if (
-    "error" in deleteJoinRoomOwnerUserResponse &&
-    deleteJoinRoomOwnerUserResponse.error !== "User not found"
-  ) {
-    throw new Error(
-      `Failed to clean up requesting user after test. Error: ${deleteJoinRoomOwnerUserResponse.error}`
-    );
-  }
+  await clearDynamoDB();
 });
 
 describe("Tests for the deleteAccount route", () => {

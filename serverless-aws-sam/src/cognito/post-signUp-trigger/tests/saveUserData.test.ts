@@ -2,16 +2,12 @@ import { handler } from "../saveUserData";
 import testPostConfirmationEvent from "../../../../events/saveUserDataEvent.json";
 import { expect, describe, test, afterAll } from "@jest/globals";
 import { userManager } from "../../../models/users.js";
+import { clearDynamoDB } from "../../../lib/libtest/handyTestUtils.js";
 
 const userID = testPostConfirmationEvent.request.userAttributes.sub;
 
 afterAll(async () => {
-  const deleteUserResponse = await userManager.deleteUser(userID);
-  if ("error" in deleteUserResponse) {
-    throw new Error(
-      `Failed to delete user during cleanup. Error: ${deleteUserResponse.error}`
-    );
-  }
+  await clearDynamoDB();
 });
 
 describe("Test for saveUserData", () => {

@@ -11,7 +11,10 @@ import {
 import { userManager } from "../../../models/users.js";
 import { roomManager } from "../../../models/rooms.js";
 import { RoomInfoType, UserInfo } from "../../../types/types.js";
-import { newTestUser } from "../../../lib/libtest/handyTestUtils.js";
+import {
+  newTestUser,
+  clearDynamoDB,
+} from "../../../lib/libtest/handyTestUtils.js";
 
 let restAPIEvent: typeof restAPIEventBase = JSON.parse(
   JSON.stringify(restAPIEventBase)
@@ -86,30 +89,8 @@ afterEach(async () => {
   }
 });
 
-// cleanups
 afterAll(async () => {
-  // remove the created room which removes all room related resouces
-  const deleteRoomResponse = await roomManager.deleteRoom(RoomID);
-  if ("error" in deleteRoomResponse) {
-    throw new Error(
-      `Failed to clean up Room after test. Error: ${deleteRoomResponse.error}`
-    );
-  }
-
-  // delete the users we created
-  const deleteUserResponse = await userManager.deleteUser(userID);
-  if ("error" in deleteUserResponse) {
-    throw new Error(
-      `Failed to clean up user after test. Error: ${deleteUserResponse.error}`
-    );
-  }
-
-  const deleteRoomUserOwnerResponse = await userManager.deleteUser(roomUserID);
-  if ("error" in deleteRoomUserOwnerResponse) {
-    throw new Error(
-      `Failed to clean up user after test. Error: ${deleteRoomUserOwnerResponse.error}`
-    );
-  }
+  await clearDynamoDB();
 });
 
 describe("A test suite to test whether a room join request is successfully sent", () => {

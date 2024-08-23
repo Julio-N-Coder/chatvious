@@ -8,12 +8,12 @@ import {
   afterAll,
   afterEach,
 } from "@jest/globals";
-import { userManager } from "../../../models/users.js";
 import { roomManager } from "../../../models/rooms.js";
 import { UserInfo } from "../../../types/types.js";
 import {
   newTestUser,
   checkRoomsOnUser,
+  clearDynamoDB,
 } from "../../../lib/libtest/handyTestUtils.js";
 
 let restAPIEvent: typeof restAPIEventBase = JSON.parse(
@@ -44,23 +44,8 @@ afterEach(async () => {
   restAPIEvent = JSON.parse(JSON.stringify(restAPIEventCopy));
 });
 
-// cleanups
 afterAll(async () => {
-  // remove the created room
-  const deleteRoomResponse = await roomManager.deleteRoom(RoomID);
-  if ("error" in deleteRoomResponse) {
-    throw new Error(
-      `Failed to clean up Room after test. Error: ${deleteRoomResponse.error}`
-    );
-  }
-
-  // delete the user we created
-  const deleteUserResponse = await userManager.deleteUser(userID);
-  if ("error" in deleteUserResponse) {
-    throw new Error(
-      `Failed to clean up user after test. Error: ${deleteUserResponse.error}`
-    );
-  }
+  await clearDynamoDB();
 });
 
 describe("A test suite to see if the createRoom route works correctly", () => {

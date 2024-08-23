@@ -3,6 +3,7 @@ import restAPIEventBase from "../../../../events/websocketApiConnectEvent.json";
 import { wsMessagesDBManager } from "../../../models/web-socket-messages.js";
 import { describe, test, expect, afterAll } from "@jest/globals";
 import { APIGatewayWebSocketConnectEvent } from "../../../types/types.js";
+import { clearDynamoDB } from "../../../lib/libtest/handyTestUtils.js";
 
 const restAPIEvent: APIGatewayWebSocketConnectEvent = JSON.parse(
   JSON.stringify(restAPIEventBase)
@@ -11,16 +12,7 @@ const userID = restAPIEvent.requestContext.authorizer?.sub as string;
 const connectionId = restAPIEvent.requestContext.connectionId;
 
 afterAll(async () => {
-  // remove the stored initialConnection information
-  const deleteConnectionResponse =
-    await wsMessagesDBManager.deleteInitialConnection(connectionId);
-  if (
-    "error" in deleteConnectionResponse &&
-    deleteConnectionResponse.error !== "No data found"
-  ) {
-    console.log("Error deleting initial connection");
-    console.error(deleteConnectionResponse.error);
-  }
+  await clearDynamoDB();
 });
 
 describe("A test for the connect route on the api gateway websocket", () => {

@@ -11,7 +11,10 @@ import {
 import { userManager } from "../../../models/users.js";
 import { roomManager } from "../../../models/rooms.js";
 import { UserInfo, RoomInfoType } from "../../../types/types.js";
-import { newTestUser } from "../../../lib/libtest/handyTestUtils.js";
+import {
+  newTestUser,
+  clearDynamoDB,
+} from "../../../lib/libtest/handyTestUtils.js";
 
 let restAPIEvent: typeof restAPIEventBase = JSON.parse(
   JSON.stringify(restAPIEventBase)
@@ -87,68 +90,8 @@ afterEach(async () => {
   restAPIEvent = JSON.parse(JSON.stringify(restAPIEventCopy));
 });
 
-// cleanups
 afterAll(async () => {
-  // delete the sent join request
-  const removeJoinRequestResponse = await roomManager.removeJoinRequest(
-    RoomID,
-    requestUserID
-  );
-  if (
-    "error" in removeJoinRequestResponse &&
-    removeJoinRequestResponse.error !== "Bad Request"
-  ) {
-    throw new Error(
-      `Failed to clean up JoinRequest after test. Error: ${removeJoinRequestResponse.error}`
-    );
-  }
-
-  // delete the users room member entries
-  const removeRoomMemberResponse = await roomManager.removeRoomMember(
-    RoomID,
-    userID
-  );
-  if ("error" in removeRoomMemberResponse) {
-    throw new Error(
-      `Failed to clean up RoomMember after test. Error: ${removeRoomMemberResponse.error}`
-    );
-  }
-
-  const removeRequestingUserRoomMemberResponse =
-    await roomManager.removeRoomMember(RoomID, requestUserID);
-  if (
-    "error" in removeRequestingUserRoomMemberResponse &&
-    removeRequestingUserRoomMemberResponse.error !== "Bad Request"
-  ) {
-    throw new Error(
-      `Failed to clean up requesting RoomMember after test. Error: ${removeRequestingUserRoomMemberResponse.error}`
-    );
-  }
-
-  // delete the users we created
-  const deleteUserResponse = await userManager.deleteUser(userID);
-  if ("error" in deleteUserResponse) {
-    throw new Error(
-      `Failed to clean up user after test. Error: ${deleteUserResponse.error}`
-    );
-  }
-
-  const deleteRequestingUserResponse = await userManager.deleteUser(
-    requestUserID
-  );
-  if ("error" in deleteRequestingUserResponse) {
-    throw new Error(
-      `Failed to clean up requesting user after test. Error: ${deleteRequestingUserResponse.error}`
-    );
-  }
-
-  // remove the created room
-  const deleteRoomResponse = await roomManager.deleteRoom(RoomID);
-  if ("error" in deleteRoomResponse) {
-    throw new Error(
-      `Failed to clean up Room after test. Error: ${deleteRoomResponse.error}`
-    );
-  }
+  await clearDynamoDB();
 });
 
 describe("A test for the rejectJoinRequest route handler", () => {

@@ -14,6 +14,7 @@ import { UserInfo, RoomInfoType } from "../../../types/types.js";
 import {
   newTestUser,
   checkRoomsOnUser,
+  clearDynamoDB,
 } from "../../../lib/libtest/handyTestUtils.js";
 
 let restAPIEvent: typeof restAPIEventBase = JSON.parse(
@@ -90,32 +91,8 @@ afterEach(async () => {
   restAPIEvent = JSON.parse(JSON.stringify(restAPIEventCopy));
 });
 
-// cleanups
 afterAll(async () => {
-  // remove the created room
-  const deleteRoomResponse = await roomManager.deleteRoom(RoomID);
-  if ("error" in deleteRoomResponse) {
-    throw new Error(
-      `Failed to clean up Room after test. Error: ${deleteRoomResponse.error}`
-    );
-  }
-
-  // delete the users we created
-  const deleteUserResponse = await userManager.deleteUser(userID);
-  if ("error" in deleteUserResponse) {
-    throw new Error(
-      `Failed to clean up user after test. Error: ${deleteUserResponse.error}`
-    );
-  }
-
-  const deleteUserBeingKickedResponse = await userManager.deleteUser(
-    userBeingKickedID
-  );
-  if ("error" in deleteUserBeingKickedResponse) {
-    throw new Error(
-      `Failed to clean up requesting user after test. Error: ${deleteUserBeingKickedResponse.error}`
-    );
-  }
+  await clearDynamoDB();
 });
 
 // make sure to test room user status as well

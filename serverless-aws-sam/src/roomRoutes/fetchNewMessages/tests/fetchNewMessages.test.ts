@@ -8,11 +8,13 @@ import {
   afterAll,
   afterEach,
 } from "@jest/globals";
-import { userManager } from "../../../models/users.js";
 import { roomManager } from "../../../models/rooms.js";
 import { messagesManagerDB } from "../../../models/messagesDB.js";
 import { UserInfo, RoomInfoType, MessageKeys } from "../../../types/types.js";
-import { newTestUser } from "../../../lib/libtest/handyTestUtils.js";
+import {
+  newTestUser,
+  clearDynamoDB,
+} from "../../../lib/libtest/handyTestUtils.js";
 
 let restAPIEvent: typeof restAPIEventBase = JSON.parse(
   JSON.stringify(restAPIEventBase)
@@ -99,21 +101,7 @@ afterEach(async () => {
 });
 
 afterAll(async () => {
-  // remove the created room which removes all other room resouces as well
-  const deleteRoomResponse = await roomManager.deleteRoom(RoomID);
-  if ("error" in deleteRoomResponse) {
-    throw new Error(
-      `Failed to clean up Room after test. Error: ${deleteRoomResponse.error}`
-    );
-  }
-
-  // delete the user
-  const deleteUserResponse = await userManager.deleteUser(userID);
-  if ("error" in deleteUserResponse) {
-    throw new Error(
-      `Failed to clean up user after test. Error: ${deleteUserResponse.error}`
-    );
-  }
+  await clearDynamoDB();
 });
 
 describe("tests to see if the fetchNewMessages route works correctly", () => {

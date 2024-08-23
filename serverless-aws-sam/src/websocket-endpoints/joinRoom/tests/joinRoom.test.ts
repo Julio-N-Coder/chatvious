@@ -6,6 +6,7 @@ import { roomManager } from "../../../models/rooms.js";
 import { describe, test, expect, beforeAll, afterAll } from "@jest/globals";
 import { APIGatewayProxyWebsocketEventV2 } from "aws-lambda";
 import { RoomInfoType } from "../../../types/types.js";
+import { clearDynamoDB } from "../../../lib/libtest/handyTestUtils.js";
 
 const restAPIEvent = restAPIEventBase as APIGatewayProxyWebsocketEventV2;
 const connectionId = restAPIEvent.requestContext.connectionId;
@@ -70,60 +71,7 @@ beforeAll(async () => {
 });
 
 afterAll(async () => {
-  // delete the room connection
-  const deleteRoomConnectionResponse =
-    await wsMessagesDBManager.deleteRoomConnection(RoomID, connectionId);
-  if (
-    "error" in deleteRoomConnectionResponse &&
-    deleteRoomConnectionResponse.error !== "No data found"
-  ) {
-    console.log("Error while deleting room connection");
-    console.log(deleteRoomConnectionResponse.error);
-  }
-
-  // delete the initial connection
-  const deleteInitialConnectionResponse =
-    await wsMessagesDBManager.deleteInitialConnection(connectionId);
-  if (
-    "error" in deleteInitialConnectionResponse &&
-    deleteInitialConnectionResponse.error !== "No data found"
-  ) {
-    console.log("Error while deleting initial connection");
-    console.log(deleteInitialConnectionResponse.error);
-  }
-
-  // delete the room member entry for the test user
-  const deleteRoomMemberResponse = await roomManager.removeRoomMember(
-    RoomID,
-    userID
-  );
-  if (
-    "error" in deleteRoomMemberResponse &&
-    deleteRoomMemberResponse.error !== "Bad Request"
-  ) {
-    console.log("Error while deleting room member");
-    console.log(deleteRoomMemberResponse.error);
-  }
-
-  // delete the test user
-  const deleteUserResponse = await userManager.deleteUser(userID);
-  if (
-    "error" in deleteUserResponse &&
-    deleteUserResponse.error !== "User not found"
-  ) {
-    console.log("Error while deleting user");
-    console.log(deleteUserResponse.error);
-  }
-
-  // delete the room
-  const deleteRoomResponse = await roomManager.deleteRoom(RoomID);
-  if (
-    "error" in deleteRoomResponse &&
-    deleteRoomResponse.error !== "Bad Request"
-  ) {
-    console.log("Error while deleting room");
-    console.log(deleteRoomResponse.error);
-  }
+  await clearDynamoDB();
 });
 
 describe("A test for the custom joinRoom route on the api gateway websocket", () => {

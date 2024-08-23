@@ -8,10 +8,12 @@ import {
   afterAll,
   afterEach,
 } from "@jest/globals";
-import { userManager } from "../../../models/users.js";
 import { roomManager } from "../../../models/rooms.js";
 import { UserInfo, RoomInfoType } from "../../../types/types.js";
-import { newTestUser } from "../../../lib/libtest/handyTestUtils.js";
+import {
+  newTestUser,
+  clearDynamoDB,
+} from "../../../lib/libtest/handyTestUtils.js";
 
 let restAPIEvent: typeof restAPIEventBase = JSON.parse(
   JSON.stringify(restAPIEventBase)
@@ -57,40 +59,8 @@ afterEach(async () => {
   restAPIEvent = JSON.parse(JSON.stringify(restAPIEventCopy));
 });
 
-// cleanups
 afterAll(async () => {
-  // delete the user room member entries
-  const removeRoomMemberResponse = await roomManager.removeRoomMember(
-    RoomID,
-    userID
-  );
-  if (
-    "error" in removeRoomMemberResponse &&
-    removeRoomMemberResponse.error !== "Bad Request"
-  ) {
-    throw new Error(
-      `Failed to clean up RoomMember after test. Error: ${removeRoomMemberResponse.error}`
-    );
-  }
-
-  // delete the user we created
-  const deleteUserResponse = await userManager.deleteUser(userID);
-  if ("error" in deleteUserResponse) {
-    throw new Error(
-      `Failed to clean up user after test. Error: ${deleteUserResponse.error}`
-    );
-  }
-
-  // remove the created room
-  const deleteRoomResponse = await roomManager.deleteRoom(RoomID);
-  if (
-    "error" in deleteRoomResponse &&
-    deleteRoomResponse.error !== "Bad Request"
-  ) {
-    throw new Error(
-      `Failed to clean up Room after test. Error: ${deleteRoomResponse.error}`
-    );
-  }
+  await clearDynamoDB();
 });
 
 describe("A Test for The deleteRoom Route", () => {

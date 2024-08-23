@@ -11,7 +11,10 @@ import {
 import { userManager } from "../../../models/users.js";
 import { roomManager } from "../../../models/rooms.js";
 import { UserInfo, RoomInfoType } from "../../../types/types.js";
-import { newTestUser } from "../../../lib/libtest/handyTestUtils.js";
+import {
+  newTestUser,
+  clearDynamoDB,
+} from "../../../lib/libtest/handyTestUtils.js";
 
 let restAPIEvent: typeof restAPIEventBase = JSON.parse(
   JSON.stringify(restAPIEventBase)
@@ -95,54 +98,8 @@ afterEach(async () => {
   restAPIEvent = JSON.parse(JSON.stringify(restAPIEventCopy));
 });
 
-// cleanups
 afterAll(async () => {
-  // delete the users room member entries
-  const removeRoomMemberResponse = await roomManager.removeRoomMember(
-    RoomID,
-    userID
-  );
-  if (
-    "error" in removeRoomMemberResponse &&
-    removeRoomMemberResponse.error !== "Bad Request"
-  ) {
-    throw new Error(
-      `Failed to clean up RoomMember after test. Error: ${removeRoomMemberResponse.error}`
-    );
-  }
-
-  const removeRoomOwnerUserRoomMemberResponse =
-    await roomManager.removeRoomMember(RoomID, roomOwnerUserID);
-  if ("error" in removeRoomOwnerUserRoomMemberResponse) {
-    throw new Error(
-      `Failed to clean up requesting RoomMember after test. Error: ${removeRoomOwnerUserRoomMemberResponse.error}`
-    );
-  }
-
-  // delete the users we created
-  const deleteUserResponse = await userManager.deleteUser(userID);
-  if ("error" in deleteUserResponse) {
-    throw new Error(
-      `Failed to clean up user after test. Error: ${deleteUserResponse.error}`
-    );
-  }
-
-  const deleteRoomOwnerUserResponse = await userManager.deleteUser(
-    roomOwnerUserID
-  );
-  if ("error" in deleteRoomOwnerUserResponse) {
-    throw new Error(
-      `Failed to clean up requesting user after test. Error: ${deleteRoomOwnerUserResponse.error}`
-    );
-  }
-
-  // remove the created room
-  const deleteRoomResponse = await roomManager.deleteRoom(RoomID);
-  if ("error" in deleteRoomResponse) {
-    throw new Error(
-      `Failed to clean up Room after test. Error: ${deleteRoomResponse.error}`
-    );
-  }
+  await clearDynamoDB();
 });
 
 describe("A test To see if the leaveRoom Route works correctly", () => {

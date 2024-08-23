@@ -14,6 +14,7 @@ import { UserInfo, RoomInfoType } from "../../../types/types.js";
 import {
   newTestUser,
   checkRoomsOnUser,
+  clearDynamoDB,
 } from "../../../lib/libtest/handyTestUtils.js";
 
 let restAPIEvent: typeof restAPIEventBase = JSON.parse(
@@ -90,32 +91,8 @@ afterEach(async () => {
   restAPIEvent = JSON.parse(JSON.stringify(restAPIEventCopy));
 });
 
-// cleanups
 afterAll(async () => {
-  // remove the created room which removes all related room info
-  const deleteRoomResponse = await roomManager.deleteRoom(RoomID);
-  if ("error" in deleteRoomResponse) {
-    throw new Error(
-      `Failed to clean up Room after test. Error: ${deleteRoomResponse.error}`
-    );
-  }
-
-  // delete the users we created
-  const deleteUserResponse = await userManager.deleteUser(userID);
-  if ("error" in deleteUserResponse) {
-    throw new Error(
-      `Failed to clean up user after test. Error: ${deleteUserResponse.error}`
-    );
-  }
-
-  const deleteRequestingUserResponse = await userManager.deleteUser(
-    requestUserID
-  );
-  if ("error" in deleteRequestingUserResponse) {
-    throw new Error(
-      `Failed to clean up requesting user after test. Error: ${deleteRequestingUserResponse.error}`
-    );
-  }
+  await clearDynamoDB();
 });
 
 describe("Test to see if accepting the join request works", () => {
