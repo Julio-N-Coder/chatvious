@@ -12,6 +12,7 @@ import {
   QueryCommand,
   QueryCommandOutput,
 } from "@aws-sdk/lib-dynamodb";
+import { BaseModels } from "./baseModels.js";
 import {
   InitialConnectionDB,
   InitialConnection,
@@ -30,7 +31,11 @@ const dynamodbOptions = JSON.parse(dynamodbOptionsString);
 const client = new DynamoDBClient(dynamodbOptions);
 const docClient = DynamoDBDocumentClient.from(client);
 
-class WSMessagesDBManager {
+class InitialConectDBWSManager extends BaseModels {
+  constructor(tableName: string, pk: string, sk: string) {
+    super(tableName, pk, sk);
+  }
+
   async storeInitialConnection(
     connectionId: string,
     userID: string,
@@ -43,14 +48,9 @@ class WSMessagesDBManager {
       RoomID: RoomID ? RoomID : false, // false means they are not connected to a room
     };
 
-    const command = new PutCommand({
-      TableName: tableName,
-      Item: initialConnectionData,
-    });
-
     let initialConnectionResponse: PutCommandOutput;
     try {
-      initialConnectionResponse = await docClient.send(command);
+      initialConnectionResponse = await this.putItem(initialConnectionData);
     } catch (err) {
       return {
         error: "Something Went wrong while storing data",
@@ -68,18 +68,18 @@ class WSMessagesDBManager {
   }
 
   async fetchInitialConnection(connectionId: string): InitialConnectionReturn {
-    const command = new GetCommand({
-      TableName: tableName,
-      Key: {
-        PartitionKey: "CONNECTION_INFO",
-        SortKey: connectionId,
-      },
-      ConsistentRead: true,
-    });
+    const initialConnectionKeys = {
+      PartitionKey: "CONNECTION_INFO",
+      SortKey: connectionId,
+    };
+    const ConsistentRead = true;
 
     let initialConnectionResponse: GetCommandOutput;
     try {
-      initialConnectionResponse = await docClient.send(command);
+      initialConnectionResponse = await this.getItem(
+        initialConnectionKeys,
+        ConsistentRead
+      );
     } catch (err) {
       return {
         error: "Something Went wrong while fetching data",
@@ -111,18 +111,18 @@ class WSMessagesDBManager {
   }
 
   async deleteInitialConnection(connectionId: string): InitialConnectionReturn {
-    const command = new DeleteCommand({
-      TableName: tableName,
-      Key: {
-        PartitionKey: "CONNECTION_INFO",
-        SortKey: connectionId,
-      },
-      ReturnValues: "ALL_OLD",
-    });
+    const initialConnectionKeys = {
+      PartitionKey: "CONNECTION_INFO",
+      SortKey: connectionId,
+    };
+    const returnDeletedValues = true;
 
     let initialConnectionResponse: DeleteCommandOutput;
     try {
-      initialConnectionResponse = await docClient.send(command);
+      initialConnectionResponse = await this.deleteItem(
+        initialConnectionKeys,
+        returnDeletedValues
+      );
     } catch (err) {
       return {
         error: "Something Went wrong while deleting data",
@@ -149,6 +149,12 @@ class WSMessagesDBManager {
       statusCode: 200,
     };
   }
+}
+
+class RoomConnectionsWSManager extends BaseModels {
+  constructor(tableName: string, pk: string, sk: string) {
+    super(tableName, pk, sk);
+  }
 
   async storeRoomConnection(
     connectionId: string,
@@ -169,14 +175,9 @@ class WSMessagesDBManager {
       profileColor,
     };
 
-    const command = new PutCommand({
-      TableName: tableName,
-      Item: roomConnectionData,
-    });
-
     let storeRoomConnectionResponse: PutCommandOutput;
     try {
-      storeRoomConnectionResponse = await docClient.send(command);
+      storeRoomConnectionResponse = await this.putItem(roomConnectionData);
     } catch (err) {
       return {
         error: "Something Went wrong while storing data",
@@ -200,18 +201,18 @@ class WSMessagesDBManager {
     RoomID: string,
     connectionId: string
   ): FetchRoomConnectionReturn {
-    const command = new GetCommand({
-      TableName: tableName,
-      Key: {
-        PartitionKey: `ROOM#${RoomID}`,
-        SortKey: `CONNECTIONID#${connectionId}`,
-      },
-      ConsistentRead: true,
-    });
+    const roomConnectionKeys = {
+      PartitionKey: `ROOM#${RoomID}`,
+      SortKey: `CONNECTIONID#${connectionId}`,
+    };
+    const ConsistentRead = true;
 
     let fetchRoomConnectionResponse: GetCommandOutput;
     try {
-      fetchRoomConnectionResponse = await docClient.send(command);
+      fetchRoomConnectionResponse = await this.getItem(
+        roomConnectionKeys,
+        ConsistentRead
+      );
     } catch (err) {
       return {
         error: "Something Went wrong while fetching data",
@@ -330,18 +331,18 @@ class WSMessagesDBManager {
     RoomID: string,
     connectionId: string
   ): BaseModelsReturnType {
-    const command = new DeleteCommand({
-      TableName: tableName,
-      Key: {
-        PartitionKey: `ROOM#${RoomID}`,
-        SortKey: `CONNECTIONID#${connectionId}`,
-      },
-      ReturnValues: "ALL_OLD",
-    });
+    const roomConnectionKeys = {
+      PartitionKey: `ROOM#${RoomID}`,
+      SortKey: `CONNECTIONID#${connectionId}`,
+    };
+    const returnDeletedValues = true;
 
     let deleteRoomConnectionResponse: DeleteCommandOutput;
     try {
-      deleteRoomConnectionResponse = await docClient.send(command);
+      deleteRoomConnectionResponse = await this.deleteItem(
+        roomConnectionKeys,
+        returnDeletedValues
+      );
     } catch (error) {
       return {
         error: "Something Went wrong while deleting data",
@@ -361,6 +362,15 @@ class WSMessagesDBManager {
   }
 }
 
-const wsMessagesDBManager = new WSMessagesDBManager();
+const initialConectDBWSManager = new InitialConectDBWSManager(
+  tableName,
+  "PartitionKey",
+  "SortKey"
+);
+const roomConnectionsWSManager = new RoomConnectionsWSManager(
+  tableName,
+  "PartitionKey",
+  "SortKey"
+);
 
-export { wsMessagesDBManager };
+export { initialConectDBWSManager, roomConnectionsWSManager };

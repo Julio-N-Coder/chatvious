@@ -1,6 +1,6 @@
 import { handler } from "../connect.js";
 import restAPIEventBase from "../../../../events/websocketApiConnectEvent.json";
-import { wsMessagesDBManager } from "../../../models/web-socket-messages.js";
+import { initialConectDBWSManager } from "../../../models/web-socket-messages.js";
 import { describe, test, expect, afterAll } from "@jest/globals";
 import { APIGatewayWebSocketConnectEvent } from "../../../types/types.js";
 import { clearDynamoDB } from "../../../lib/libtest/handyTestUtils.js";
@@ -20,9 +20,8 @@ describe("A test for the connect route on the api gateway websocket", () => {
     const connectResponse = await handler(restAPIEvent);
     expect(connectResponse.statusCode).toBe(200);
 
-    const initialConnection = await wsMessagesDBManager.fetchInitialConnection(
-      connectionId
-    );
+    const initialConnection =
+      await initialConectDBWSManager.fetchInitialConnection(connectionId);
     if ("error" in initialConnection) {
       throw new Error(
         `Error fetching initial connection. Error: ${initialConnection.error}`

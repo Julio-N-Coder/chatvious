@@ -1,5 +1,8 @@
 import { APIGatewayProxyWebsocketEventV2 } from "aws-lambda";
-import { wsMessagesDBManager } from "../../models/web-socket-messages.js";
+import {
+  initialConectDBWSManager,
+  roomConnectionsWSManager,
+} from "../../models/web-socket-messages.js";
 import { roomUsersManager } from "../../models/rooms.js";
 
 interface joinRoomBody {
@@ -34,7 +37,7 @@ export const handler = async (event: APIGatewayProxyWebsocketEventV2) => {
   const RoomID = body.RoomID;
 
   const initialConnectionResponse =
-    await wsMessagesDBManager.fetchInitialConnection(connectionId);
+    await initialConectDBWSManager.fetchInitialConnection(connectionId);
   if ("error" in initialConnectionResponse) {
     return {
       statusCode: initialConnectionResponse.statusCode,
@@ -60,7 +63,7 @@ export const handler = async (event: APIGatewayProxyWebsocketEventV2) => {
 
   // update initial connection to include RoomID
   const deleteInitialConnectionResponse =
-    await wsMessagesDBManager.updateInitialConnectionWithRoomID(
+    await roomConnectionsWSManager.updateInitialConnectionWithRoomID(
       connectionId,
       RoomID
     );
@@ -72,14 +75,15 @@ export const handler = async (event: APIGatewayProxyWebsocketEventV2) => {
   }
 
   // save them to the websocket chat room in database
-  const storeRoomMemberResponse = await wsMessagesDBManager.storeRoomConnection(
-    connectionId,
-    userID,
-    RoomID,
-    userName,
-    RoomUserStatus,
-    profileColor
-  );
+  const storeRoomMemberResponse =
+    await roomConnectionsWSManager.storeRoomConnection(
+      connectionId,
+      userID,
+      RoomID,
+      userName,
+      RoomUserStatus,
+      profileColor
+    );
   if ("error" in storeRoomMemberResponse) {
     return {
       statusCode: storeRoomMemberResponse.statusCode,

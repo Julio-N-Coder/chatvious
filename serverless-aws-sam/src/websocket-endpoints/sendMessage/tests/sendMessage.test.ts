@@ -1,6 +1,6 @@
 import { handler } from "../sendMessage.js";
 import restAPIEventBase from "../../../../events/websocketApiCustomEvent.json";
-import { wsMessagesDBManager } from "../../../models/web-socket-messages.js";
+import { roomConnectionsWSManager } from "../../../models/web-socket-messages.js";
 import { userManager } from "../../../models/users.js";
 import { roomManager } from "../../../models/rooms.js";
 import { messagesManagerDB } from "../../../models/messagesDB.js";
@@ -62,14 +62,15 @@ beforeAll(async () => {
   RoomID = roomInfo.RoomID;
 
   // store join room Connection Information
-  const roomConnectionResponse = await wsMessagesDBManager.storeRoomConnection(
-    connectionId,
-    userID,
-    RoomID,
-    userName,
-    "OWNER",
-    userInfo.profileColor
-  );
+  const roomConnectionResponse =
+    await roomConnectionsWSManager.storeRoomConnection(
+      connectionId,
+      userID,
+      RoomID,
+      userName,
+      "OWNER",
+      userInfo.profileColor
+    );
   if ("error" in roomConnectionResponse) {
     throw new Error(
       `Error while storing room connection. Error: ${roomConnectionResponse.error}`

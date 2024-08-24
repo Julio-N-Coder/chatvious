@@ -1,6 +1,9 @@
 import { handler } from "../disconnect.js";
 import restAPIEventBase from "../../../../events/websocketApiDisconnectEvent.json";
-import { wsMessagesDBManager } from "../../../models/web-socket-messages.js";
+import {
+  initialConectDBWSManager,
+  roomConnectionsWSManager,
+} from "../../../models/web-socket-messages.js";
 import { userManager } from "../../../models/users.js";
 import { roomManager } from "../../../models/rooms.js";
 import { describe, test, expect, beforeAll, afterAll } from "@jest/globals";
@@ -51,7 +54,7 @@ beforeAll(async () => {
 
   // store initial Connection Information
   const storeInitialConnectionResponse =
-    await wsMessagesDBManager.storeInitialConnection(
+    await initialConectDBWSManager.storeInitialConnection(
       connectionId,
       userID,
       RoomID
@@ -64,7 +67,7 @@ beforeAll(async () => {
 
   // store room connection information
   const storeRoomConnectionResponse =
-    await wsMessagesDBManager.storeRoomConnection(
+    await roomConnectionsWSManager.storeRoomConnection(
       connectionId,
       userID,
       RoomID,
@@ -91,14 +94,12 @@ describe("A test for the disconnect route on the api gateway websocket", () => {
     expect(response).toHaveProperty("statusCode", 200);
 
     const initialConnectionCheck =
-      await wsMessagesDBManager.fetchInitialConnection(connectionId);
+      await initialConectDBWSManager.fetchInitialConnection(connectionId);
     expect(initialConnectionCheck).toHaveProperty("error", "No data found");
     expect(initialConnectionCheck).toHaveProperty("statusCode", 404);
 
-    const roomConnectionCheck = await wsMessagesDBManager.fetchRoomConnection(
-      RoomID,
-      connectionId
-    );
+    const roomConnectionCheck =
+      await roomConnectionsWSManager.fetchRoomConnection(RoomID, connectionId);
     expect(roomConnectionCheck).toHaveProperty("error", "No data found");
     expect(roomConnectionCheck).toHaveProperty("statusCode", 404);
   });

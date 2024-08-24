@@ -1,6 +1,9 @@
 import { handler } from "../joinRoom.js";
 import restAPIEventBase from "../../../../events/websocketApiCustomEvent.json";
-import { wsMessagesDBManager } from "../../../models/web-socket-messages.js";
+import {
+  initialConectDBWSManager,
+  roomConnectionsWSManager,
+} from "../../../models/web-socket-messages.js";
 import { userManager } from "../../../models/users.js";
 import { roomManager } from "../../../models/rooms.js";
 import { describe, test, expect, beforeAll, afterAll } from "@jest/globals";
@@ -55,7 +58,7 @@ beforeAll(async () => {
 
   // store initial Connection Information
   const storeInitialConnectionResponse =
-    await wsMessagesDBManager.storeInitialConnection(connectionId, userID);
+    await initialConectDBWSManager.storeInitialConnection(connectionId, userID);
   if ("error" in storeInitialConnectionResponse) {
     throw new Error(
       `Error while storing initial connection. Error: ${storeInitialConnectionResponse.error}`
@@ -87,7 +90,7 @@ describe("A test for the custom joinRoom route on the api gateway websocket", ()
 
     // check if the connection information is stored correctly
     const fetchRoomConnectionResponse =
-      await wsMessagesDBManager.fetchRoomConnection(RoomID, connectionId);
+      await roomConnectionsWSManager.fetchRoomConnection(RoomID, connectionId);
     if ("error" in fetchRoomConnectionResponse) {
       throw new Error(
         `Error while fetching room connection in test. Error: ${fetchRoomConnectionResponse.error}`
@@ -101,7 +104,7 @@ describe("A test for the custom joinRoom route on the api gateway websocket", ()
 
     // check whether initial Connection info was updated with RoomID
     const fetchInitialConnectionResponse =
-      await wsMessagesDBManager.fetchInitialConnection(connectionId);
+      await initialConectDBWSManager.fetchInitialConnection(connectionId);
     if ("error" in fetchInitialConnectionResponse) {
       throw new Error(
         `Error while fetching initial connection in test. Error: ${fetchInitialConnectionResponse.error}`

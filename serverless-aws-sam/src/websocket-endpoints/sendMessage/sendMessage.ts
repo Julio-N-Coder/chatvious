@@ -3,7 +3,7 @@ import {
   ApiGatewayManagementApiClient,
   PostToConnectionCommand,
 } from "@aws-sdk/client-apigatewaymanagementapi";
-import { wsMessagesDBManager } from "../../models/web-socket-messages.js";
+import { roomConnectionsWSManager } from "../../models/web-socket-messages.js";
 import { messagesManagerDB } from "../../models/messagesDB.js";
 
 interface sendMessageBody {
@@ -44,10 +44,8 @@ export const handler = async (event: APIGatewayProxyWebsocketEventV2) => {
   const message = body.message;
 
   // check whether user is connected to the room
-  const roomConnectionResponse = await wsMessagesDBManager.fetchRoomConnection(
-    RoomID,
-    connectionId
-  );
+  const roomConnectionResponse =
+    await roomConnectionsWSManager.fetchRoomConnection(RoomID, connectionId);
   if ("error" in roomConnectionResponse) {
     if (roomConnectionResponse.error === "No data found") {
       return { statusCode: 400, body: "User not connected to the Chat room" };
@@ -68,7 +66,7 @@ export const handler = async (event: APIGatewayProxyWebsocketEventV2) => {
 
   // fetch all connected clients in the room
   const allRoomConnectionsResponse =
-    await wsMessagesDBManager.fetchAllRoomConnections(RoomID);
+    await roomConnectionsWSManager.fetchAllRoomConnections(RoomID);
   if ("error" in allRoomConnectionsResponse) {
     return {
       statusCode: allRoomConnectionsResponse.statusCode,

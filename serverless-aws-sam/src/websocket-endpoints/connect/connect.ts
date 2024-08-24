@@ -1,4 +1,4 @@
-import { wsMessagesDBManager } from "../../models/web-socket-messages.js";
+import { initialConectDBWSManager } from "../../models/web-socket-messages.js";
 import { APIGatewayWebSocketConnectEvent } from "../../types/types.js";
 
 export const handler = async (
@@ -8,7 +8,7 @@ export const handler = async (
   const connectionId = event.requestContext.connectionId;
 
   const storeConnectionResponse =
-    await wsMessagesDBManager.storeInitialConnection(connectionId, userID);
+    await initialConectDBWSManager.storeInitialConnection(connectionId, userID);
   if ("error" in storeConnectionResponse) {
     return { statusCode: storeConnectionResponse.statusCode };
   }
