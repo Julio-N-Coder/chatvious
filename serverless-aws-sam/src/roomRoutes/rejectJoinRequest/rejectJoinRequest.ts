@@ -1,5 +1,5 @@
 import { APIGatewayEvent, APIGatewayProxyResult } from "aws-lambda";
-import { roomManager } from "../../models/rooms.js";
+import { roomUsersManager, joinRequestManager } from "../../models/rooms.js";
 
 export async function handler(
   event: APIGatewayEvent
@@ -15,7 +15,10 @@ export async function handler(
 
   // need to add a check to see whether requestUser is already kicked (not part of room)
 
-  const roomMemberResponse = await roomManager.fetchRoomMember(RoomID, userID);
+  const roomMemberResponse = await roomUsersManager.fetchRoomMember(
+    RoomID,
+    userID
+  );
   if ("error" in roomMemberResponse) {
     return {
       headers: { "Content-Type": "application/json" },
@@ -35,7 +38,7 @@ export async function handler(
     };
   }
 
-  const removeJoinRequestResponse = await roomManager.removeJoinRequest(
+  const removeJoinRequestResponse = await joinRequestManager.removeJoinRequest(
     RoomID,
     requestUserID
   );

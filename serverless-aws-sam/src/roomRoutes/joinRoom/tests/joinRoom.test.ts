@@ -9,7 +9,11 @@ import {
   afterEach,
 } from "@jest/globals";
 import { userManager } from "../../../models/users.js";
-import { roomManager } from "../../../models/rooms.js";
+import {
+  roomManager,
+  joinRequestManager,
+  roomUsersManager,
+} from "../../../models/rooms.js";
 import { RoomInfoType, UserInfo } from "../../../types/types.js";
 import {
   newTestUser,
@@ -75,7 +79,7 @@ afterEach(async () => {
 
   // delete the sent join request
   if (keepJoinRequest) return;
-  const removeJoinRequestResponse = await roomManager.removeJoinRequest(
+  const removeJoinRequestResponse = await joinRequestManager.removeJoinRequest(
     RoomID,
     userID
   );
@@ -102,7 +106,7 @@ describe("A test suite to test whether a room join request is successfully sent"
     expect(body.message).toBe("Successfully sent Join Request to the Room");
 
     // check if the join request was sent to the room
-    const fetchJoinRequestResponse = await roomManager.fetchJoinRequest(
+    const fetchJoinRequestResponse = await joinRequestManager.fetchJoinRequest(
       RoomID,
       userID
     );
@@ -153,7 +157,7 @@ describe("A test suite to test whether a room join request is successfully sent"
 
   test("To Many Members in the Room should return the corect error", async () => {
     const addAmount = 19;
-    const addMemberCount = await roomManager.addSubMemberCount(
+    const addMemberCount = await roomUsersManager.addSubMemberCount(
       RoomID,
       addAmount
     );
@@ -169,7 +173,7 @@ describe("A test suite to test whether a room join request is successfully sent"
     const body = JSON.parse(response.body);
     expect(body).toHaveProperty("error", "Room is full");
 
-    const subMemberCount = await roomManager.addSubMemberCount(
+    const subMemberCount = await roomUsersManager.addSubMemberCount(
       RoomID,
       -addAmount
     );

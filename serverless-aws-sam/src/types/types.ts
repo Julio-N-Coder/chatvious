@@ -41,6 +41,11 @@ type BaseModelsReturnDataKey<Data, Keys> = Promise<
   BaseModelsError | BaseModelsSuccessKey<Data, Keys>
 >;
 
+interface BaseKeys {
+  PartitionKey: string;
+  SortKey: string;
+}
+
 type RoomsOnUser =
   | {
       roomName: string;
@@ -415,6 +420,7 @@ export {
   TokenRefresh,
   BaseModelsReturnType,
   BaseModelsReturnTypeData,
+  BaseKeys,
   RoomsOnUser,
   RoomInfoKeys,
   RoomInfoDBType,

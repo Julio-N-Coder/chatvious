@@ -1,7 +1,7 @@
 import { handler } from "../deleteAccount.js";
 import restAPIEventBase from "../../../../events/restAPIEvent.json";
-import { userManager } from "../../../models/users.js";
-import { roomManager } from "../../../models/rooms.js";
+import { userManager, roomsOnUserManager } from "../../../models/users.js";
+import { roomManager, roomUsersManager } from "../../../models/rooms.js";
 import {
   jest,
   describe,
@@ -88,7 +88,7 @@ beforeAll(async () => {
   joinRoomID = joinRoomInfo.RoomID;
 
   // enter user into joined room
-  const joinRoomResponse = await roomManager.addRoomMember(
+  const joinRoomResponse = await roomUsersManager.addRoomMember(
     joinRoomID,
     userID,
     userName,
@@ -99,10 +99,12 @@ beforeAll(async () => {
   }
 
   // udpate users joined rooms on the user
-  const updateUserJoinedRoomsResponse = await userManager.updateJoinedRooms(
-    userID,
-    { RoomID: joinRoomID, isAdmin: false, roomName: joinRoomName }
-  );
+  const updateUserJoinedRoomsResponse =
+    await roomsOnUserManager.updateJoinedRooms(userID, {
+      RoomID: joinRoomID,
+      isAdmin: false,
+      roomName: joinRoomName,
+    });
 
   restAPIEvent.body = JSON.stringify({});
   restAPIEvent.path = "/deleteAccount";

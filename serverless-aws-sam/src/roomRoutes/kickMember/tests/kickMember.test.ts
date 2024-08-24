@@ -9,7 +9,7 @@ import {
   afterEach,
 } from "@jest/globals";
 import { userManager } from "../../../models/users.js";
-import { roomManager } from "../../../models/rooms.js";
+import { roomManager, roomUsersManager } from "../../../models/rooms.js";
 import { UserInfo, RoomInfoType } from "../../../types/types.js";
 import {
   newTestUser,
@@ -65,7 +65,7 @@ beforeAll(async () => {
   RoomID = roomInfo.RoomID;
 
   // insert the user being kicked into the room
-  const addRoomMemberResponse = await roomManager.addRoomMember(
+  const addRoomMemberResponse = await roomUsersManager.addRoomMember(
     RoomID,
     userBeingKickedID,
     userBeingKickedName,
@@ -105,7 +105,7 @@ describe("Test if kickMember route kicks the user from the chat room", () => {
     expect(body.message).toBe("User Successfully Kicked");
 
     // check if member has been kicked
-    const fetchRoomMemberResponse = await roomManager.fetchRoomMember(
+    const fetchRoomMemberResponse = await roomUsersManager.fetchRoomMember(
       RoomID,
       userBeingKickedID
     );

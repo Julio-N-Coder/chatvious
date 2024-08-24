@@ -1,16 +1,15 @@
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import {
   DynamoDBDocumentClient,
-  PutCommand,
   UpdateCommand,
-  GetCommand,
-  DeleteCommand,
   QueryCommand,
   GetCommandOutput,
   PutCommandOutput,
   UpdateCommandOutput,
+  DeleteCommandOutput,
 } from "@aws-sdk/lib-dynamodb";
-import { userManager } from "./users.js";
+import { BaseModels } from "./baseModels.js";
+import { roomsOnUserManager } from "./users.js";
 import { messagesManagerDB } from "./messagesDB.js";
 import {
   BaseModelsReturnType,
@@ -39,7 +38,7 @@ const dynamodbOptions = JSON.parse(dynamodbOptionsString);
 const client = new DynamoDBClient(dynamodbOptions);
 const docClient = DynamoDBDocumentClient.from(client);
 
-class RoomManager {
+class RoomManager extends BaseModels {
   async makeRoom(
     ownerID: string,
     ownerName: string,
@@ -47,21 +46,7 @@ class RoomManager {
     profileColor: string
   ): FetchRoomReturn {
     const RoomID = crypto.randomUUID() as string;
-
-    const madeDate = new Date().toISOString() as string;
-    const roomData: RoomInfoDBType = {
-      PartitionKey: `ROOM#${RoomID}`,
-      SortKey: "METADATA",
-      RoomID,
-      roomName,
-      createdAt: madeDate,
-      roomMemberCount: 1,
-    };
-
-    const newRoomCommand = new PutCommand({
-      TableName: tableName,
-      Item: roomData,
-    });
+    const madeDate = new Date().toISOString();
 
     // newRoom value needs to be wrapped in an array
     const updateUserRoomCommand = new UpdateCommand({
@@ -71,47 +56,34 @@ class RoomManager {
       ExpressionAttributeValues: {
         ":newRoom": [
           {
-            roomName: roomData.roomName,
-            RoomID: roomData.RoomID,
+            roomName: roomName,
+            RoomID: RoomID,
           },
         ],
       },
     });
 
-    // make RoomMember Entry for owner.
-    const roomMemberItem: RoomMemberDB = {
-      PartitionKey: `ROOM#${RoomID}`,
-      SortKey: `MEMBERS#USERID#${ownerID}`,
-      userID: ownerID,
-      userName: ownerName,
+    const makeRoomResponse = await this.makeRoomItem(
+      roomName,
       RoomID,
-      RoomUserStatus: "OWNER",
-      GSISortKey: `MEMBERS#DATE#${madeDate}`,
-      profileColor,
-    };
-
-    const roomMemberCommand = new PutCommand({
-      TableName: tableName,
-      Item: roomMemberItem,
-    });
-
-    const makeRoomResponse = await docClient.send(newRoomCommand);
-    const makeRoomStatusCode = makeRoomResponse.$metadata
-      .httpStatusCode as number;
-    if (makeRoomStatusCode !== 200) {
-      return {
-        error: "Failed to make room",
-        statusCode: makeRoomStatusCode,
-      };
+      madeDate
+    );
+    if ("error" in makeRoomResponse) {
+      return makeRoomResponse;
     }
 
-    const roomMemberResponse = await docClient.send(roomMemberCommand);
-    const roomMemberStatusCode = roomMemberResponse.$metadata
-      .httpStatusCode as number;
-    if (roomMemberStatusCode !== 200) {
+    const roomMemberResponse = await roomUsersManager.addRoomMember(
+      RoomID,
+      ownerID,
+      ownerName,
+      profileColor,
+      madeDate,
+      "OWNER"
+    );
+    if ("error" in roomMemberResponse) {
       return {
         error: "Failed to make room member",
-        statusCode: roomMemberStatusCode,
+        statusCode: roomMemberResponse.statusCode,
       };
     }
 
@@ -146,33 +118,70 @@ class RoomManager {
     };
   }
 
-  // update to handle LastEvaluatedKey on messages
+  async makeRoomItem(
+    roomName: string,
+    RoomID?: string,
+    madeDate?: string
+  ): BaseModelsReturnType {
+    RoomID = RoomID ? RoomID : (crypto.randomUUID() as string);
+    madeDate = madeDate ? madeDate : (new Date().toISOString() as string);
+
+    const roomData: RoomInfoDBType = {
+      PartitionKey: `ROOM#${RoomID}`,
+      SortKey: "METADATA",
+      RoomID,
+      roomName,
+      createdAt: madeDate,
+      roomMemberCount: 1,
+    };
+
+    let makeRoomResponse: PutCommandOutput;
+    try {
+      makeRoomResponse = await this.putItem(roomData);
+    } catch (error) {
+      return {
+        error: "Failed to make room",
+        statusCode: 500,
+      };
+    }
+    const makeRoomStatusCode = makeRoomResponse.$metadata
+      .httpStatusCode as number;
+
+    if (makeRoomStatusCode !== 200) {
+      return {
+        error: "Failed to make room",
+        statusCode: makeRoomStatusCode,
+      };
+    }
+
+    return { message: "Room Created", statusCode: 201 };
+  }
+
   async deleteRoom(RoomID: string): BaseModelsReturnType {
     // delete all join request the room has
-    const fetchJoinRequestsResponse = await this.fetchJoinRequests(RoomID);
+    const fetchJoinRequestsResponse =
+      await joinRequestManager.fetchJoinRequests(RoomID);
     if ("error" in fetchJoinRequestsResponse) {
-      return {
-        error: fetchJoinRequestsResponse.error,
-        statusCode: fetchJoinRequestsResponse.statusCode,
-      };
+      return fetchJoinRequestsResponse;
     }
     const joinRequests = fetchJoinRequestsResponse.joinRequests;
     if (joinRequests.length > 0) {
       for (const joinRequest of joinRequests) {
-        const deleteJoinRequestResponse = await this.removeJoinRequest(
-          RoomID,
-          joinRequest.fromUserID
-        );
+        const deleteJoinRequestResponse =
+          await joinRequestManager.removeJoinRequest(
+            RoomID,
+            joinRequest.fromUserID
+          );
         if ("error" in deleteJoinRequestResponse) {
-          return {
-            error: deleteJoinRequestResponse.error,
-            statusCode: deleteJoinRequestResponse.statusCode,
-          };
+          return deleteJoinRequestResponse;
         }
       }
     }
 
-    const membersResponse = await this.fetchRoomMembers(RoomID, true);
+    const membersResponse = await roomUsersManager.fetchRoomMembers(
+      RoomID,
+      true
+    );
     if ("error" in membersResponse) {
       return {
         error: membersResponse.error,
@@ -183,10 +192,8 @@ class RoomManager {
       const members = membersResponse.roomMembers;
       for (const member of members) {
         const memberID = member.userID;
-        const removeRoomOnUserResponse = await userManager.removeRoomOnUser(
-          memberID,
-          RoomID
-        );
+        const removeRoomOnUserResponse =
+          await roomsOnUserManager.removeRoomOnUser(memberID, RoomID);
         if ("error" in removeRoomOnUserResponse) {
           return {
             error: removeRoomOnUserResponse.error,
@@ -195,10 +202,8 @@ class RoomManager {
         }
 
         // delete room member data as well
-        const removeRoomMemberResponse = await this.removeRoomMember(
-          RoomID,
-          memberID
-        );
+        const removeRoomMemberResponse =
+          await roomUsersManager.removeRoomMember(RoomID, memberID);
         if ("error" in removeRoomMemberResponse) {
           return {
             error: removeRoomMemberResponse.error,
@@ -247,12 +252,15 @@ class RoomManager {
       }
     }
 
-    const deleteRoomCommand = new DeleteCommand({
-      TableName: tableName,
-      Key: { PartitionKey: `ROOM#${RoomID}`, SortKey: "METADATA" },
-      ReturnValues: "ALL_OLD",
-    });
-    const deleteRoomResponse = await docClient.send(deleteRoomCommand);
+    const roomKeys = { PartitionKey: `ROOM#${RoomID}`, SortKey: "METADATA" };
+    const returnValues = true;
+
+    let deleteRoomResponse: DeleteCommandOutput;
+    try {
+      deleteRoomResponse = await this.deleteItem(roomKeys, returnValues);
+    } catch (error) {
+      return { error: "Failed to Delete Room", statusCode: 500 };
+    }
     const statusCode = deleteRoomResponse.$metadata.httpStatusCode as number;
 
     if (statusCode !== 200) {
@@ -265,12 +273,14 @@ class RoomManager {
   }
 
   async fetchRoom(RoomID: string): FetchRoomReturn {
-    const roomInfoCommand = new GetCommand({
-      TableName: tableName,
-      Key: { PartitionKey: `ROOM#${RoomID}`, SortKey: "METADATA" },
-    });
+    const roomKeys = { PartitionKey: `ROOM#${RoomID}`, SortKey: "METADATA" };
 
-    const roomInfoResponse = await docClient.send(roomInfoCommand);
+    let roomInfoResponse: GetCommandOutput;
+    try {
+      roomInfoResponse = await this.getItem(roomKeys);
+    } catch (error) {
+      return { error: "Failed to Get Room Info", statusCode: 500 };
+    }
 
     if (roomInfoResponse.$metadata.httpStatusCode !== 200) {
       return { error: "Failed to Get Room Info", statusCode: 500 };
@@ -288,6 +298,12 @@ class RoomManager {
       roomMemberCount: roomInfoDB.roomMemberCount,
     };
     return { roomInfo, message: "Room Found", statusCode: 200 };
+  }
+}
+
+class RoomUsersManager extends BaseModels {
+  constructor(tableName: string, pk: string, sk: string) {
+    super(tableName, pk, sk);
   }
 
   async fetchRoomMembers(
@@ -353,15 +369,17 @@ class RoomManager {
   }
 
   async fetchRoomMember(RoomID: string, userID: string): FetchRoomMemberReturn {
-    const roomMemberCommand = new GetCommand({
-      TableName: tableName,
-      Key: {
-        PartitionKey: `ROOM#${RoomID}`,
-        SortKey: `MEMBERS#USERID#${userID}`,
-      },
-    });
+    const roomKeys = {
+      PartitionKey: `ROOM#${RoomID}`,
+      SortKey: `MEMBERS#USERID#${userID}`,
+    };
 
-    const roomMemberResponse = await docClient.send(roomMemberCommand);
+    let roomMemberResponse: GetCommandOutput;
+    try {
+      roomMemberResponse = await this.getItem(roomKeys);
+    } catch (error) {
+      return { error: "Failed to Get Room Member", statusCode: 500 };
+    }
 
     if (roomMemberResponse.$metadata.httpStatusCode !== 200) {
       return { error: "Failed to Get Room Member", statusCode: 500 };
@@ -389,9 +407,45 @@ class RoomManager {
     RoomID: string,
     memberID: string,
     memberName: string,
-    profileColor: string
+    profileColor: string,
+    madeDate?: string,
+    RoomUserStatus?: "MEMBER" | "ADMIN" | "OWNER"
   ): BaseModelsReturnType {
-    const madeDate = new Date().toISOString() as string;
+    madeDate = madeDate ? madeDate : (new Date().toISOString() as string);
+    RoomUserStatus = RoomUserStatus ? RoomUserStatus : "MEMBER";
+
+    const addRoomMemberItemResponse = await this.addRoomMemberItem(
+      RoomID,
+      memberID,
+      memberName,
+      profileColor,
+      madeDate,
+      RoomUserStatus
+    );
+    if ("error" in addRoomMemberItemResponse) {
+      return addRoomMemberItemResponse;
+    }
+
+    if (RoomUserStatus !== "OWNER") {
+      const addMemberCountResponse = await this.addSubMemberCount(RoomID, 1);
+      if ("error" in addMemberCountResponse) {
+        return addMemberCountResponse;
+      }
+    }
+
+    return { message: "Member Added", statusCode: 201 };
+  }
+
+  async addRoomMemberItem(
+    RoomID: string,
+    memberID: string,
+    memberName: string,
+    profileColor: string,
+    madeDate?: string,
+    RoomUserStatus?: "MEMBER" | "ADMIN" | "OWNER"
+  ): BaseModelsReturnType {
+    madeDate = madeDate ? madeDate : (new Date().toISOString() as string);
+    RoomUserStatus = RoomUserStatus ? RoomUserStatus : "MEMBER";
 
     const roomMemberItem: RoomMemberDB = {
       PartitionKey: `ROOM#${RoomID}`,
@@ -399,19 +453,14 @@ class RoomManager {
       userID: memberID,
       userName: memberName,
       RoomID,
-      RoomUserStatus: "MEMBER",
+      RoomUserStatus,
       GSISortKey: `MEMBERS#DATE#${madeDate}`,
       profileColor,
     };
 
-    const roomMemberCommand = new PutCommand({
-      TableName: tableName,
-      Item: roomMemberItem,
-    });
-
     let makeRoomResponse: PutCommandOutput;
     try {
-      makeRoomResponse = await docClient.send(roomMemberCommand);
+      makeRoomResponse = await this.putItem(roomMemberItem);
     } catch (error) {
       return { error: "Failed to add Member", statusCode: 500 };
     }
@@ -425,14 +474,6 @@ class RoomManager {
       };
     }
 
-    const addMemberCountResponse = await this.addSubMemberCount(RoomID, 1);
-    if ("error" in addMemberCountResponse) {
-      return {
-        error: addMemberCountResponse.error,
-        statusCode: addMemberCountResponse.statusCode,
-      };
-    }
-
     return { message: "Member Added", statusCode: 201 };
   }
 
@@ -440,17 +481,40 @@ class RoomManager {
     RoomID: string,
     memberID: string
   ): BaseModelsReturnType {
-    const removeMemberCommand = new DeleteCommand({
-      TableName: tableName,
-      Key: {
-        PartitionKey: `ROOM#${RoomID}`,
-        SortKey: `MEMBERS#USERID#${memberID}`,
-      },
-      ReturnValues: "ALL_OLD",
-    });
+    const removeMemberResponse = await this.removeRoomMemberItem(
+      RoomID,
+      memberID
+    );
+    if ("error" in removeMemberResponse) {
+      return removeMemberResponse;
+    }
 
-    const removeMemberResponse = await docClient.send(removeMemberCommand);
+    const subMemberCountResponse = await this.addSubMemberCount(RoomID, -1);
+    if ("error" in subMemberCountResponse) {
+      return subMemberCountResponse;
+    }
+
+    return { message: "Member Removed", statusCode: 200 };
+  }
+
+  async removeRoomMemberItem(
+    RoomID: string,
+    memberID: string
+  ): BaseModelsReturnType {
+    const roomKeys = {
+      PartitionKey: `ROOM#${RoomID}`,
+      SortKey: `MEMBERS#USERID#${memberID}`,
+    };
+    const returnValues = true;
+
+    let removeMemberResponse: DeleteCommandOutput;
+    try {
+      removeMemberResponse = await this.deleteItem(roomKeys, returnValues);
+    } catch (error) {
+      return { error: "Failed to remove Member", statusCode: 500 };
+    }
     const StatusCode = removeMemberResponse.$metadata.httpStatusCode as number;
+
     if (StatusCode !== 200) {
       return {
         error: "Failed to remove Member",
@@ -458,14 +522,6 @@ class RoomManager {
       };
     } else if (removeMemberResponse.Attributes == undefined) {
       return { error: "Bad Request", statusCode: 400 };
-    }
-
-    const subMemberCountResponse = await this.addSubMemberCount(RoomID, -1);
-    if ("error" in subMemberCountResponse) {
-      return {
-        error: subMemberCountResponse.error,
-        statusCode: subMemberCountResponse.statusCode,
-      };
     }
 
     return { message: "Member Removed", statusCode: 200 };
@@ -509,22 +565,61 @@ class RoomManager {
     };
   }
 
+  async updateRoomUserStatus(
+    RoomID: string,
+    memberID: string,
+    newRoomUserStatus: "MEMBER" | "ADMIN" | "OWNER"
+  ): BaseModelsReturnType {
+    const updateMemberCommand = new UpdateCommand({
+      TableName: tableName,
+      Key: {
+        PartitionKey: `ROOM#${RoomID}`,
+        SortKey: `MEMBERS#USERID#${memberID}`,
+      },
+      UpdateExpression: "SET RoomUserStatus = :newStatus",
+      ExpressionAttributeValues: { ":newStatus": newRoomUserStatus },
+      ReturnValues: "ALL_NEW",
+    });
+
+    let updateMemberResponse: UpdateCommandOutput;
+    try {
+      updateMemberResponse = await docClient.send(updateMemberCommand);
+    } catch (error) {
+      return { error: "Failed to update Member", statusCode: 500 };
+    }
+
+    const statusCode = updateMemberResponse.$metadata.httpStatusCode as number;
+    if (statusCode !== 200) {
+      return { error: "Failed to update Member", statusCode };
+    } else if (updateMemberResponse.Attributes == undefined) {
+      return { error: "Bad Request", statusCode: 400 };
+    }
+
+    return { message: "RoomUserStatus on Member Updated", statusCode: 200 };
+  }
+}
+
+class JoinRequestManager extends BaseModels {
+  constructor(tableName: string, pk: string, sk: string) {
+    super(tableName, pk, sk);
+  }
+
   async fetchJoinRequest(
     RoomID: string,
     userID: string
   ): FetchJoinRequestReturn {
-    const joinRequestCommand = new GetCommand({
-      TableName: tableName,
-      Key: {
-        PartitionKey: `ROOM#${RoomID}`,
-        SortKey: `JOIN_REQUESTS#USERID#${userID}`,
-      },
-      ConsistentRead: true,
-    });
+    const roomJoinRequestKeys = {
+      PartitionKey: `ROOM#${RoomID}`,
+      SortKey: `JOIN_REQUESTS#USERID#${userID}`,
+    };
+    const ConsistentRead = true;
 
     let joinRequestResponse: GetCommandOutput;
     try {
-      joinRequestResponse = await docClient.send(joinRequestCommand);
+      joinRequestResponse = await this.getItem(
+        roomJoinRequestKeys,
+        ConsistentRead
+      );
     } catch (error) {
       return { error: "Failed to Get Join Request", statusCode: 500 };
     }
@@ -614,21 +709,24 @@ class RoomManager {
     profileColor: string
   ): BaseModelsReturnType {
     const sentJoinRequestAt = new Date().toISOString();
-    const joinRequestCommand = new PutCommand({
-      TableName: tableName,
-      Item: {
-        PartitionKey: `ROOM#${RoomID}`,
-        SortKey: `JOIN_REQUESTS#USERID#${fromUserID}`,
-        RoomID,
-        fromUserID,
-        fromUserName,
-        roomName,
-        GSISortKey: `JOIN_REQUESTS#DATE#${sentJoinRequestAt}`,
-        profileColor,
-      },
-    });
 
-    const joinRequestResponse = await docClient.send(joinRequestCommand);
+    const joinRequestItem = {
+      PartitionKey: `ROOM#${RoomID}`,
+      SortKey: `JOIN_REQUESTS#USERID#${fromUserID}`,
+      RoomID,
+      fromUserID,
+      fromUserName,
+      roomName,
+      GSISortKey: `JOIN_REQUESTS#DATE#${sentJoinRequestAt}`,
+      profileColor,
+    };
+
+    let joinRequestResponse: PutCommandOutput;
+    try {
+      joinRequestResponse = await this.putItem(joinRequestItem);
+    } catch (error) {
+      return { error: "Failed to send Join Request", statusCode: 500 };
+    }
     const statusCode = joinRequestResponse.$metadata.httpStatusCode as number;
 
     if (statusCode !== 200) {
@@ -645,22 +743,21 @@ class RoomManager {
     RoomID: string,
     requestUserID: string
   ): BaseModelsReturnType {
-    const joinRequestCommand = new DeleteCommand({
-      TableName: tableName,
-      Key: {
-        PartitionKey: `ROOM#${RoomID}`,
-        SortKey: `JOIN_REQUESTS#USERID#${requestUserID}`,
-      },
-      ReturnValues: "ALL_OLD",
-    });
+    const joinRequestKeys = {
+      PartitionKey: `ROOM#${RoomID}`,
+      SortKey: `JOIN_REQUESTS#USERID#${requestUserID}`,
+    };
+    const returnValues = true;
 
-    const joinRequestResponse = await docClient.send(joinRequestCommand);
+    const joinRequestResponse = await this.deleteItem(
+      joinRequestKeys,
+      returnValues
+    );
     const statusCode = joinRequestResponse.$metadata.httpStatusCode as number;
 
     if (statusCode !== 200) {
       return { error: "Failed to remove Join Request", statusCode };
     }
-    // checks if anything was deleted.
     if (joinRequestResponse.Attributes == undefined) {
       return { error: "Bad Request", statusCode: 400 };
     }
@@ -670,41 +767,18 @@ class RoomManager {
       statusCode: 200,
     };
   }
-
-  async updateRoomUserStatus(
-    RoomID: string,
-    memberID: string,
-    newRoomUserStatus: "MEMBER" | "ADMIN" | "OWNER"
-  ): BaseModelsReturnType {
-    const updateMemberCommand = new UpdateCommand({
-      TableName: tableName,
-      Key: {
-        PartitionKey: `ROOM#${RoomID}`,
-        SortKey: `MEMBERS#USERID#${memberID}`,
-      },
-      UpdateExpression: "SET RoomUserStatus = :newStatus",
-      ExpressionAttributeValues: { ":newStatus": newRoomUserStatus },
-      ReturnValues: "ALL_NEW",
-    });
-
-    let updateMemberResponse: UpdateCommandOutput;
-    try {
-      updateMemberResponse = await docClient.send(updateMemberCommand);
-    } catch (error) {
-      return { error: "Failed to update Member", statusCode: 500 };
-    }
-
-    const statusCode = updateMemberResponse.$metadata.httpStatusCode as number;
-    if (statusCode !== 200) {
-      return { error: "Failed to update Member", statusCode };
-    } else if (updateMemberResponse.Attributes == undefined) {
-      return { error: "Bad Request", statusCode: 400 };
-    }
-
-    return { message: "RoomUserStatus on Member Updated", statusCode: 200 };
-  }
 }
 
-const roomManager = new RoomManager();
+const roomManager = new RoomManager(tableName, "PartitionKey", "SortKey");
+const roomUsersManager = new RoomUsersManager(
+  tableName,
+  "PartitionKey",
+  "SortKey"
+);
+const joinRequestManager = new JoinRequestManager(
+  tableName,
+  "PartitionKey",
+  "SortKey"
+);
 
-export { roomManager };
+export { roomManager, roomUsersManager, joinRequestManager };

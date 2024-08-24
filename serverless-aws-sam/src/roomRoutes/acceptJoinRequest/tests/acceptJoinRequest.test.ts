@@ -9,7 +9,11 @@ import {
   afterEach,
 } from "@jest/globals";
 import { userManager } from "../../../models/users.js";
-import { roomManager } from "../../../models/rooms.js";
+import {
+  roomManager,
+  joinRequestManager,
+  roomUsersManager,
+} from "../../../models/rooms.js";
 import { UserInfo, RoomInfoType } from "../../../types/types.js";
 import {
   newTestUser,
@@ -64,7 +68,7 @@ beforeAll(async () => {
   RoomID = roomInfo.RoomID;
 
   // send a join request to the room by requesting user
-  const sendJoinRequestResponse = await roomManager.sendJoinRequest(
+  const sendJoinRequestResponse = await joinRequestManager.sendJoinRequest(
     requestUserName,
     requestUserID,
     roomName,
@@ -104,7 +108,7 @@ describe("Test to see if accepting the join request works", () => {
     expect(body.message).toBe("Join request accepted successfully");
 
     // check if the user was added to the room
-    const fetchRoomMemberResponse = await roomManager.fetchRoomMember(
+    const fetchRoomMemberResponse = await roomUsersManager.fetchRoomMember(
       RoomID,
       requestUserID
     );

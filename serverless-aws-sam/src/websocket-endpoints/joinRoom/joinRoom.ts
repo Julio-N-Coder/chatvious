@@ -1,6 +1,6 @@
 import { APIGatewayProxyWebsocketEventV2 } from "aws-lambda";
 import { wsMessagesDBManager } from "../../models/web-socket-messages.js";
-import { roomManager } from "../../models/rooms.js";
+import { roomUsersManager } from "../../models/rooms.js";
 
 interface joinRoomBody {
   action: "joinroom";
@@ -44,7 +44,10 @@ export const handler = async (event: APIGatewayProxyWebsocketEventV2) => {
 
   const { userID } = initialConnectionResponse.data;
   // check whether they are part of the room
-  const roomMemberResponse = await roomManager.fetchRoomMember(RoomID, userID);
+  const roomMemberResponse = await roomUsersManager.fetchRoomMember(
+    RoomID,
+    userID
+  );
   if ("error" in roomMemberResponse) {
     return {
       statusCode: roomMemberResponse.statusCode,

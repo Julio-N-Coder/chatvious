@@ -1,6 +1,6 @@
 import { APIGatewayEvent, APIGatewayProxyResult } from "aws-lambda";
-import { roomManager } from "../../models/rooms.js";
-import { userManager } from "../../models/users.js";
+import { roomUsersManager } from "../../models/rooms.js";
+import { roomsOnUserManager } from "../../models/users.js";
 
 export async function handler(
   event: APIGatewayEvent
@@ -14,7 +14,7 @@ export async function handler(
   const memberUserID = bodyValidation.body.userID;
   const userID = event.requestContext.authorizer?.sub as string;
 
-  const fetchRoomMemberResponse = await roomManager.fetchRoomMember(
+  const fetchRoomMemberResponse = await roomUsersManager.fetchRoomMember(
     RoomID,
     userID
   );
@@ -36,7 +36,7 @@ export async function handler(
   }
 
   // check whether user is a lower status then kicker
-  const memberUserInfo = await roomManager.fetchRoomMember(
+  const memberUserInfo = await roomUsersManager.fetchRoomMember(
     RoomID,
     memberUserID
   );
@@ -68,7 +68,7 @@ export async function handler(
     }
   }
 
-  const removeRoomMemberResponse = roomManager.removeRoomMember(
+  const removeRoomMemberResponse = roomUsersManager.removeRoomMember(
     RoomID,
     memberUserID
   );
@@ -81,7 +81,7 @@ export async function handler(
   }
 
   // remove joinedRooms on kicked user.
-  const removeRoomOnUserResponse = userManager.removeRoomOnUser(
+  const removeRoomOnUserResponse = roomsOnUserManager.removeRoomOnUser(
     memberUserID,
     RoomID
   );

@@ -63,7 +63,7 @@ class MessagesManagerDB extends BaseModels {
 
     let saveMessageResponse: PutCommandOutput;
     try {
-      saveMessageResponse = await this.writeItem(messageData);
+      saveMessageResponse = await this.putItem(messageData);
     } catch (error) {
       return {
         statusCode: 500,

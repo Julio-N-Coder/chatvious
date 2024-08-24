@@ -1,6 +1,6 @@
 import { APIGatewayEvent, APIGatewayProxyResult } from "aws-lambda";
-import { roomManager } from "../../models/rooms.js";
-import { userManager } from "../../models/users.js";
+import { roomUsersManager } from "../../models/rooms.js";
+import { roomsOnUserManager } from "../../models/users.js";
 
 export async function handler(
   event: APIGatewayEvent
@@ -12,7 +12,10 @@ export async function handler(
   const RoomID = bodyValidation.body.RoomID;
   const userID = event.requestContext.authorizer?.sub as string;
 
-  const roomMemberResponse = await roomManager.fetchRoomMember(RoomID, userID);
+  const roomMemberResponse = await roomUsersManager.fetchRoomMember(
+    RoomID,
+    userID
+  );
   if ("error" in roomMemberResponse) {
     return {
       headers: { "Content-Type": "application/json" },
@@ -40,7 +43,10 @@ export async function handler(
     };
   }
 
-  const leaveRoomResponse = await roomManager.removeRoomMember(RoomID, userID);
+  const leaveRoomResponse = await roomUsersManager.removeRoomMember(
+    RoomID,
+    userID
+  );
   if ("error" in leaveRoomResponse) {
     return {
       headers: { "Content-Type": "application/json" },
@@ -51,7 +57,7 @@ export async function handler(
     };
   }
 
-  const removeRoomOnUserResponse = await userManager.removeRoomOnUser(
+  const removeRoomOnUserResponse = await roomsOnUserManager.removeRoomOnUser(
     userID,
     RoomID
   );

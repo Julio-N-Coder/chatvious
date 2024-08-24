@@ -9,7 +9,7 @@ import {
   afterEach,
 } from "@jest/globals";
 import { userManager } from "../../../models/users.js";
-import { roomManager } from "../../../models/rooms.js";
+import { roomManager, roomUsersManager } from "../../../models/rooms.js";
 import { UserInfo, RoomInfoType } from "../../../types/types.js";
 import {
   newTestUser,
@@ -63,7 +63,7 @@ beforeAll(async () => {
   RoomID = roomInfo.RoomID;
 
   // insert the user being promoted into the room
-  const addRoomMemberResponse = await roomManager.addRoomMember(
+  const addRoomMemberResponse = await roomUsersManager.addRoomMember(
     RoomID,
     userPromotedDemotedID,
     userPromotedDemotedName,
@@ -104,7 +104,7 @@ describe("A test to see if the promoteOrDemoteUser works correctly", () => {
     expect(body).toHaveProperty("message", "Successfully Promoted User");
 
     // check whether user has been promoted
-    const roomMemberResponse = await roomManager.fetchRoomMember(
+    const roomMemberResponse = await roomUsersManager.fetchRoomMember(
       RoomID,
       userPromotedDemotedID
     );
@@ -132,7 +132,7 @@ describe("A test to see if the promoteOrDemoteUser works correctly", () => {
     expect(body).toHaveProperty("message", "Successfully Demoted User");
 
     // check whether user has been demoted
-    const roomMemberResponse = await roomManager.fetchRoomMember(
+    const roomMemberResponse = await roomUsersManager.fetchRoomMember(
       RoomID,
       userPromotedDemotedID
     );

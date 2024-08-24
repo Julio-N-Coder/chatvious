@@ -1,5 +1,5 @@
 import { expect } from "@jest/globals";
-import { userManager } from "../../models/users.js";
+import { userManager, roomsOnUserManager } from "../../models/users.js";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import {
   DynamoDBDocumentClient,
@@ -53,7 +53,7 @@ async function checkRoomsOnUser(
   roomName: string,
   ownedJoinedOrRemoved: "Owned" | "Joined" | "Removed" = "Joined"
 ) {
-  const roomOnUserResponse = await userManager.fetchSingleRoomOnUser(
+  const roomOnUserResponse = await roomsOnUserManager.fetchSingleRoomOnUser(
     userID,
     RoomID
   );
@@ -74,7 +74,7 @@ async function checkRoomsOnUser(
     expect(roomOnUserResponse.data).toHaveProperty("RoomID", RoomID);
     return roomOnUserResponse;
   } else {
-    const roomOnUserResponse = await userManager.fetchSingleRoomOnUser(
+    const roomOnUserResponse = await roomsOnUserManager.fetchSingleRoomOnUser(
       userID,
       RoomID
     );

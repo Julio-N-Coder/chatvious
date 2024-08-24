@@ -1,5 +1,5 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
-import { roomManager } from "../../models/rooms.js";
+import { roomUsersManager } from "../../models/rooms.js";
 import { messagesManagerDB } from "../../models/messagesDB.js";
 import { MessageKeys } from "../../types/types.js";
 
@@ -16,7 +16,10 @@ export const handler = async (
   const LastEvaluatedKey = bodyValidation.body.LastEvaluatedKey;
 
   // check if user is in the room
-  const roomMemberResponse = await roomManager.fetchRoomMember(RoomID, userID);
+  const roomMemberResponse = await roomUsersManager.fetchRoomMember(
+    RoomID,
+    userID
+  );
   if ("error" in roomMemberResponse) {
     return {
       headers: { "Content-Type": "application/json" },

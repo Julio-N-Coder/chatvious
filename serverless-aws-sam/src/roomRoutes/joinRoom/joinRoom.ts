@@ -1,5 +1,9 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
-import { roomManager } from "../../models/rooms.js";
+import {
+  roomManager,
+  roomUsersManager,
+  joinRequestManager,
+} from "../../models/rooms.js";
 import { userManager } from "../../models/users.js";
 
 export async function handler(
@@ -41,7 +45,10 @@ export async function handler(
 
   const { roomName } = fetchRoomResponse.roomInfo;
 
-  const roomMembersResponse = await roomManager.fetchRoomMember(RoomID, userID);
+  const roomMembersResponse = await roomUsersManager.fetchRoomMember(
+    RoomID,
+    userID
+  );
   if (
     "error" in roomMembersResponse &&
     roomMembersResponse.error !== "Bad Request"
@@ -60,7 +67,7 @@ export async function handler(
     };
   }
 
-  const joinRequestResponse = await roomManager.fetchJoinRequest(
+  const joinRequestResponse = await joinRequestManager.fetchJoinRequest(
     RoomID,
     userID
   );
@@ -94,7 +101,7 @@ export async function handler(
   const { profileColor } = userInfoResponse.userInfo;
 
   // send a join request to the room.
-  const joinRequest = await roomManager.sendJoinRequest(
+  const joinRequest = await joinRequestManager.sendJoinRequest(
     userName,
     userID,
     roomName,

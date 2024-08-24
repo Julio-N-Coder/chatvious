@@ -4,8 +4,8 @@ import {
   AdminDeleteUserCommandOutput,
 } from "@aws-sdk/client-cognito-identity-provider";
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
-import { userManager } from "../../models/users.js";
-import { roomManager } from "../../models/rooms.js";
+import { userManager, roomsOnUserManager } from "../../models/users.js";
+import { roomManager, roomUsersManager } from "../../models/rooms.js";
 
 const client = new CognitoIdentityProviderClient({});
 
@@ -26,7 +26,7 @@ export const handler = async (
   }
 
   // delete all their resouces in dynamodb from user.
-  const userInfoResponse = await userManager.fetchRoomsOnUser(
+  const userInfoResponse = await roomsOnUserManager.fetchRoomsOnUser(
     userID,
     true,
     true
@@ -62,7 +62,7 @@ export const handler = async (
   }
 
   for (const joinedRoom of joinedRooms) {
-    const leaveRoomResponse = await roomManager.removeRoomMember(
+    const leaveRoomResponse = await roomUsersManager.removeRoomMember(
       joinedRoom.RoomID,
       userID
     );

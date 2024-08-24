@@ -8,8 +8,8 @@ import {
   afterAll,
   afterEach,
 } from "@jest/globals";
-import { userManager } from "../../../models/users.js";
-import { roomManager } from "../../../models/rooms.js";
+import { userManager, roomsOnUserManager } from "../../../models/users.js";
+import { roomManager, roomUsersManager } from "../../../models/rooms.js";
 import { UserInfo, RoomInfoType } from "../../../types/types.js";
 import {
   newTestUser,
@@ -63,7 +63,7 @@ beforeAll(async () => {
   RoomID = roomInfo.RoomID;
 
   // include user in room
-  const addRoomMemberResponse = await roomManager.addRoomMember(
+  const addRoomMemberResponse = await roomUsersManager.addRoomMember(
     RoomID,
     userID,
     userName,
@@ -75,7 +75,7 @@ beforeAll(async () => {
     );
   }
 
-  const updateJoinedRoomsResponse = await userManager.updateJoinedRooms(
+  const updateJoinedRoomsResponse = await roomsOnUserManager.updateJoinedRooms(
     userID,
     { RoomID, isAdmin: false, roomName }
   );
@@ -111,7 +111,7 @@ describe("A test To see if the leaveRoom Route works correctly", () => {
     expect(body.message).toBe("Successfully Left the room");
 
     // check if the user was removed from the room
-    const fetchRoomMemberResponse = await roomManager.fetchRoomMember(
+    const fetchRoomMemberResponse = await roomUsersManager.fetchRoomMember(
       RoomID,
       userID
     );
@@ -128,7 +128,7 @@ describe("A test To see if the leaveRoom Route works correctly", () => {
     expect(fetchRoomMemberResponse).toHaveProperty("error", "Bad Request");
 
     // check if room on user was removed
-    const roomOnUserResponse = await userManager.fetchSingleRoomOnUser(
+    const roomOnUserResponse = await roomsOnUserManager.fetchSingleRoomOnUser(
       userID,
       RoomID
     );

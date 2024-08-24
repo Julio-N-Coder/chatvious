@@ -9,7 +9,7 @@ import {
   afterEach,
 } from "@jest/globals";
 import { userManager } from "../../../models/users.js";
-import { roomManager } from "../../../models/rooms.js";
+import { roomManager, joinRequestManager } from "../../../models/rooms.js";
 import { UserInfo, RoomInfoType } from "../../../types/types.js";
 import {
   newTestUser,
@@ -63,7 +63,7 @@ beforeAll(async () => {
   RoomID = roomInfo.RoomID;
 
   // send a join request to the room by requesting user
-  const sendJoinRequestResponse = await roomManager.sendJoinRequest(
+  const sendJoinRequestResponse = await joinRequestManager.sendJoinRequest(
     requestUserName,
     requestUserID,
     roomName,
@@ -103,7 +103,7 @@ describe("A test for the rejectJoinRequest route handler", () => {
     expect(body.message).toBe("Join request rejected successfully");
 
     // check that the join request was removed
-    const fetchJoinRequestResponse = await roomManager.fetchJoinRequest(
+    const fetchJoinRequestResponse = await joinRequestManager.fetchJoinRequest(
       RoomID,
       requestUserID
     );

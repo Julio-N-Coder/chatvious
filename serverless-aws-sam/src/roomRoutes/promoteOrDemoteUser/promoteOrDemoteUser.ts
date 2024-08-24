@@ -1,5 +1,5 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
-import { roomManager } from "../../models/rooms.js";
+import { roomUsersManager } from "../../models/rooms.js";
 
 export const handler = async (
   event: APIGatewayProxyEvent
@@ -14,7 +14,7 @@ export const handler = async (
   const memberUserID = bodyValidation.body.userID;
   const action = bodyValidation.body.action;
 
-  const fetchRoomMemberResponse = await roomManager.fetchRoomMember(
+  const fetchRoomMemberResponse = await roomUsersManager.fetchRoomMember(
     RoomID,
     userID
   );
@@ -46,7 +46,7 @@ export const handler = async (
     };
   }
 
-  const fetchRoomMemberResponse2 = await roomManager.fetchRoomMember(
+  const fetchRoomMemberResponse2 = await roomUsersManager.fetchRoomMember(
     RoomID,
     memberUserID
   );
@@ -69,11 +69,12 @@ export const handler = async (
     };
   }
 
-  const updateRoomUserStatusResponse = await roomManager.updateRoomUserStatus(
-    RoomID,
-    memberUserID,
-    action === "PROMOTE" ? "ADMIN" : "MEMBER"
-  );
+  const updateRoomUserStatusResponse =
+    await roomUsersManager.updateRoomUserStatus(
+      RoomID,
+      memberUserID,
+      action === "PROMOTE" ? "ADMIN" : "MEMBER"
+    );
   if ("error" in updateRoomUserStatusResponse) {
     return {
       headers: { "Content-Type": "application/json" },

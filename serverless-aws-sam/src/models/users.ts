@@ -1,3 +1,4 @@
+import { BaseModels } from "./baseModels.js";
 import {
   BaseModelsReturnType,
   UserInfo,
@@ -12,12 +13,9 @@ import {
 import { DynamoDBClient, QueryCommandOutput } from "@aws-sdk/client-dynamodb";
 import {
   DynamoDBDocumentClient,
-  GetCommand,
   QueryCommand,
   UpdateCommand,
-  PutCommand,
   PutCommandOutput,
-  DeleteCommand,
   DeleteCommandOutput,
   GetCommandOutput,
   UpdateCommandOutput,
@@ -31,7 +29,11 @@ const dynamodbOptions = JSON.parse(dynamodbOptionsString);
 const client = new DynamoDBClient(dynamodbOptions);
 const docClient = DynamoDBDocumentClient.from(client);
 
-class UserManager {
+class UserManager extends BaseModels {
+  constructor(tableName: string, pk: string, sk: string) {
+    super(tableName, pk, sk);
+  }
+
   async createUser(
     userID?: string,
     userName?: string,
@@ -69,14 +71,9 @@ class UserManager {
       joinedRooms: [],
     };
 
-    const createUserCommand = new PutCommand({
-      TableName: tableName,
-      Item: newUser,
-    });
-
     let createUserResponse: PutCommandOutput;
     try {
-      createUserResponse = await docClient.send(createUserCommand);
+      createUserResponse = await this.putItem(newUser);
     } catch (error) {
       return { statusCode: 500, error: "Failed to create user" };
     }
@@ -94,14 +91,11 @@ class UserManager {
   }
 
   async deleteUser(userID: string): BaseModelsReturnType {
-    const deleteUserCommand = new DeleteCommand({
-      TableName: tableName,
-      Key: { PartitionKey: `USER#${userID}`, SortKey: "PROFILE" },
-    });
+    const userkeys = { PartitionKey: `USER#${userID}`, SortKey: "PROFILE" };
 
     let deleteUserResponse: DeleteCommandOutput;
     try {
-      deleteUserResponse = await docClient.send(deleteUserCommand);
+      deleteUserResponse = await this.deleteItem(userkeys, true);
     } catch (error) {
       return { error: "Failed to Delete User", statusCode: 500 };
     }
@@ -109,21 +103,19 @@ class UserManager {
 
     if (statusCode !== 200) {
       return { error: "Failed to Delete User", statusCode };
+    } else if (!deleteUserResponse.Attributes) {
+      return { error: "User not found", statusCode: 404 };
     }
 
     return { message: "User Deleted", statusCode: 200 };
   }
 
   async fetchUserInfo(userID: string): FetchUserInfoReturn {
-    const getUserInfo = new GetCommand({
-      TableName: tableName,
-      Key: { PartitionKey: `USER#${userID}`, SortKey: "PROFILE" },
-      ConsistentRead: true,
-    });
+    const userKeys = { PartitionKey: `USER#${userID}`, SortKey: "PROFILE" };
 
     let getUserResponse: GetCommandOutput;
     try {
-      getUserResponse = await docClient.send(getUserInfo);
+      getUserResponse = await this.getItem(userKeys, true);
     } catch (error: any) {
       return { error: "Failed to Get User Info", statusCode: 500 };
     }
@@ -147,7 +139,12 @@ class UserManager {
 
     return { userInfo, statusCode: 200 };
   }
+}
 
+class RoomsOnUserManager extends BaseModels {
+  constructor(tableName: string, pk: string, sk: string) {
+    super(tableName, pk, sk);
+  }
   async fetchRoomsOnUser(
     userID: string,
     fetchOwnedRooms: boolean,
@@ -167,15 +164,16 @@ class UserManager {
       return { error: "Did not provide all arguments", statusCode: 400 };
     }
 
-    const fetchUserInfoCommand = new GetCommand({
-      TableName: tableName,
-      Key: { PartitionKey: `USER#${userID}`, SortKey: "PROFILE" },
-      ProjectionExpression,
-    });
+    const userKeys = { PartitionKey: `USER#${userID}`, SortKey: "PROFILE" };
+    const ConsistentRead = false;
 
     let userInfoDBResponse: GetCommandOutput;
     try {
-      userInfoDBResponse = await docClient.send(fetchUserInfoCommand);
+      userInfoDBResponse = await this.getItem(
+        userKeys,
+        ConsistentRead,
+        ProjectionExpression
+      );
     } catch (error) {
       return { error: "Failed to Get User Info", statusCode: 500 };
     }
@@ -261,34 +259,26 @@ class UserManager {
   }
 
   async removeRoomOnUser(userID: string, RoomID: string): BaseModelsReturnType {
-    const fetchUserInfoCommand = new GetCommand({
-      TableName: tableName,
-      Key: { PartitionKey: `USER#${userID}`, SortKey: "PROFILE" },
-      ProjectionExpression: "joinedRooms, ownedRooms",
-    });
+    const fetchOwnedRooms = true;
+    const fetchJoinedRooms = true;
 
-    let fetchUserInfoResponse: GetCommandOutput;
-    try {
-      fetchUserInfoResponse = await docClient.send(fetchUserInfoCommand);
-    } catch (error) {
-      return { error: "Failed to Get User Info", statusCode: 500 };
-    }
-
-    const userInfoStatusCode = fetchUserInfoResponse.$metadata
-      .httpStatusCode as number;
-    if (userInfoStatusCode !== 200) {
+    const fetchRoomsOnUserResponse = await this.fetchRoomsOnUser(
+      userID,
+      fetchOwnedRooms,
+      fetchJoinedRooms
+    );
+    if ("error" in fetchRoomsOnUserResponse) {
       return {
-        error: "Failed to Get User Info",
-        statusCode: userInfoStatusCode,
+        error: fetchRoomsOnUserResponse.error,
+        statusCode: fetchRoomsOnUserResponse.statusCode,
       };
-    } else if (!fetchUserInfoResponse.Item) {
-      return { error: "User not found", statusCode: 404 };
     }
 
     let roomType: string;
     let index: number;
 
-    const joinedRooms = fetchUserInfoResponse.Item.joinedRooms as RoomsOnUser;
+    const joinedRooms = fetchRoomsOnUserResponse.data
+      .joinedRooms as RoomsOnUser;
     let joinedRoomIndex = -1;
     const joinedRoom = joinedRooms.find((room) => {
       joinedRoomIndex++;
@@ -296,7 +286,8 @@ class UserManager {
     });
 
     if (!joinedRoom) {
-      const ownedRooms = fetchUserInfoResponse.Item.ownedRooms as RoomsOnUser;
+      const ownedRooms = fetchRoomsOnUserResponse.data
+        .ownedRooms as RoomsOnUser;
       let ownedRoomsIndex = -1;
       const ownedRoom = ownedRooms.find((room) => {
         ownedRoomsIndex++;
@@ -442,6 +433,11 @@ class UserManager {
   }
 }
 
-const userManager = new UserManager();
+const userManager = new UserManager(tableName, "PartitionKey", "SortKey");
+const roomsOnUserManager = new RoomsOnUserManager(
+  tableName,
+  "PartitionKey",
+  "SortKey"
+);
 
-export { userManager };
+export { userManager, roomsOnUserManager };

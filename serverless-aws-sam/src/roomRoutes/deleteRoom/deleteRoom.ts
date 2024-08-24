@@ -1,5 +1,5 @@
 import { APIGatewayEvent, APIGatewayProxyResult } from "aws-lambda";
-import { roomManager } from "../../models/rooms.js";
+import { roomManager, roomUsersManager } from "../../models/rooms.js";
 
 export async function handler(
   event: APIGatewayEvent
@@ -12,7 +12,10 @@ export async function handler(
   const userID = event.requestContext.authorizer?.sub as string;
 
   // check if they are owner
-  const roomMemberResponse = await roomManager.fetchRoomMember(RoomID, userID);
+  const roomMemberResponse = await roomUsersManager.fetchRoomMember(
+    RoomID,
+    userID
+  );
   if ("error" in roomMemberResponse) {
     return {
       headers: { "Content-Type": "application/json" },
