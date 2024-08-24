@@ -32,6 +32,7 @@ export const handler = async (
     true
   );
   if ("error" in userInfoResponse) {
+    console.log("Error fetching user info:", userInfoResponse);
     return {
       statusCode: userInfoResponse.statusCode,
       headers: {
@@ -51,6 +52,7 @@ export const handler = async (
   for (const ownedRoom of ownedRooms) {
     const deleteRoomResponse = await roomManager.deleteRoom(ownedRoom.RoomID);
     if ("error" in deleteRoomResponse) {
+      console.log("Error deleting room:", deleteRoomResponse);
       return {
         statusCode: deleteRoomResponse.statusCode,
         headers: {
@@ -67,6 +69,7 @@ export const handler = async (
       userID
     );
     if ("error" in leaveRoomResponse) {
+      console.log("Error leaving room:", leaveRoomResponse);
       return {
         statusCode: leaveRoomResponse.statusCode,
         headers: {
@@ -79,6 +82,7 @@ export const handler = async (
 
   const deleteUserResponse = await userManager.deleteUser(userID);
   if ("error" in deleteUserResponse) {
+    console.log("Error deleting user:", deleteUserResponse);
     return {
       statusCode: deleteUserResponse.statusCode,
       headers: {
@@ -93,8 +97,6 @@ export const handler = async (
     UserPoolId: process.env.USER_POOL_ID,
   });
 
-  // const homePage =
-  //   process.env.SUB_DOMAIN_URL || "https://main.chatvious.coding-wielder.com";
   let adminDeleteUserResponse: AdminDeleteUserCommandOutput;
 
   try {
@@ -112,6 +114,7 @@ export const handler = async (
 
   const statusCode = adminDeleteUserResponse.$metadata.httpStatusCode as number;
   if (statusCode !== 200) {
+    console.log("Error deleting user:", adminDeleteUserResponse);
     return {
       statusCode,
       headers: {

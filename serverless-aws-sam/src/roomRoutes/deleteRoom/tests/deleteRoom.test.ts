@@ -8,7 +8,13 @@ import {
   afterAll,
   afterEach,
 } from "@jest/globals";
-import { roomManager } from "../../../models/rooms.js";
+import {
+  roomManager,
+  roomUsersManager,
+  joinRequestManager,
+} from "../../../models/rooms.js";
+import { userManager } from "../../../models/users.js";
+import { messagesManagerDB } from "../../../models/messagesDB.js";
 import { UserInfo, RoomInfoType } from "../../../types/types.js";
 import {
   newTestUser,
@@ -55,8 +61,28 @@ beforeAll(async () => {
   restAPIEventCopy = JSON.parse(JSON.stringify(restAPIEvent));
 });
 
+let remakeRoom = false;
+
 afterEach(async () => {
+  if (remakeRoom) {
+    const createRoomResponse = await roomManager.makeRoom(
+      userID,
+      userName,
+      roomName,
+      newUser.profileColor
+    );
+    if ("error" in createRoomResponse) {
+      throw new Error(
+        `Failed to create room. Error: ${createRoomResponse.error}`
+      );
+    }
+    roomInfo = createRoomResponse.roomInfo;
+    RoomID = roomInfo.RoomID;
+  }
   restAPIEvent = JSON.parse(JSON.stringify(restAPIEventCopy));
+  restAPIEvent.body = JSON.stringify({
+    RoomID,
+  });
 });
 
 afterAll(async () => {
@@ -82,6 +108,89 @@ describe("A Test for The deleteRoom Route", () => {
 
     expect(fetchRoomResponse).toHaveProperty("statusCode", 400);
     expect(fetchRoomResponse).toHaveProperty("error", "Bad Request");
+    remakeRoom = true;
+  });
+
+  test("Should correctly delete room with multiple resouces", async () => {
+    const fakeUserData = {
+      userName: "FakeTestName",
+      userID: "fakeUserID",
+      email: "fakeTestEmail@test.com",
+      profileColor: "green",
+      fakeStatus: "MEMBER",
+      fakeMadeDate: "fakeMadeDate",
+    };
+
+    const fakeMessageData = {
+      message: "fake message",
+      messageId: "fakeMessageID",
+      messageDate: "fakeTimestamp",
+    };
+
+    // make a user to use
+    const addUserResponse = await userManager.createUser(
+      fakeUserData.userID,
+      fakeUserData.userName,
+      fakeUserData.email,
+      fakeUserData.profileColor
+    );
+    if ("error" in addUserResponse) {
+      throw new Error(
+        `Failed to add user testing data. Error: ${addUserResponse.error}`
+      );
+    }
+
+    // add join request
+    const joinRequestResponse = await joinRequestManager.sendJoinRequest(
+      fakeUserData.userName,
+      fakeUserData.userID,
+      roomName,
+      RoomID,
+      fakeUserData.profileColor
+    );
+    if ("error" in joinRequestResponse) {
+      throw new Error(
+        `Failed to add join request testing data. Error: ${joinRequestResponse.error}`
+      );
+    }
+
+    // add roomMembers
+    const addRoomMemberResponse = await roomUsersManager.addRoomMember(
+      RoomID,
+      fakeUserData.userID,
+      roomName,
+      fakeUserData.userName,
+      fakeUserData.profileColor,
+      fakeUserData.fakeMadeDate
+    );
+    if ("error" in addRoomMemberResponse) {
+      throw new Error(
+        `Failed to add room member testing data. Error: ${addRoomMemberResponse.error}`
+      );
+    }
+
+    // add messages
+    const addMessageResponse = await messagesManagerDB.storeMessage(
+      fakeUserData.userID,
+      fakeUserData.userName,
+      RoomID,
+      fakeUserData.fakeStatus as "MEMBER",
+      fakeUserData.profileColor,
+      fakeMessageData.message,
+      fakeMessageData.messageId,
+      fakeMessageData.messageDate
+    );
+    if ("error" in addMessageResponse) {
+      throw new Error(
+        `Failed to add message testing data. Error: ${addMessageResponse.error}`
+      );
+    }
+
+    const response = await handler(restAPIEvent);
+    const body = JSON.parse(response.body);
+    expect(body).toHaveProperty("message", "Room Deleted successfully");
+    expect(response.statusCode).toBe(200);
+    remakeRoom = false;
   });
 
   test("Incorrect Content-Type header should return the correct Error", async () => {

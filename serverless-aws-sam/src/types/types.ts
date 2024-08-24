@@ -182,8 +182,13 @@ interface FetchJoinRequestsSuccess extends BaseModelsSuccess {
   LastEvaluatedKey: JoinRequestKeys | undefined;
 }
 
+interface FetchJoinRequestsKeysSuccess extends BaseModelsSuccess {
+  joinRequestsKeys: JoinRequestKeys[] | [];
+  LastEvaluatedKey: JoinRequestKeys | undefined;
+}
+
 type FetchJoinRequestsReturn = Promise<
-  BaseModelsError | FetchJoinRequestsSuccess
+  BaseModelsError | FetchJoinRequestsSuccess | FetchJoinRequestsKeysSuccess
 >;
 
 interface FetchNavJoinRequestsSuccess extends BaseModelsSuccess {

@@ -66,22 +66,13 @@ beforeAll(async () => {
   const addRoomMemberResponse = await roomUsersManager.addRoomMember(
     RoomID,
     userID,
+    roomName,
     userName,
     newUser.profileColor
   );
   if ("error" in addRoomMemberResponse) {
     throw new Error(
       `Failed to add user to room. Error: ${addRoomMemberResponse.error}`
-    );
-  }
-
-  const updateJoinedRoomsResponse = await roomsOnUserManager.updateJoinedRooms(
-    userID,
-    { RoomID, isAdmin: false, roomName }
-  );
-  if ("error" in updateJoinedRoomsResponse) {
-    throw new Error(
-      `Failed to update joined rooms. Error: ${updateJoinedRoomsResponse.error}`
     );
   }
 

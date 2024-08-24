@@ -68,6 +68,7 @@ beforeAll(async () => {
   const addRoomMemberResponse = await roomUsersManager.addRoomMember(
     RoomID,
     userBeingKickedID,
+    roomName,
     userBeingKickedName,
     userBeingKicked.profileColor
   );
@@ -99,7 +100,7 @@ afterAll(async () => {
 describe("Test if kickMember route kicks the user from the chat room", () => {
   test("kickMember route returns successfull response and removes member", async () => {
     const response = await handler(restAPIEvent);
-    expect(response.statusCode).toBe(200);
+    expect(response).toHaveProperty("statusCode", 200);
 
     const body = JSON.parse(response.body);
     expect(body.message).toBe("User Successfully Kicked");

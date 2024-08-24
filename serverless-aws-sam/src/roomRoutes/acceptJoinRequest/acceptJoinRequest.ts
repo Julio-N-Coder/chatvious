@@ -101,6 +101,7 @@ export async function handler(
   const addMemberResponse = await roomUsersManager.addRoomMember(
     RoomID,
     requestUserID,
+    roomName,
     requestUserName,
     requestUserProfileColor
   );

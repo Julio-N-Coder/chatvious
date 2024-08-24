@@ -111,7 +111,7 @@ async function clearDynamoDB() {
   const dbItems = scanResponse.Items as {
     PartitionKey: string;
     SortKey: string;
-    [index: string]: string;
+    [index: string]: any;
   }[];
 
   const deleteRequests = dbItems.map((item) => ({

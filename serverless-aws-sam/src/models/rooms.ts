@@ -1,4 +1,4 @@
-import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
+import { DynamoDBClient, QueryCommandOutput } from "@aws-sdk/client-dynamodb";
 import {
   DynamoDBDocumentClient,
   UpdateCommand,
@@ -7,6 +7,7 @@ import {
   PutCommandOutput,
   UpdateCommandOutput,
   DeleteCommandOutput,
+  BatchWriteCommandOutput,
 } from "@aws-sdk/lib-dynamodb";
 import { BaseModels } from "./baseModels.js";
 import { roomsOnUserManager } from "./users.js";
@@ -48,21 +49,6 @@ class RoomManager extends BaseModels {
     const RoomID = crypto.randomUUID() as string;
     const madeDate = new Date().toISOString();
 
-    // newRoom value needs to be wrapped in an array
-    const updateUserRoomCommand = new UpdateCommand({
-      TableName: tableName,
-      Key: { PartitionKey: `USER#${ownerID}`, SortKey: "PROFILE" },
-      UpdateExpression: "SET ownedRooms = list_append(ownedRooms, :newRoom)",
-      ExpressionAttributeValues: {
-        ":newRoom": [
-          {
-            roomName: roomName,
-            RoomID: RoomID,
-          },
-        ],
-      },
-    });
-
     const makeRoomResponse = await this.makeRoomItem(
       roomName,
       RoomID,
@@ -75,6 +61,7 @@ class RoomManager extends BaseModels {
     const roomMemberResponse = await roomUsersManager.addRoomMember(
       RoomID,
       ownerID,
+      roomName,
       ownerName,
       profileColor,
       madeDate,
@@ -84,25 +71,6 @@ class RoomManager extends BaseModels {
       return {
         error: "Failed to make room member",
         statusCode: roomMemberResponse.statusCode,
-      };
-    }
-
-    let updateUsersResponse: UpdateCommandOutput;
-    try {
-      updateUsersResponse = await docClient.send(updateUserRoomCommand);
-    } catch (error) {
-      return {
-        error: "Failed to update user",
-        statusCode: 500,
-      };
-    }
-
-    const updateStatusCode = updateUsersResponse.$metadata
-      .httpStatusCode as number;
-    if (updateStatusCode !== 200) {
-      return {
-        error: "Failed to update user",
-        statusCode: updateStatusCode,
       };
     }
 
@@ -160,21 +128,39 @@ class RoomManager extends BaseModels {
   async deleteRoom(RoomID: string): BaseModelsReturnType {
     // delete all join request the room has
     const fetchJoinRequestsResponse =
-      await joinRequestManager.fetchJoinRequests(RoomID);
-    if ("error" in fetchJoinRequestsResponse) {
-      return fetchJoinRequestsResponse;
+      await joinRequestManager.fetchJoinRequests(RoomID, false, true);
+    if (
+      "error" in fetchJoinRequestsResponse ||
+      "joinRequests" in fetchJoinRequestsResponse
+    ) {
+      if ("error" in fetchJoinRequestsResponse) {
+        return fetchJoinRequestsResponse;
+      }
+      return {
+        error: "Failed, fetched Join Request items",
+        statusCode: 500,
+      };
     }
-    const joinRequests = fetchJoinRequestsResponse.joinRequests;
-    if (joinRequests.length > 0) {
-      for (const joinRequest of joinRequests) {
-        const deleteJoinRequestResponse =
-          await joinRequestManager.removeJoinRequest(
-            RoomID,
-            joinRequest.fromUserID
-          );
-        if ("error" in deleteJoinRequestResponse) {
-          return deleteJoinRequestResponse;
-        }
+    const joinRequestsKeys = fetchJoinRequestsResponse.joinRequestsKeys;
+    if (joinRequestsKeys.length > 0) {
+      // use a batch command
+      let deleteAllJoinRequestResponse: BatchWriteCommandOutput;
+      try {
+        deleteAllJoinRequestResponse = await this.batchWrite(joinRequestsKeys);
+      } catch (error) {
+        return {
+          error: "Failed to delete join requests",
+          statusCode: 500,
+        };
+      }
+      const deleteAllJoinRequestStatusCode = deleteAllJoinRequestResponse
+        .$metadata.httpStatusCode as number;
+
+      if (deleteAllJoinRequestStatusCode !== 200) {
+        return {
+          error: "Failed to delete join requests",
+          statusCode: deleteAllJoinRequestStatusCode,
+        };
       }
     }
 
@@ -188,6 +174,7 @@ class RoomManager extends BaseModels {
         statusCode: membersResponse.statusCode,
       };
     }
+
     if (membersResponse.memberCount > 0) {
       const members = membersResponse.roomMembers;
       for (const member of members) {
@@ -252,6 +239,7 @@ class RoomManager extends BaseModels {
       }
     }
 
+    // delete the room itself
     const roomKeys = { PartitionKey: `ROOM#${RoomID}`, SortKey: "METADATA" };
     const returnValues = true;
 
@@ -406,6 +394,7 @@ class RoomUsersManager extends BaseModels {
   async addRoomMember(
     RoomID: string,
     memberID: string,
+    roomName: string,
     memberName: string,
     profileColor: string,
     madeDate?: string,
@@ -413,6 +402,7 @@ class RoomUsersManager extends BaseModels {
   ): BaseModelsReturnType {
     madeDate = madeDate ? madeDate : (new Date().toISOString() as string);
     RoomUserStatus = RoomUserStatus ? RoomUserStatus : "MEMBER";
+    const roomType = RoomUserStatus === "OWNER" ? "ownedRooms" : "joinedRooms";
 
     const addRoomMemberItemResponse = await this.addRoomMemberItem(
       RoomID,
@@ -424,6 +414,40 @@ class RoomUsersManager extends BaseModels {
     );
     if ("error" in addRoomMemberItemResponse) {
       return addRoomMemberItemResponse;
+    }
+
+    // update rooms on user
+    const updateUserRoomCommand = new UpdateCommand({
+      TableName: tableName,
+      Key: { PartitionKey: `USER#${memberID}`, SortKey: "PROFILE" },
+      UpdateExpression: `SET ${roomType} = list_append(${roomType}, :newRoom)`,
+      ExpressionAttributeValues: {
+        ":newRoom": [
+          {
+            roomName: roomName,
+            RoomID: RoomID,
+          },
+        ],
+      },
+    });
+
+    let updateUsersResponse: UpdateCommandOutput;
+    try {
+      updateUsersResponse = await docClient.send(updateUserRoomCommand);
+    } catch (error) {
+      return {
+        error: "Failed to update user",
+        statusCode: 500,
+      };
+    }
+
+    const updateStatusCode = updateUsersResponse.$metadata
+      .httpStatusCode as number;
+    if (updateStatusCode !== 200) {
+      return {
+        error: "Failed to update user",
+        statusCode: updateStatusCode,
+      };
     }
 
     if (RoomUserStatus !== "OWNER") {
@@ -648,7 +672,8 @@ class JoinRequestManager extends BaseModels {
 
   async fetchJoinRequests(
     RoomID: string,
-    ExclusiveStartKey?: MessageKeys
+    ExclusiveStartKey?: MessageKeys | false,
+    returnJustKeys?: boolean
   ): FetchJoinRequestsReturn {
     const joinRequestsCommand = new QueryCommand({
       TableName: tableName,
@@ -658,16 +683,32 @@ class JoinRequestManager extends BaseModels {
         ":roomsID": `ROOM#${RoomID}`,
         ":sortDate": "JOIN_REQUESTS#",
       },
+      ProjectionExpression: returnJustKeys
+        ? `${this.pk}, ${this.sk}`
+        : "RoomID, fromUserID, fromUserName, roomName, GSISortKey, profileColor",
     });
     if (ExclusiveStartKey) {
       joinRequestsCommand.input.ExclusiveStartKey = ExclusiveStartKey;
     }
 
-    const joinRequestResponse = await docClient.send(joinRequestsCommand);
+    let joinRequestResponse: QueryCommandOutput;
+    try {
+      joinRequestResponse = await docClient.send(joinRequestsCommand);
+    } catch (error) {
+      return { error: "Failed to Get Join Requests", statusCode: 500 };
+    }
 
     if (joinRequestResponse.$metadata.httpStatusCode !== 200) {
       return { error: "Failed to Get Join Requests", statusCode: 500 };
     } else if (joinRequestResponse.Count === 0) {
+      if (returnJustKeys) {
+        return {
+          message: "No Join Requests",
+          joinRequestsKeys: [],
+          LastEvaluatedKey: undefined,
+          statusCode: 200,
+        };
+      }
       return {
         message: "No Join Requests",
         joinRequests: [],
@@ -679,7 +720,20 @@ class JoinRequestManager extends BaseModels {
     const LastEvaluatedKey = joinRequestResponse.LastEvaluatedKey as
       | JoinRequestKeys
       | undefined;
-    const joinRequestsDB = joinRequestResponse.Items as JoinRequestDB[];
+
+    if (returnJustKeys) {
+      const joinRequestsKeys =
+        joinRequestResponse.Items as unknown as JoinRequestKeys[];
+      return {
+        message: `${joinRequestsKeys.length} Join Requests Fetched`,
+        joinRequestsKeys,
+        statusCode: 200,
+        LastEvaluatedKey,
+      };
+    }
+
+    const joinRequestsDB =
+      joinRequestResponse.Items as unknown as JoinRequestDB[];
     const joinRequests = joinRequestsDB?.map((request) => {
       const sentJoinRequestAt = request.GSISortKey.split("#").pop() as string;
 

@@ -7,6 +7,8 @@ import {
   GetCommandOutput,
   DeleteCommand,
   DeleteCommandOutput,
+  BatchWriteCommand,
+  BatchWriteCommandOutput,
 } from "@aws-sdk/lib-dynamodb";
 import { BaseKeys } from "../types/types.js";
 
@@ -64,6 +66,39 @@ class BaseModels {
       TableName: this.tableName,
       Key: key,
       ReturnValues: returnDeletedValues ? "ALL_OLD" : "NONE",
+    });
+
+    return await docClient.send(command);
+  }
+
+  protected async batchWrite(
+    deleteKeys?: BaseKeys[],
+    putItems?: BaseItemData[]
+  ): Promise<BatchWriteCommandOutput> {
+    const requests = [];
+    if (!deleteKeys) deleteKeys = [];
+    if (!putItems) putItems = [];
+
+    for (const item of putItems) {
+      requests.push({
+        PutRequest: {
+          Item: item,
+        },
+      });
+    }
+
+    for (const key of deleteKeys) {
+      requests.push({
+        DeleteRequest: {
+          Key: key,
+        },
+      });
+    }
+
+    const command = new BatchWriteCommand({
+      RequestItems: {
+        [this.tableName]: requests,
+      },
     });
 
     return await docClient.send(command);

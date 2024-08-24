@@ -68,7 +68,7 @@ export async function handler(
     }
   }
 
-  const removeRoomMemberResponse = roomUsersManager.removeRoomMember(
+  const removeRoomMemberResponse = await roomUsersManager.removeRoomMember(
     RoomID,
     memberUserID
   );
@@ -81,7 +81,7 @@ export async function handler(
   }
 
   // remove joinedRooms on kicked user.
-  const removeRoomOnUserResponse = roomsOnUserManager.removeRoomOnUser(
+  const removeRoomOnUserResponse = await roomsOnUserManager.removeRoomOnUser(
     memberUserID,
     RoomID
   );

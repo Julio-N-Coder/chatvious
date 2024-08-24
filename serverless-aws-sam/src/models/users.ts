@@ -280,12 +280,12 @@ class RoomsOnUserManager extends BaseModels {
     const joinedRooms = fetchRoomsOnUserResponse.data
       .joinedRooms as RoomsOnUser;
     let joinedRoomIndex = -1;
-    const joinedRoom = joinedRooms.find((room) => {
+    const isJoinedRoom = joinedRooms.find((room) => {
       joinedRoomIndex++;
       return room.RoomID === RoomID;
     });
 
-    if (!joinedRoom) {
+    if (!isJoinedRoom) {
       const ownedRooms = fetchRoomsOnUserResponse.data
         .ownedRooms as RoomsOnUser;
       let ownedRoomsIndex = -1;

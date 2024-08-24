@@ -66,6 +66,7 @@ beforeAll(async () => {
   const addRoomMemberResponse = await roomUsersManager.addRoomMember(
     RoomID,
     userPromotedDemotedID,
+    roomName,
     userPromotedDemotedName,
     userPromotedDemoted.profileColor
   );

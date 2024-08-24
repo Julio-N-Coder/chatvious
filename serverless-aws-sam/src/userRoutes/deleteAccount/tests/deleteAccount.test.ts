@@ -91,20 +91,13 @@ beforeAll(async () => {
   const joinRoomResponse = await roomUsersManager.addRoomMember(
     joinRoomID,
     userID,
+    joinRoomName,
     userName,
     userInfo.profileColor
   );
   if ("error" in joinRoomResponse) {
     throw new Error(`Failed to join room. Error: ${joinRoomResponse.error}`);
   }
-
-  // udpate users joined rooms on the user
-  const updateUserJoinedRoomsResponse =
-    await roomsOnUserManager.updateJoinedRooms(userID, {
-      RoomID: joinRoomID,
-      isAdmin: false,
-      roomName: joinRoomName,
-    });
 
   restAPIEvent.body = JSON.stringify({});
   restAPIEvent.path = "/deleteAccount";
