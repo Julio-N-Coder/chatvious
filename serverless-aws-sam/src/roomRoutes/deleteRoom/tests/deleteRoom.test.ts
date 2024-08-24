@@ -19,6 +19,7 @@ import { UserInfo, RoomInfoType } from "../../../types/types.js";
 import {
   newTestUser,
   clearDynamoDB,
+  checkRoomsOnUser,
 } from "../../../lib/libtest/handyTestUtils.js";
 
 let restAPIEvent: typeof restAPIEventBase = JSON.parse(
@@ -108,6 +109,7 @@ describe("A Test for The deleteRoom Route", () => {
 
     expect(fetchRoomResponse).toHaveProperty("statusCode", 400);
     expect(fetchRoomResponse).toHaveProperty("error", "Bad Request");
+    await checkRoomsOnUser(userID, RoomID, roomName, "Removed");
     remakeRoom = true;
   });
 
@@ -190,6 +192,8 @@ describe("A Test for The deleteRoom Route", () => {
     const body = JSON.parse(response.body);
     expect(body).toHaveProperty("message", "Room Deleted successfully");
     expect(response.statusCode).toBe(200);
+    await checkRoomsOnUser(userID, RoomID, roomName, "Removed");
+    await checkRoomsOnUser(fakeUserData.userID, RoomID, roomName, "Removed");
     remakeRoom = false;
   });
 

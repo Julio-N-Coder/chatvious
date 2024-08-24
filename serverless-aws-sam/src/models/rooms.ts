@@ -166,12 +166,17 @@ class RoomManager extends BaseModels {
 
     const membersResponse = await roomUsersManager.fetchRoomMembers(
       RoomID,
-      true
+      true,
+      false,
+      false
     );
-    if ("error" in membersResponse) {
+    if ("error" in membersResponse || "roomMembersKeys" in membersResponse) {
+      if ("error" in membersResponse) {
+        return membersResponse;
+      }
       return {
-        error: membersResponse.error,
-        statusCode: membersResponse.statusCode,
+        error: "Failed to fetch Just Member Keys.",
+        statusCode: 500,
       };
     }
 
@@ -240,6 +245,15 @@ class RoomManager extends BaseModels {
     }
 
     // delete the room itself
+    const deleteRoomResponse = await this.deleteRoomItem(RoomID);
+    if ("error" in deleteRoomResponse) {
+      return deleteRoomResponse;
+    }
+
+    return { message: "Room Deleted", statusCode: 200 };
+  }
+
+  async deleteRoomItem(RoomID: string): BaseModelsReturnType {
     const roomKeys = { PartitionKey: `ROOM#${RoomID}`, SortKey: "METADATA" };
     const returnValues = true;
 
@@ -297,7 +311,8 @@ class RoomUsersManager extends BaseModels {
   async fetchRoomMembers(
     RoomID: string,
     ConsistentRead?: boolean,
-    ExclusiveStartKey?: MessageKeys
+    ExclusiveStartKey?: MessageKeys | false,
+    returnJustKeys?: boolean
   ): FetchRoomMembersReturn {
     const roomMembersCommand = new QueryCommand({
       TableName: tableName,
@@ -308,6 +323,9 @@ class RoomUsersManager extends BaseModels {
         ":RoomMembersPrefix": "MEMBERS#",
       },
       ConsistentRead: ConsistentRead ? true : false,
+      ProjectionExpression: returnJustKeys
+        ? `${this.pk}, ${this.sk}`
+        : "userID, userName, RoomID, RoomUserStatus, profileColor, GSISortKey",
     });
     if (ExclusiveStartKey) {
       roomMembersCommand.input.ExclusiveStartKey = ExclusiveStartKey;
@@ -319,10 +337,22 @@ class RoomUsersManager extends BaseModels {
       return { error: "Failed to Get Room Members", statusCode: 500 };
     }
 
-    const roomMembersDB = roomMembersResponse.Items as RoomMemberDB[];
     const LastEvaluatedKey = roomMembersResponse.LastEvaluatedKey as
       | RoomMemberKeys
       | undefined;
+
+    if (returnJustKeys) {
+      const roomMembersKeys = roomMembersResponse.Items as RoomMemberKeys[];
+      return {
+        message: "Fetched Room Member Keys",
+        roomMembersKeys,
+        memberCount,
+        LastEvaluatedKey,
+        statusCode: 200,
+      };
+    }
+
+    const roomMembersDB = roomMembersResponse.Items as RoomMemberDB[];
 
     const roomMembers: RoomMember[] = roomMembersDB.map((member) => {
       const joinedAt = member.GSISortKey.split("#")[2] as string;

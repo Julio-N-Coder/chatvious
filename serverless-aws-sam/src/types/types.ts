@@ -122,8 +122,14 @@ interface FetchRoomMembersSuccess extends BaseModelsSuccess {
   LastEvaluatedKey: RoomMemberKeys | undefined;
 }
 
+interface FetchRoomMembersKeysSuccess extends BaseModelsSuccess {
+  roomMembersKeys: RoomMemberKeys[];
+  memberCount: number;
+  LastEvaluatedKey: RoomMemberKeys | undefined;
+}
+
 type FetchRoomMembersReturn = Promise<
-  BaseModelsError | FetchRoomMembersSuccess
+  BaseModelsError | FetchRoomMembersKeysSuccess | FetchRoomMembersSuccess
 >;
 
 type RoomInfoType = {
