@@ -1,3 +1,5 @@
+import { DynamoDBClient, waitUntilTableExists } from "@aws-sdk/client-dynamodb";
+
 let dynamodbType = process.argv[3] || "local"; // local or remote;
 if (dynamodbType !== "local" && dynamodbType !== "remote") {
   dynamodbType = process.argv[4] || "local";
@@ -18,6 +20,21 @@ if (dynamodbType === "local") {
     },
     region: "us-west-1",
   };
+
+  const client = new DynamoDBClient(dynamodbOptions);
+  const results = await waitUntilTableExists(
+    {
+      client,
+      maxWaitTime: 30,
+      maxDelay: 5,
+      minDelay: 1,
+    },
+    { TableName: "chatvious-test" }
+  );
+
+  if (results.state !== "SUCCESS") {
+    throw new Error("Failed to create local DynamoDB table");
+  }
 
   process.env.DYNAMODB_OPTIONS = JSON.stringify(dynamodbOptions);
   process.env.CHATVIOUSTABLE_TABLE_NAME = "chatvious-test";

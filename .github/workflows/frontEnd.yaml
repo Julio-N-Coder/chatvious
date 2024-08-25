@@ -33,5 +33,5 @@ jobs:
         run: cd client && npm run build:prod && cd ../ejs-static && npm run build:prod
       - name: Deploy to s3 bucket
         run: |
-          aws s3 sync ./dist/public/ s3://chatvious-app-chatvious-static-web-bucket/ \
+          aws s3 sync ./dist/public/ s3://chatvious-app-chatvious-static-web-bucket/ && \
           aws cloudfront create-invalidation --distribution-id $DISTRIBUTION_ID --paths "/*"
