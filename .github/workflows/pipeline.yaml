@@ -5,12 +5,12 @@ on:
     branches: [ master ]
     paths:
       - 'serverless-aws-sam/**'
-      - '.github/workflows/pipeline.yml'
+      - '.github/workflows/pipeline.yaml'
   pull_request:
     branches: [ master ]
     paths:
       - 'serverless-aws-sam/**'
-      - '.github/workflows/pipeline.yml'
+      - '.github/workflows/pipeline.yaml'
 
 jobs:
   tests:

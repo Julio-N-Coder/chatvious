@@ -7,7 +7,7 @@ on:
     paths:
       - 'client/**'
       - 'ejs-static/**'
-      - '.github/workflows/frontEnd.yml'
+      - '.github/workflows/frontEnd.yaml'
 
 jobs:
   buildAndDeploy:
