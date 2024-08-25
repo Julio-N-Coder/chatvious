@@ -9,8 +9,8 @@ export default function About() {
         </h1>
         <h3 className="text-center text-xl xsm:text-2xl">
           Thank you for visiting my real-time chat application. This project is
-          a part of my portfolio, showcasing the skills and technologies I've
-          learned.
+          a project I created to learn more about web development and serverless
+          technologies.
         </h3>
         <div className="flex flex-col gap-1">
           <h2 className="font-bold text-xl xsm:text-2xl">
