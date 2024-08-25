@@ -16,6 +16,7 @@ if (dynamodbType === "local") {
       accessKeyId: "fakeMyKeyId",
       secretAccessKey: "fakeSecretAccessKey",
     },
+    region: "us-west-1",
   };
 
   process.env.DYNAMODB_OPTIONS = JSON.stringify(dynamodbOptions);

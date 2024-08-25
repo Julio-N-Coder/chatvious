@@ -28,7 +28,7 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-west-1
       - name: Install dependencies
-        run: cd client && npm install && cd ../ejs-static npm install
+        run: cd client && npm install && cd ../ejs-static && npm install
       - name: Build Code
         run: cd client && npm run build:prod && cd ../ejs-static && npm run build:prod
       - name: Deploy to s3 bucket
