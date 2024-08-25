@@ -3,7 +3,7 @@ name: Frontend Deployment
 on:
   push:
     branches:
-      - main
+      - master
     paths:
       - 'client/**'
       - 'ejs-static/**'
@@ -26,11 +26,11 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: us-east-1
+          aws-region: us-west-1
       - name: Install dependencies
-        run: cd client && npm install && cd ../ejs-static npm install && cd ..
+        run: cd client && npm install && cd ../ejs-static npm install
       - name: Build Code
-        run: cd client && npm run build:prod && cd ../ejs-static && npm run build:prod && cd ..
+        run: cd client && npm run build:prod && cd ../ejs-static && npm run build:prod
       - name: Deploy to s3 bucket
         run: |
           aws s3 sync ./dist/public/ s3://chatvious-app-chatvious-static-web-bucket/ \

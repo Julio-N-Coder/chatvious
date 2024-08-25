@@ -47,7 +47,7 @@ jobs:
       - name: Install dependencies
         run: cd serverless-aws-sam/src && npm install
       - name: Run tests
-        run: npm run test
+        run: cd serverless-aws-sam/src && npm run test
 
   deploy:
     if: github.event_name == 'push'
@@ -81,8 +81,9 @@ jobs:
       - name: Install dependencies
         run: cd serverless-aws-sam/src && npm install && cd ..
       - name: Build
-        run: sam build
+        run: cd serverless-aws-sam/ && sam build
       - name: Deploy
         run: |
-          sam deploy --no-confirm-changeset --no-fail-on-empty-changeset \
+          sam deploy --template serverless-aws-sam/template.yaml --config-file serverless-aws-sam/samconfig.toml \
+            --no-confirm-changeset --no-fail-on-empty-changeset \
             --role-arn ${CLOUDFORMATION_EXECUTION_ROLE}
