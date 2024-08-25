@@ -1,0 +1,36 @@
+name: Frontend Deployment
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'client/**'
+      - 'ejs-static/**'
+
+jobs:
+  buildAndDeploy:
+    runs-on: ubuntu-latest
+    env:
+      DISTRIBUTION_ID: EM8LSW0634654
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Setup Aws Credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+      - name: Install dependencies
+        run: cd client && npm install && cd ../ejs-static npm install && cd ..
+      - name: Build Code
+        run: cd client && npm run build:prod && cd ../ejs-static && npm run build:prod && cd ..
+      - name: Deploy to s3 bucket
+        run: |
+          aws s3 sync ./dist/public/ s3://chatvious-app-chatvious-static-web-bucket/ \
+          aws cloudfront create-invalidation --distribution-id $DISTRIBUTION_ID --paths "/*"

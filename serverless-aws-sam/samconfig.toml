@@ -14,6 +14,7 @@ lint = true
 [default.deploy.parameters]
 capabilities = "CAPABILITY_IAM CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND"
 confirm_changeset = false
+no_fail_on_empty_changeset = true
 resolve_s3 = true
 s3_prefix = "chatvious-app"
 region = "us-west-1"

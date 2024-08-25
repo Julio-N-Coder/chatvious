@@ -890,6 +890,14 @@ Resources:
       Action: lambda:InvokeFunction
       FunctionName: !Ref sendMessageWS
       Principal: apigateway.amazonaws.com
+  WSLambdaAuthorizerPermission:
+    Type: AWS::Lambda::Permission
+    DependsOn:
+      - WebsocketApi
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref WSLambdaAuthorizer
+      Principal: apigateway.amazonaws.com
 
   WebsocketAuthorizer:
     Type: AWS::ApiGatewayV2::Authorizer
