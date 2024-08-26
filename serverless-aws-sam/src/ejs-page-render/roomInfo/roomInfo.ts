@@ -1,6 +1,10 @@
 import { APIGatewayProxyResult, APIGatewayEvent } from "aws-lambda";
 import ejs from "ejs";
-import { roomManager } from "../../models/rooms.js";
+import {
+  roomManager,
+  roomUsersManager,
+  joinRequestManager,
+} from "../../models/rooms.js";
 import fetchNavUserInfo from "../../lib/navUserInfo.js";
 import { isProduction, addSetCookieHeaders } from "../../lib/handyUtils.js";
 
@@ -28,11 +32,15 @@ export async function handler(
   }
 
   // fetch RoomMembers to display
-  const roomMembersResponse = await roomManager.fetchRoomMembers(RoomID);
-  if ("error" in roomMembersResponse) {
+  const roomMembersResponse = await roomUsersManager.fetchRoomMembers(RoomID);
+  if (
+    "error" in roomMembersResponse ||
+    "roomMembersKeys" in roomMembersResponse
+  ) {
     return {
       headers: { "Content-Type": "application/json" },
-      statusCode: roomMembersResponse.statusCode,
+      statusCode:
+        "error" in roomMembersResponse ? roomMembersResponse.statusCode : 500,
       body: JSON.stringify({
         error: "Failed to Render Page. I am sorry for the inconvenience.",
       }),
@@ -86,12 +94,27 @@ export async function handler(
     process.env.DOMAIN_URL || "https://chatvious.coding-wielder.com";
 
   if (isOwner || isAdmin) {
-    const joinRequestResponse = await roomManager.fetchJoinRequests(RoomID);
-    if ("error" in joinRequestResponse) {
+    const joinRequestResponse = await joinRequestManager.fetchJoinRequests(
+      RoomID
+    );
+    if (
+      "error" in joinRequestResponse ||
+      "joinRequestsKeys" in joinRequestResponse
+    ) {
+      if ("error" in joinRequestResponse) {
+        return {
+          headers: { "Content-Type": "application/json" },
+          statusCode: joinRequestResponse.statusCode,
+          body: JSON.stringify({ error: joinRequestResponse.error }),
+        };
+      }
       return {
         headers: { "Content-Type": "application/json" },
-        statusCode: joinRequestResponse.statusCode,
-        body: JSON.stringify({ error: joinRequestResponse.error }),
+        statusCode: 500,
+        body: JSON.stringify({
+          error:
+            "Fetched Wrong Join Request type. Were sorry for the inconvenience",
+        }),
       };
     }
     const { joinRequests } = joinRequestResponse;
@@ -124,7 +147,7 @@ export async function handler(
   // check whether they have sent a join request
   let hasSentJoinRequest = false;
   if (!isMember) {
-    const fetchJoinRequestResponse = await roomManager.fetchJoinRequest(
+    const fetchJoinRequestResponse = await joinRequestManager.fetchJoinRequest(
       RoomID,
       userID
     );

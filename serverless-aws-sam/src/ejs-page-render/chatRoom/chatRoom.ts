@@ -2,7 +2,7 @@ import { APIGatewayProxyResult, APIGatewayEvent } from "aws-lambda";
 import ejs from "ejs";
 import fetchNavUserInfo from "../../lib/navUserInfo.js";
 import { isProduction, addSetCookieHeaders } from "../../lib/handyUtils.js";
-import { roomManager } from "../../models/rooms.js";
+import { roomManager, roomUsersManager } from "../../models/rooms.js";
 import { messagesManagerDB } from "../../models/messagesDB.js";
 import { MessageKeys } from "../../types/types.js";
 
@@ -20,7 +20,10 @@ export async function handler(
   }
 
   // check whether user is a part of the room
-  const roomMemberResponse = await roomManager.fetchRoomMember(RoomID, userID);
+  const roomMemberResponse = await roomUsersManager.fetchRoomMember(
+    RoomID,
+    userID
+  );
   if ("error" in roomMemberResponse) {
     if (roomMemberResponse.error === "Bad Request") {
       return {

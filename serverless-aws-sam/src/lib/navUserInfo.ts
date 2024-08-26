@@ -1,5 +1,5 @@
 import { UserInfo } from "../types/types.js";
-import { userManager } from "../models/users.js";
+import { userManager, roomsOnUserManager } from "../models/users.js";
 import { FetchNavUserInfoReturn } from "../types/types.js";
 
 export default async function fetchNavUserInfo(
@@ -16,10 +16,11 @@ export default async function fetchNavUserInfo(
   }
 
   const userInfo: UserInfo = userInfoResponse.userInfo;
-  const fetchNavJoinRequestsResponse = await userManager.fetchNavJoinRequests(
-    userInfo.ownedRooms,
-    userInfo.joinedRooms
-  );
+  const fetchNavJoinRequestsResponse =
+    await roomsOnUserManager.fetchNavJoinRequests(
+      userInfo.ownedRooms,
+      userInfo.joinedRooms
+    );
   if ("error" in fetchNavJoinRequestsResponse) {
     return {
       statusCode: fetchNavJoinRequestsResponse.statusCode,
