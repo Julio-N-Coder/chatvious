@@ -860,44 +860,39 @@ Resources:
 
   WSConnectPermission:
     Type: AWS::Lambda::Permission
-    DependsOn:
-      - WebsocketApi
     Properties:
       Action: lambda:InvokeFunction
       FunctionName: !Ref WSConnect
       Principal: apigateway.amazonaws.com
+      SourceArn: !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${WebsocketApi}/*
   WSDisconnectPermission:
     Type: AWS::Lambda::Permission
-    DependsOn:
-      - WebsocketApi
     Properties:
       Action: lambda:InvokeFunction
       FunctionName: !Ref WSDisconnect
       Principal: apigateway.amazonaws.com
+      SourceArn: !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${WebsocketApi}/*
   joinRoomWSPermission:
     Type: AWS::Lambda::Permission
-    DependsOn:
-      - WebsocketApi
     Properties:
       Action: lambda:InvokeFunction
       FunctionName: !Ref joinRoomWS
       Principal: apigateway.amazonaws.com
+      SourceArn: !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${WebsocketApi}/*
   sendMessageWSPermission:
     Type: AWS::Lambda::Permission
-    DependsOn:
-      - WebsocketApi
     Properties:
       Action: lambda:InvokeFunction
       FunctionName: !Ref sendMessageWS
       Principal: apigateway.amazonaws.com
+      SourceArn: !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${WebsocketApi}/*
   WSLambdaAuthorizerPermission:
     Type: AWS::Lambda::Permission
-    DependsOn:
-      - WebsocketApi
     Properties:
       Action: lambda:InvokeFunction
       FunctionName: !Ref WSLambdaAuthorizer
       Principal: apigateway.amazonaws.com
+      SourceArn: !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${WebsocketApi}/*
 
   WebsocketAuthorizer:
     Type: AWS::ApiGatewayV2::Authorizer
@@ -907,8 +902,7 @@ Resources:
       Name: Chatvious_WebsocketAuthorizer
       AuthorizerUri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WSLambdaAuthorizer.Arn}/invocations
       IdentitySource:
-        - route.request.querystring.tokens
-        - route.request.header.Cookie
+        - route.request.querystring.access_token
 
   ConnectRoute:
     Type: AWS::ApiGatewayV2::Route
@@ -996,6 +990,7 @@ Resources:
       Description: prod Stage
       DeploymentId: !Ref Deployment
       ApiId: !Ref WebsocketApi
+      AutoDeploy: false
       DefaultRouteSettings:
         ThrottlingBurstLimit: 10
         ThrottlingRateLimit: 15
@@ -1077,20 +1072,18 @@ Resources:
         EmailSendingAccount: COGNITO_DEFAULT
   UserPoolPermission:
     Type: AWS::Lambda::Permission
-    DependsOn:
-      - UserPool
     Properties:
       Action: lambda:InvokeFunction
       FunctionName: !Ref saveUserDataFunction
       Principal: cognito-idp.amazonaws.com
+      SourceArn: !GetAtt UserPool.Arn
   PreSignUpUserPoolPermission:
     Type: AWS::Lambda::Permission
-    DependsOn:
-      - UserPool
     Properties:
       Action: lambda:InvokeFunction
       FunctionName: !Ref CognitoPreSignUp
       Principal: cognito-idp.amazonaws.com
+      SourceArn: !GetAtt UserPool.Arn
 
   UserPoolClient:
     Type: AWS::Cognito::UserPoolClient
@@ -1231,7 +1224,6 @@ Metadata:
         - WSDisconnect
         - joinRoomWS
         - sendMessageWS
-        - WebSocketManageConnectionsPolicy
     Group4:
       Label: ChatviousTable Capacity
       Members:
@@ -1258,12 +1250,7 @@ Outputs:
 
   WebSocketURI:
     Description: The WSS Protocol URI to connect to
-    Value: !Join
-      - ''
-      - - wss://
-        - !Ref WebsocketApiDomain
-        - /
-        - !Ref Stage
+    Value: !Sub wss://${WebsocketApiDomain}
 
   UserPoolId:
     Description: Cognito User Pool ID

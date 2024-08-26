@@ -9,13 +9,11 @@ import {
 import messageBoxEjs from "../../../../serverless-aws-sam/src/views/components/chatRoom/messageBox.ejs";
 import { getCookie } from "../utilities/cookies";
 
-const JWTTokensString = JSON.stringify({
-  access_token: getCookie("access_token"),
-  id_token: getCookie("id_token"),
-});
 const websocketURL = process.env.IS_DEV_SERVER
   ? "ws://localhost:8080"
-  : `wss://websocket.chatvious.coding-wielder.com?tokens=${JWTTokensString}`;
+  : `wss://websocket.chatvious.coding-wielder.com?access_token=${getCookie(
+      "access_token"
+    )}`;
 
 const socket = new WebSocket(websocketURL);
 const RoomID = location.pathname.split("/").pop() as string;

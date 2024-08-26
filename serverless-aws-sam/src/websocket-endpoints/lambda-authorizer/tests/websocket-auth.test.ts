@@ -13,10 +13,8 @@ let wsRequestAuthorizerEvent: APIGatewayWebSocketAuthorizerEvent = JSON.parse(
 );
 
 let access_token = "FakeAccessToken";
-let id_token = "FakeIdToken";
-const tokensString = JSON.stringify({ access_token, id_token });
 wsRequestAuthorizerEvent.queryStringParameters = {
-  tokens: tokensString,
+  access_token,
 };
 
 const fakeAccessTokenPayload: LambdaAuthorizerClaims = {
@@ -37,7 +35,7 @@ const fakeAccessTokenPayload: LambdaAuthorizerClaims = {
 describe("Tests for the Websocket Lambda authorizer", () => {
   afterEach(() => {
     wsRequestAuthorizerEvent.queryStringParameters = {
-      tokens: tokensString,
+      access_token,
     };
     jest.clearAllMocks();
   });
