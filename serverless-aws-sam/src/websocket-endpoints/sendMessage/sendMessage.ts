@@ -14,9 +14,9 @@ interface sendMessageBody {
 
 export const handler = async (event: APIGatewayProxyWebsocketEventV2) => {
   const domain = event.requestContext.domainName;
-  const stage = event.requestContext.stage;
   const connectionId = event.requestContext.connectionId;
-  const callbackUrl = `https://${domain}/${stage}`;
+  // don't have stage mapping. just domain
+  const callbackUrl = `https://${domain}`;
 
   if (!event.body) {
     return {
@@ -101,7 +101,7 @@ export const handler = async (event: APIGatewayProxyWebsocketEventV2) => {
     try {
       await client.send(command);
     } catch (error: any) {
-      console.log("Error sending message", error.$response);
+      console.log("Error sending message", error);
     }
   }
 
