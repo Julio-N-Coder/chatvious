@@ -113,23 +113,6 @@ export async function handler(
     };
   }
 
-  // update request user joined rooms.
-  const updateJoinedRoomsResponse = await roomsOnUserManager.updateJoinedRooms(
-    requestUserID,
-    {
-      RoomID,
-      isAdmin: false,
-      roomName,
-    }
-  );
-  if ("error" in updateJoinedRoomsResponse) {
-    return {
-      headers: { "Content-Type": "application/json" },
-      statusCode: updateJoinedRoomsResponse.statusCode,
-      body: JSON.stringify({ error: updateJoinedRoomsResponse.error }),
-    };
-  }
-
   return {
     headers: { "Content-Type": "application/json" },
     statusCode: 200,
