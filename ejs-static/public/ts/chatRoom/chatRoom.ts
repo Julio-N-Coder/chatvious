@@ -37,6 +37,8 @@ window.onload = () => {
 
 let socket: WebSocket;
 let savedMessages: string[] = [];
+let onCloseIntervalID: NodeJS.Timeout | null = null;
+let onErrorIntervalID: NodeJS.Timeout | null = null;
 
 function isSocketOpen() {
   return socket && socket.readyState === socket.OPEN;
@@ -87,6 +89,8 @@ function cleanUpSocketListeners() {
 }
 
 function socketOpenEvent() {
+  if (onCloseIntervalID) clearInterval(onCloseIntervalID);
+  if (onErrorIntervalID) clearInterval(onErrorIntervalID);
   const joinChatRoomRequest = JSON.stringify({
     action: "joinroom",
     RoomID,
@@ -145,13 +149,21 @@ function socketReceiveMessageEvent(event: MessageEvent<any>) {
 function socketCloseEvent(e: CloseEvent) {
   console.log("socket closed. Attempting to reconnect. Reason", e.reason);
   cleanUpSocketListeners();
-  setTimeout(connect, 1000);
+  onCloseIntervalID = setInterval(() => {
+    if (!isSocketOpen()) {
+      connect();
+    }
+  }, 1000);
 }
 
 function socketErrorEvent(error: Event) {
   console.log("socket Errored. Attempting to reconnect");
   cleanUpSocketListeners();
-  setTimeout(connect, 1000);
+  const onErrorIntervalID = setInterval(() => {
+    if (!isSocketOpen()) {
+      connect();
+    }
+  }, 1000);
 }
 
 button.addEventListener("click", sendMessage);
