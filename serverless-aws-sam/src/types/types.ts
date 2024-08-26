@@ -370,6 +370,7 @@ interface InitialConnectionDB {
   SortKey: string; // (sort key) connectionId
   userID: string;
   RoomID: string | false;
+  expires: number; // ttl
 }
 
 type InitialConnectionReturn = BaseModelsReturnTypeData<InitialConnection>;
@@ -386,6 +387,7 @@ interface RoomConnection {
 interface RoomConnectionDB extends RoomConnection {
   PartitionKey: `ROOM#${string}`; // roomID
   SortKey: `CONNECTIONID#${string}`; // connectionID
+  expires: number; // ttl
 }
 
 type FetchRoomConnectionReturn = BaseModelsReturnTypeData<RoomConnection>;

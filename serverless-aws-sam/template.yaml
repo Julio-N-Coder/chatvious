@@ -39,6 +39,9 @@ Resources:
     Properties:
       TableName: chatvious
       BillingMode: PROVISIONED
+      TimeToLiveSpecification:
+        Enabled: true
+        AttributeName: expires
       ProvisionedThroughput:
         ReadCapacityUnits: 1
         WriteCapacityUnits: 1

@@ -1,11 +1,8 @@
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import {
   DynamoDBDocumentClient,
-  PutCommand,
   PutCommandOutput,
-  GetCommand,
   GetCommandOutput,
-  DeleteCommand,
   DeleteCommandOutput,
   UpdateCommand,
   UpdateCommandOutput,
@@ -46,6 +43,7 @@ class InitialConectDBWSManager extends BaseModels {
       SortKey: connectionId,
       userID,
       RoomID: RoomID ? RoomID : false, // false means they are not connected to a room
+      expires: setExpirationTo3Hours(),
     };
 
     let initialConnectionResponse: PutCommandOutput;
@@ -173,6 +171,7 @@ class RoomConnectionsWSManager extends BaseModels {
       userName,
       RoomUserStatus,
       profileColor,
+      expires: setExpirationTo3Hours(),
     };
 
     let storeRoomConnectionResponse: PutCommandOutput;
@@ -360,6 +359,11 @@ class RoomConnectionsWSManager extends BaseModels {
 
     return { message: "Data deleted successfully", statusCode: 200 };
   }
+}
+
+function setExpirationTo3Hours() {
+  const currentEpochTime = Math.floor(Date.now() / 1000);
+  return currentEpochTime + 10800;
 }
 
 const initialConectDBWSManager = new InitialConectDBWSManager(

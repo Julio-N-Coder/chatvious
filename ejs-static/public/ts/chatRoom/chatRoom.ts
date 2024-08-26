@@ -9,13 +9,6 @@ import {
 import messageBoxEjs from "../../../../serverless-aws-sam/src/views/components/chatRoom/messageBox.ejs";
 import { getCookie } from "../utilities/cookies";
 
-const websocketURL = process.env.IS_DEV_SERVER
-  ? "ws://localhost:8080"
-  : `wss://websocket.chatvious.coding-wielder.com?access_token=${getCookie(
-      "access_token"
-    )}`;
-
-const socket = new WebSocket(websocketURL);
 const RoomID = location.pathname.split("/").pop() as string;
 
 const input = document.getElementById("input") as HTMLTextAreaElement;
@@ -42,6 +35,22 @@ window.onload = () => {
   input.focus();
 };
 
+let socket: WebSocket;
+let savedMessages: string[] = [];
+
+function isSocketOpen() {
+  return socket && socket.readyState === socket.OPEN;
+}
+
+function sendMessageAction(message: string) {
+  const sendMessageData = JSON.stringify({
+    action: "sendmessage",
+    RoomID,
+    message,
+  });
+  socket.send(sendMessageData);
+}
+
 function sendMessage() {
   const message = input.value;
   if (message && message.length > 0 && message.length <= 2000) {
@@ -51,94 +60,54 @@ function sendMessage() {
     inputCharCount.textContent = "0/2k";
     button.disabled = true;
     input.style.height = "auto";
+    if (!isSocketOpen() && savedMessages.length < 4) {
+      // save message to send later
+      savedMessages.push(message);
+      return;
+    }
 
-    const sendMessageData = JSON.stringify({
-      action: "sendmessage",
-      RoomID,
-      message,
-    });
-    socket.send(sendMessageData);
+    sendMessageAction(message);
   }
 }
 
-// fetch old messages for pagination
-async function newPaginationMessages() {
-  const fetchNewMessagesData = JSON.stringify({
-    RoomID,
-    LastEvaluatedKey,
-  });
-  const newMessagesURL = "/rooms/fetchNewMessages";
-
-  let newMessagesResponse: Response;
-  try {
-    newMessagesResponse = await fetch(newMessagesURL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: fetchNewMessagesData,
-    });
-  } catch (error) {
-    return { error: "Failed to Fetch more messages" };
-  }
-
-  if (!newMessagesResponse.ok) {
-    const newMessagesError: BasicServerError = await newMessagesResponse.json();
-    return { error: newMessagesError.error };
-  }
-
-  const newMessages: FetchNewMessagesSuccess = await newMessagesResponse.json();
-  return newMessages;
-}
-
-button.addEventListener("click", sendMessage);
-input.addEventListener("keydown", (event) => {
+function keyDownListender(event: KeyboardEvent) {
   if (event.key === "Enter") {
     event.preventDefault();
     sendMessage();
   }
-});
+}
 
-// dyanamically changes textarea height and sets a max height to 7 cols
-input.addEventListener("input", (event) => {
-  let message = input.value;
-  inputLength = input.value.length;
+function cleanUpSocketListeners() {
+  socket.removeEventListener("open", socketOpenEvent);
+  socket.removeEventListener("close", socketCloseEvent);
+  socket.removeEventListener("error", socketErrorEvent);
+  socket.removeEventListener("message", socketReceiveMessageEvent);
+  // @ts-ignore
+  socket = null;
+}
 
-  if (inputLength > 0) {
-    button.disabled = false;
-  } else {
-    button.disabled = true;
-  }
-
-  if (inputLength > 2000) {
-    message = message.slice(0, 2000);
-    inputLength = 2000;
-    input.value = message;
-  }
-  inputCharCount.textContent = `${inputLength}/2k`;
-
-  localStorage.setItem("chatInput", message);
-
-  input.style.height = "auto";
-  input.style.height = input.scrollHeight + "px";
-  if (input.scrollHeight > 168) {
-    input.style.height = "168px";
-  }
-});
-
-socket.addEventListener("open", () => {
+function socketOpenEvent() {
   const joinChatRoomRequest = JSON.stringify({
     action: "joinroom",
     RoomID,
   });
 
   socket.send(joinChatRoomRequest);
-});
+}
 
-socket.addEventListener("message", (event) => {
+function socketReceiveMessageEvent(event: MessageEvent<any>) {
   const dataAction = JSON.parse(event.data);
   const action = dataAction.action;
 
   if (action === "joinroom") {
-    // have loading state and remove loading state once room is joined
+    // have loading state and remove loading state once room is joined for the first time.
+    // check whether messages were saved from a disconnection. send them if there is any.
+    if (savedMessages.length > 0) {
+      for (let i = 0; i < savedMessages.length; i++) {
+        sendMessageAction(savedMessages[i]);
+      }
+      savedMessages = [];
+    }
   } else if (action === "sendmessage") {
     const data: sendMessageAction = dataAction;
     const userName = data.sender.userName;
@@ -170,6 +139,92 @@ socket.addEventListener("message", (event) => {
         behavior: "smooth",
       });
     }
+  }
+}
+
+function socketCloseEvent(e: CloseEvent) {
+  console.log("socket closed. Attempting to reconnect. Reason", e.reason);
+  cleanUpSocketListeners();
+  setTimeout(connect, 1000);
+}
+
+function socketErrorEvent(error: Event) {
+  console.log("socket Errored. Attempting to reconnect");
+  cleanUpSocketListeners();
+  setTimeout(connect, 1000);
+}
+
+button.addEventListener("click", sendMessage);
+input.addEventListener("keydown", keyDownListender);
+
+function connect() {
+  const websocketURL = process.env.IS_DEV_SERVER
+    ? "ws://localhost:8080"
+    : `wss://websocket.chatvious.coding-wielder.com?access_token=${getCookie(
+        "access_token"
+      )}`;
+
+  socket = new WebSocket(websocketURL);
+
+  socket.addEventListener("open", socketOpenEvent);
+  socket.addEventListener("message", socketReceiveMessageEvent);
+  socket.addEventListener("close", socketCloseEvent);
+  socket.addEventListener("error", socketErrorEvent);
+}
+connect();
+
+// fetch old messages for pagination
+async function newPaginationMessages() {
+  const fetchNewMessagesData = JSON.stringify({
+    RoomID,
+    LastEvaluatedKey,
+  });
+  const newMessagesURL = "/rooms/fetchNewMessages";
+
+  let newMessagesResponse: Response;
+  try {
+    newMessagesResponse = await fetch(newMessagesURL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: fetchNewMessagesData,
+    });
+  } catch (error) {
+    return { error: "Failed to Fetch more messages" };
+  }
+
+  if (!newMessagesResponse.ok) {
+    const newMessagesError: BasicServerError = await newMessagesResponse.json();
+    return { error: newMessagesError.error };
+  }
+
+  const newMessages: FetchNewMessagesSuccess = await newMessagesResponse.json();
+  return newMessages;
+}
+
+// dyanamically changes textarea height and sets a max height to 7 cols
+input.addEventListener("input", (event) => {
+  let message = input.value;
+  inputLength = input.value.length;
+
+  if (inputLength > 0) {
+    button.disabled = false;
+  } else {
+    button.disabled = true;
+  }
+
+  if (inputLength > 2000) {
+    message = message.slice(0, 2000);
+    inputLength = 2000;
+    input.value = message;
+  }
+  inputCharCount.textContent = `${inputLength}/2k`;
+
+  localStorage.setItem("chatInput", message);
+
+  input.style.height = "auto";
+  input.style.height = input.scrollHeight + "px";
+  if (input.scrollHeight > 168) {
+    input.style.height = "168px";
   }
 });
 
