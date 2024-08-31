@@ -1,7 +1,12 @@
 # **Chatvious Project**
 ### Hello and welcome to my real time chat app project I made. 
 
-This is a project I am making to learn more about web development and improve my skills. I Have learned a lot about web development when making this project and about serverless technologies as well. Thank you for stopping by to read this and I hope you enjoy what I have made.
+This is a project I am made to learn more about web development and improve my skills. I Have learned a lot about web development when making this project and about serverless technologies as well. Thank you for stopping by to read this and I hope you enjoy what I have made.
+
+### Related Chatvious resources
+If you Would like to see a more in depth explaination of how chatvious works, here is a link to the page on my portfolio website. <https://coding-wielder.com/chatvious-info>
+
+If you would just like to check out chatvious for yourself, Here is the link to the main page. <https://main.chatvious.coding-wielder.com/>
 
 ## Resources and technologies used to make this project
 ### Front End
