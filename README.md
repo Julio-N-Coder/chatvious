@@ -23,7 +23,7 @@ I wanted to try working with serverless technologies and all my infrastructure i
 - **Content Delivery**: The static front-end content is served through an Amazon CloudFront distribution, sourced from an S3 bucket.
 
 Below is an Image about how the aws infrustructure I used works. I got this image from a tool called **Application Composer** which helps build AWS SAM templates and CloudFormation templates.
-![AWS Infrustructure Image](./assets/chatvious-aws-infrastructure-1920-1800.avif)
+![AWS Infrustructure Image](./assets/chatvious-aws-infrastructure-1920-1843.avif)
 
 I also Learn CI/CD with github actions to help automate my workflow
 

@@ -117,7 +117,7 @@ Resources:
       CompatibleRuntimes:
         - provided.al2023
 
-  # add "--external:@aws-sdk \" to makefile esbuild if I figure out how to use ejs with llrt
+  # add "--external:@aws-sdk \" to makefile esbuild if I figure out how to use ejs with llrt (fs not yet supported)
   dashboardPage:
     Type: AWS::Serverless::Function
     Properties:
@@ -278,7 +278,7 @@ Resources:
       BuildMethod: esbuild
       BuildProperties:
         External:
-          - "@aws-sdk"
+          - '@aws-sdk'
         Minify: true
         Bundle: true
         Target: es2020
@@ -316,7 +316,7 @@ Resources:
       BuildMethod: esbuild
       BuildProperties:
         External:
-          - "@aws-sdk"
+          - '@aws-sdk'
         Minify: true
         Bundle: true
         Target: es2020
@@ -354,7 +354,7 @@ Resources:
       BuildMethod: esbuild
       BuildProperties:
         External:
-          - "@aws-sdk"
+          - '@aws-sdk'
         Minify: true
         Bundle: true
         Target: es2020
@@ -392,7 +392,7 @@ Resources:
       BuildMethod: esbuild
       BuildProperties:
         External:
-          - "@aws-sdk"
+          - '@aws-sdk'
         Minify: true
         Bundle: true
         Target: es2020
@@ -430,7 +430,7 @@ Resources:
       BuildMethod: esbuild
       BuildProperties:
         External:
-          - "@aws-sdk"
+          - '@aws-sdk'
         Minify: true
         Bundle: true
         Target: es2020
@@ -468,7 +468,7 @@ Resources:
       BuildMethod: esbuild
       BuildProperties:
         External:
-          - "@aws-sdk"
+          - '@aws-sdk'
         Minify: true
         Bundle: true
         Target: es2020
@@ -506,7 +506,7 @@ Resources:
       BuildMethod: esbuild
       BuildProperties:
         External:
-          - "@aws-sdk"
+          - '@aws-sdk'
         Minify: true
         Bundle: true
         Target: es2020
@@ -544,7 +544,7 @@ Resources:
       BuildMethod: esbuild
       BuildProperties:
         External:
-          - "@aws-sdk"
+          - '@aws-sdk'
         Minify: true
         Bundle: true
         Target: es2020
@@ -581,7 +581,7 @@ Resources:
       BuildMethod: esbuild
       BuildProperties:
         External:
-          - "@aws-sdk"
+          - '@aws-sdk'
         Minify: true
         Bundle: true
         Target: es2020
@@ -628,7 +628,7 @@ Resources:
       BuildMethod: esbuild
       BuildProperties:
         External:
-          - "@aws-sdk"
+          - '@aws-sdk'
         Minify: true
         Bundle: true
         Target: es2020
@@ -676,12 +676,13 @@ Resources:
       BuildMethod: esbuild
       BuildProperties:
         External:
-          - "@aws-sdk"
+          - '@aws-sdk'
         Minify: true
         Bundle: true
         Target: es2020
         Sourcemap: false
 
+  # llrt does not work with aws-jwt-verify (http not yet supported)
   LambdaAuthorizer:
     Type: AWS::Serverless::Function
     Properties:
@@ -780,6 +781,7 @@ Resources:
         Target: es2020
         Sourcemap: false
 
+  # @aws-sdk/client-apigatewaymanagementapi not available in standard llrt. Only in full-sdk
   WSConnect:
     Type: AWS::Serverless::Function
     Properties:
