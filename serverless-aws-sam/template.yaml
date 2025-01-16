@@ -253,7 +253,9 @@ Resources:
       Description: Creates a new chat room
       CodeUri: ./src
       Handler: roomRoutes/createRoom/createRoom.handler
-      Runtime: nodejs20.x
+      Runtime: provided.al2023
+      Layers:
+        - !Ref LlrtLayer
       MemorySize: 128
       Timeout: 6
       Architectures:
@@ -275,6 +277,8 @@ Resources:
     Metadata:
       BuildMethod: esbuild
       BuildProperties:
+        External:
+          - "@aws-sdk"
         Minify: true
         Bundle: true
         Target: es2020
@@ -287,7 +291,9 @@ Resources:
       Description: A user can join a chat room
       CodeUri: ./src
       Handler: roomRoutes/joinRoom/joinRoom.handler
-      Runtime: nodejs20.x
+      Runtime: provided.al2023
+      Layers:
+        - !Ref LlrtLayer
       MemorySize: 128
       Timeout: 6
       Architectures:
@@ -309,6 +315,8 @@ Resources:
     Metadata:
       BuildMethod: esbuild
       BuildProperties:
+        External:
+          - "@aws-sdk"
         Minify: true
         Bundle: true
         Target: es2020
@@ -321,7 +329,9 @@ Resources:
       Description: Accepts a join request for a user to join a chat room
       CodeUri: ./src
       Handler: roomRoutes/acceptJoinRequest/acceptJoinRequest.handler
-      Runtime: nodejs20.x
+      Runtime: provided.al2023
+      Layers:
+        - !Ref LlrtLayer
       MemorySize: 128
       Timeout: 6
       Architectures:
@@ -343,6 +353,8 @@ Resources:
     Metadata:
       BuildMethod: esbuild
       BuildProperties:
+        External:
+          - "@aws-sdk"
         Minify: true
         Bundle: true
         Target: es2020
@@ -355,7 +367,9 @@ Resources:
       Description: Rejects a join request for a chat room
       CodeUri: ./src
       Handler: roomRoutes/rejectJoinRequest/rejectJoinRequest.handler
-      Runtime: nodejs20.x
+      Runtime: provided.al2023
+      Layers:
+        - !Ref LlrtLayer
       MemorySize: 128
       Timeout: 6
       Architectures:
@@ -377,6 +391,8 @@ Resources:
     Metadata:
       BuildMethod: esbuild
       BuildProperties:
+        External:
+          - "@aws-sdk"
         Minify: true
         Bundle: true
         Target: es2020
@@ -389,7 +405,9 @@ Resources:
       Description: Kicks a member from a chat room
       CodeUri: ./src
       Handler: roomRoutes/kickMember/kickMember.handler
-      Runtime: nodejs20.x
+      Runtime: provided.al2023
+      Layers:
+        - !Ref LlrtLayer
       MemorySize: 128
       Timeout: 6
       Architectures:
@@ -411,6 +429,8 @@ Resources:
     Metadata:
       BuildMethod: esbuild
       BuildProperties:
+        External:
+          - "@aws-sdk"
         Minify: true
         Bundle: true
         Target: es2020
@@ -423,7 +443,9 @@ Resources:
       Description: A route for a user to leave a chat room
       CodeUri: ./src
       Handler: roomRoutes/leaveRoom/leaveRoom.handler
-      Runtime: nodejs20.x
+      Runtime: provided.al2023
+      Layers:
+        - !Ref LlrtLayer
       MemorySize: 128
       Timeout: 6
       Architectures:
@@ -445,6 +467,8 @@ Resources:
     Metadata:
       BuildMethod: esbuild
       BuildProperties:
+        External:
+          - "@aws-sdk"
         Minify: true
         Bundle: true
         Target: es2020
@@ -457,7 +481,9 @@ Resources:
       Description: Deletes a chat room
       CodeUri: ./src
       Handler: roomRoutes/deleteRoom/deleteRoom.handler
-      Runtime: nodejs20.x
+      Runtime: provided.al2023
+      Layers:
+        - !Ref LlrtLayer
       MemorySize: 128
       Timeout: 6
       Architectures:
@@ -479,6 +505,8 @@ Resources:
     Metadata:
       BuildMethod: esbuild
       BuildProperties:
+        External:
+          - "@aws-sdk"
         Minify: true
         Bundle: true
         Target: es2020
@@ -491,7 +519,9 @@ Resources:
       Description: Promotes or demotes a user in a chat room
       CodeUri: ./src
       Handler: roomRoutes/promoteOrDemoteUser/promoteOrDemoteUser.handler
-      Runtime: nodejs20.x
+      Runtime: provided.al2023
+      Layers:
+        - !Ref LlrtLayer
       MemorySize: 128
       Timeout: 6
       Architectures:
@@ -513,6 +543,8 @@ Resources:
     Metadata:
       BuildMethod: esbuild
       BuildProperties:
+        External:
+          - "@aws-sdk"
         Minify: true
         Bundle: true
         Target: es2020
@@ -524,7 +556,9 @@ Resources:
       Description: Fetches new Messages for pagination
       CodeUri: ./src
       Handler: roomRoutes/fetchNewMessages/fetchNewMessages.handler
-      Runtime: nodejs20.x
+      Runtime: provided.al2023
+      Layers:
+        - !Ref LlrtLayer
       MemorySize: 128
       Timeout: 6
       Architectures:
@@ -546,6 +580,8 @@ Resources:
     Metadata:
       BuildMethod: esbuild
       BuildProperties:
+        External:
+          - "@aws-sdk"
         Minify: true
         Bundle: true
         Target: es2020
@@ -558,7 +594,9 @@ Resources:
       Description: Deletes a user account from the chatvious cognito userPool
       CodeUri: ./src
       Handler: userRoutes/deleteAccount/deleteAccount.handler
-      Runtime: nodejs20.x
+      Runtime: provided.al2023
+      Layers:
+        - !Ref LlrtLayer
       MemorySize: 128
       Timeout: 6
       Architectures:
@@ -589,6 +627,8 @@ Resources:
     Metadata:
       BuildMethod: esbuild
       BuildProperties:
+        External:
+          - "@aws-sdk"
         Minify: true
         Bundle: true
         Target: es2020
@@ -605,7 +645,9 @@ Resources:
       Timeout: 10
       CodeUri: ./src
       Handler: cognito/callback/callback.handler
-      Runtime: nodejs20.x
+      Runtime: provided.al2023
+      Layers:
+        - !Ref LlrtLayer
       Environment:
         Variables:
           COGNITO_DOMAIN: !Sub https://${UserPoolDomain}.auth.${AWS::Region}.amazoncognito.com
@@ -630,10 +672,11 @@ Resources:
             RestApiId: !Ref ChatviousRestApi
             Auth:
               Authorizer: NONE
-
     Metadata:
       BuildMethod: esbuild
       BuildProperties:
+        External:
+          - "@aws-sdk"
         Minify: true
         Bundle: true
         Target: es2020
@@ -1011,7 +1054,6 @@ Resources:
     Properties:
       CodeUri: ./src
       Handler: cognito/post-signUp-trigger/saveUserData.handler
-      # Runtime: nodejs20.x
       Runtime: provided.al2023
       Layers:
         - !Ref LlrtLayer
@@ -1047,7 +1089,6 @@ Resources:
       Description: A Cognito PreSignUp trigger for custom user input validation
       CodeUri: ./src
       Handler: cognito/pre-signUp-trigger/index.handler
-      # Runtime: nodejs20.x
       Runtime: provided.al2023
       Layers:
         - !Ref LlrtLayer
