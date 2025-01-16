@@ -131,7 +131,9 @@
       "auth_time": 1676313851,
       "exp": 1676313851,
       "iat": 1676313851,
-      "jti": "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"
+      "jti": "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee",
+      "access_token": "headerNotSet.eyJzdWIiOiJhYWFhYWFhYS1iYmJiLWNjY2MtZGRkZC1lZWVlZWVlZWVlZWUiLCJkZXZpY2Vfa2V5IjoiYWFhYWFhYWEtYmJiYi1jY2NjLWRkZGQtZWVlZWVlZWVlZWVlIiwiY29nbml0bzpncm91cHMiOlsidGVzdGdyb3VwIl0sImlzcyI6Imh0dHBzOi8vY29nbml0by1pZHAudXMtd2VzdC0yLmFtYXpvbmF3cy5jb20vdXMtd2VzdC0yX2V4YW1wbGUiLCJ2ZXJzaW9uIjoyLCJjbGllbnRfaWQiOiJ4eHh4eHh4eHh4eHhleGFtcGxlIiwib3JpZ2luX2p0aSI6ImFhYWFhYWFhLWJiYmItY2NjYy1kZGRkLWVlZWVlZWVlZWVlZSIsImV2ZW50X2lkIjoiYWFhYWFhYWEtYmJiYi1jY2NjLWRkZGQtZWVlZWVlZWVlZWVlIiwidG9rZW5fdXNlIjoiYWNjZXNzIiwic2NvcGUiOiJwaG9uZSBvcGVuaWQgcHJvZmlsZSByZXNvdXJjZXNlcnZlci4xL2FwcGNsaWVudDIgZW1haWwiLCJhdXRoX3RpbWUiOjE2NzYzMTM4NTEsImV4cCI6MTY3NjMxNzQ1MSwiaWF0IjoxNjc2MzEzODUxLCJqdGkiOiJhYWFhYWFhYS1iYmJiLWNjY2MtZGRkZC1lZWVlZWVlZWVlZWUiLCJ1c2VybmFtZSI6Im15LXRlc3QtdXNlciJ9.tokenSignatureNotSet",
+      "id_token": "Not Set"
     },
     "path": "/prod/path",
     "resourcePath": "/{proxy}",

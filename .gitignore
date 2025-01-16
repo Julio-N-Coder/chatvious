@@ -4,3 +4,5 @@ dist
 .env
 .aws-sam
 coverage
+.python-version
+llrt-lambda-x64.zip

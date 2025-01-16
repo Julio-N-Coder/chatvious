@@ -3,10 +3,18 @@ import {
   APIGatewayEvent,
   APIGatewayProxyResult,
 } from "aws-lambda";
-import { CognitoJwtVerifier } from "aws-jwt-verify";
+import { decomposeUnverifiedJwt } from "aws-jwt-verify/jwt";
+import { JwtPayload } from "aws-jwt-verify/jwt-model";
 import cookie from "cookie";
-import { CognitoAccessTokenPayload } from "aws-jwt-verify/jwt-model";
-import { LambdaAuthorizerClaims } from "../types/types.js";
+import { LambdaAuthorizerClaims, AccessTokenPayload } from "../types/types.js";
+
+function decodeAcessTokenWithoutValidation(
+  access_token: string
+): AccessTokenPayload {
+  return JSON.parse(
+    Buffer.from(access_token.split(".")[1], "base64url").toString("utf-8")
+  );
+}
 
 async function addSetCookieHeaders(
   event: APIGatewayEvent,
@@ -24,18 +32,19 @@ async function addSetCookieHeaders(
     return returnSuccessObject;
   }
 
-  const verifier = CognitoJwtVerifier.create({
-    userPoolId: process.env.USER_POOL_ID as string,
-    tokenUse: "access",
-    clientId: process.env.USER_POOL_CLIENT_ID as string,
-  });
-
-  let payload: CognitoAccessTokenPayload;
+  let payload: JwtPayload;
   try {
-    payload = await verifier.verify(access_token);
+    payload = decomposeUnverifiedJwt(access_token).payload;
   } catch (err) {
     return returnSuccessObject;
   }
+
+  if (!payload.exp) {
+    return returnSuccessObject;
+  }
+
+  // // token is already verified in lambda authorizer
+  // const payload = decodeAcessTokenWithoutValidation(access_token);
 
   const secure = process.env.IS_DEV_SERVER === "false";
   const expires_in = new Date(payload.exp * 1000);

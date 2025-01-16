@@ -23,6 +23,17 @@ export const handler = async (
   const domainUrl =
     process.env.DOMAIN_URL || "https://chatvious.coding-wielder.com";
   const userInfo = navUserInfoResponse.data;
+
+  // remove this
+  console.log("ownedRooms: ", userInfo.ownedRooms);
+  console.log("joinedRooms: ", userInfo.joinedRooms);
+  console.log("userName: ", userInfo.userName);
+  console.log("profileColor: ", userInfo.profileColor);
+  console.log("navJoinRequest: ", userInfo.navJoinRequests);
+  console.log("isProduction: ", isProduction());
+  console.log("staticContentUrl: ", staticContentUrl);
+  console.log("domainUrl: ", domainUrl);
+
   const dashboardHTML = await ejs.renderFile("./views/dashboard.ejs", {
     ownedRooms: userInfo.ownedRooms,
     joinedRooms: userInfo.joinedRooms,
