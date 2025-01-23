@@ -6,3 +6,4 @@ dist
 coverage
 .python-version
 llrt-lambda-x64.zip
+target

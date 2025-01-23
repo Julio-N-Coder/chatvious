@@ -1,14 +1,37 @@
 package authorizer;
 
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.text.ParseException;
+
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
+import com.fasterxml.jackson.jr.ob.JSON;
+import com.nimbusds.jose.JWSAlgorithm;
+import com.nimbusds.jose.jwk.JWKSet;
+import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
+import com.nimbusds.jose.jwk.source.JWKSource;
+import com.nimbusds.jose.proc.JWSVerificationKeySelector;
+import com.nimbusds.jose.proc.SecurityContext;
+import com.nimbusds.jwt.JWTClaimsSet;
+import com.nimbusds.jwt.SignedJWT;
+import com.nimbusds.jwt.proc.ConfigurableJWTProcessor;
+import com.nimbusds.jwt.proc.DefaultJWTProcessor;
 
-interface Response {}
+class BaseTokens {
+    public String access_token;
+    public String id_token;
+}
 
-class Tokens {
+class Tokens extends BaseTokens {
     String refresh_token;
-    String access_token;
-    String id_token;
+}
+
+class RefreshedTokens extends BaseTokens {
+    public String token_type;
+    public String expires_in;
 }
 
 class CognitoData {
@@ -17,16 +40,95 @@ class CognitoData {
     String COGNITO_DOMAIN = System.getenv("COGNITO_DOMAIN");
 }
 
-public class Authorizer implements RequestHandler<APIGatewayTokenAuthorizerEvent, Policy> {
-  public Policy handleRequest(final APIGatewayTokenAuthorizerEvent input, final Context context) {
+    public class Authorizer implements RequestHandler<APIGatewayTokenAuthorizerEvent, Policy> {
+      public Policy handleRequest(final APIGatewayTokenAuthorizerEvent input, final Context context) {
     String methodArn = input.getMethodArn();
     Tokens tokens = decomposeTokensString(input.getAuthorizationToken());
+    CognitoData cognitoData = new CognitoData();
+    String jwks_url = "https://cognito-idp." + System.getenv("REGION") + ".amazonaws.com/" + cognitoData.USER_POOL_ID + "/.well-known/jwks.json";
 
-    // remember to make PolicyContext myself
-    if (tokens.access_token != null) {
-    } else if (tokens.refresh_token != null) {
+    System.out.println("StartUp of Lambda");
+
+    try {
+        if (tokens.access_token != null) {
+            System.out.println("Running with access_token");
+            JWKSet jwkSet = JWKSet.load(URI.create(jwks_url).toURL());
+            JWKSource<SecurityContext> jwkSource = new ImmutableJWKSet<>(jwkSet);
+
+            ConfigurableJWTProcessor<SecurityContext> jwtProcessor = new DefaultJWTProcessor<>();
+            jwtProcessor.setJWSKeySelector(new JWSVerificationKeySelector<>(JWSAlgorithm.RS256, jwkSource));
+
+            // token validation
+            JWTClaimsSet claimsSet = jwtProcessor.process(tokens.access_token, null);
+
+            Policy.Context resContext = buildContext(claimsSet, null, null);
+
+            return new Policy(claimsSet.getSubject(), "Allow", methodArn, resContext);
+        } else if (tokens.refresh_token != null) {
+            System.out.println("Running in RefreshedToken");
+            // attempt to refresh tokens
+            String requestBody = String.format("grant_type=refresh_token&client_id=%s&refresh_token=%s", cognitoData.CLIENT_ID, tokens.refresh_token);
+
+            HttpClient client = HttpClient.newHttpClient();
+
+            HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(cognitoData.COGNITO_DOMAIN + "/oauth2/token"))
+                .header("Content-Type", "application/x-www-form-urlencoded")
+                .POST(HttpRequest.BodyPublishers.ofString(requestBody))
+                .build();
+
+            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+
+            if (response.statusCode() != 200) {
+                return new Policy("Unauthorized", "Deny", methodArn, null);
+            }
+
+            JSON json = JSON.builder().build();
+            RefreshedTokens tokenResponse = json.beanFrom(RefreshedTokens.class, response.body());
+            
+            // parse access token and set claims with token
+            SignedJWT signedJWT = SignedJWT.parse(tokenResponse.access_token);
+            JWTClaimsSet claimsSet = signedJWT.getJWTClaimsSet();
+
+            System.out.println("Refreshed Tokens. claimsSet json below");
+            System.out.println(claimsSet.toJSONObject());
+
+            Policy.Context resContext = buildContext(claimsSet, tokenResponse.access_token, tokenResponse.id_token);
+
+            return new Policy(claimsSet.getSubject(), "Allow", methodArn, resContext);
+        }
+    } catch (Exception e) {
+        System.out.println("Caught Exception. Error Below");
+        System.out.println(e.getMessage());
+        return new Policy("Unauthorized", "Deny", methodArn, null);
     }
+    System.out.println("No Tokens");
+
     return new Policy("Unauthorized", "Deny", methodArn, null);
+  }
+
+  private Policy.Context buildContext(JWTClaimsSet claimsSet, String access_token, String id_token) throws ParseException {
+    Policy.Context resContext = new Policy.Context();
+
+    resContext.sub = claimsSet.getSubject();
+    resContext.username = claimsSet.getClaimAsString("username");
+    resContext.iss = claimsSet.getIssuer();
+    resContext.client_id = claimsSet.getClaimAsString("client_id");
+    resContext.origin_jti = claimsSet.getJWTID();
+    resContext.event_id = claimsSet.getClaimAsString("event_id");
+    resContext.token_use = claimsSet.getClaimAsString("token_use");
+    resContext.auth_time = ((Number) claimsSet.getClaim("auth_time")).intValue();
+    resContext.exp = claimsSet.getExpirationTime().getTime() / 1000;
+    resContext.iat = claimsSet.getIssueTime().getTime() / 1000;
+    resContext.jti = claimsSet.getJWTID();
+    resContext.email = claimsSet.getClaimAsString("email");
+    
+    if (access_token != null && id_token != null) {
+        resContext.access_token = access_token;
+        resContext.id_token = id_token;
+    }
+
+    return resContext;
   }
 
   private Tokens decomposeTokensString(String cookieString) {
@@ -58,154 +160,4 @@ public class Authorizer implements RequestHandler<APIGatewayTokenAuthorizerEvent
     }
     return tokens;
   }
-}
-
-class APIGatewayTokenAuthorizerEvent {
-  private String type;
-  private String authorizationToken;
-  private String methodArn;
-
-  public String getType() {
-      return type;
-  }
-
-  public void setType(String type) {
-      this.type = type;
-  }
-
-  public String getAuthorizationToken() {
-      return authorizationToken;
-  }
-
-  public void setAuthorizationToken(String authorizationToken) {
-      this.authorizationToken = authorizationToken;
-  }
-
-  public String getMethodArn() {
-      return methodArn;
-  }
-
-  public void setMethodArn(String methodArn) {
-      this.methodArn = methodArn;
-  }
-}
-
-class Policy implements Response {
-    private String principalId; // The principal user ID
-    private PolicyDocument policyDocument; // The policy document
-    private Context context; // Additional context data
-
-    Policy(String principalId, String effect, String methodArn, Context context) {
-        this.principalId = principalId;
-        this.policyDocument = new PolicyDocument(effect, methodArn);
-        this.context = context;
-    }
-
-    // Getters and Setters
-    public String getPrincipalId() {
-        return principalId;
-    }
-
-    public void setPrincipalId(String principalId) {
-        this.principalId = principalId;
-    }
-
-    public PolicyDocument getPolicyDocument() {
-        return policyDocument;
-    }
-
-    public void setPolicyDocument(PolicyDocument policyDocument) {
-        this.policyDocument = policyDocument;
-    }
-
-    public Context getContext() {
-        return context;
-    }
-
-    public void setContext(Context context) {
-        this.context = context;
-    }
-
-    // Inner class for PolicyDocument
-    public static class PolicyDocument {
-        private String Version = "2012-10-17"; // Fixed version
-        private Statement[] Statement; // List of statements
-
-        PolicyDocument(String effect, String methodArn) {
-            Statement[] newStatement = new Statement[1];
-            newStatement[0] = new Statement(effect, methodArn);
-            this.Statement = newStatement;
-        }
-
-        // Getters and Setters
-        public String getVersion() {
-            return Version;
-        }
-
-        public void setVersion(String Version) {
-            this.Version = Version;
-        }
-
-        public Statement[] getStatement() {
-            return Statement;
-        }
-
-        public void setStatement(Statement[] Statement) {
-            this.Statement = Statement;
-        }
-
-        // Inner class for Statement
-        public static class Statement {
-            private String Action = "execute-api:Invoke";
-            private String Effect; // Allow or Deny
-            private String Resource; // ARN of the resource
-
-            Statement(String effect, String methodArn) {
-                this.Effect = effect;
-                this.Resource = methodArn;
-            }
-
-            // Getters and Setters
-            public String getAction() {
-                return Action;
-            }
-
-            public void setAction(String Action) {
-                this.Action = Action;
-            }
-
-            public String getEffect() {
-                return Effect;
-            }
-
-            public void setEffect(String Effect) {
-                this.Effect = Effect;
-            }
-
-            public String getResource() {
-                return Resource;
-            }
-
-            public void setResource(String Resource) {
-                this.Resource = Resource;
-            }
-        }
-    }
-
-    public class Context {
-        String sub;
-        String username;
-        String email;
-        String iss;
-        String client_id;
-        String origin_jti;
-        String event_id;
-        String token_use;
-        int auth_time;
-        int exp;
-        int iat;
-        String  jti;
-        String access_token;
-        String id_token;
-    }
 }

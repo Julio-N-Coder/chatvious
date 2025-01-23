@@ -11,6 +11,7 @@ Globals:
         DOMAIN_URL: https://chatvious.coding-wielder.com
         SUB_DOMAIN: main.chatvious.coding-wielder.com
         SUB_DOMAIN_URL: https://main.chatvious.coding-wielder.com
+        REGION: "us-west-1"
         DYNAMODB_OPTIONS: '{}'
         IS_DEV_SERVER: false
     LoggingConfig:
@@ -682,7 +683,6 @@ Resources:
         Target: es2020
         Sourcemap: false
 
-  # llrt does not work with aws-jwt-verify (http not yet supported)
   LambdaAuthorizer:
     Type: AWS::Serverless::Function
     Properties:
@@ -690,9 +690,12 @@ Resources:
       Description: The Lambda Authorizer for chatvious
       MemorySize: 128
       Timeout: 10
-      CodeUri: ./src
-      Handler: cognito/lambda-authorizer/lambda-authorizer.handler
-      Runtime: nodejs20.x
+      SnapStart:
+          ApplyOn: PublishedVersions
+      AutoPublishAlias: SnapStart
+      CodeUri: ./src/cognito/lambda-authorizer
+      Handler: authorizer.Authorizer::handleRequest
+      Runtime: java21
       Architectures:
         - x86_64
       Environment:
@@ -701,13 +704,6 @@ Resources:
           USER_POOL_ID: !Ref UserPool
           USER_POOL_CLIENT_ID: !Ref UserPoolClient
           USER_POOL_ARN: !GetAtt UserPool.Arn
-    Metadata:
-      BuildMethod: esbuild
-      BuildProperties:
-        Minify: true
-        Bundle: true
-        Target: es2020
-        Sourcemap: false
 
   ChatviousRestApi:
     Type: AWS::Serverless::Api
