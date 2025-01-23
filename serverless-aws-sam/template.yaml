@@ -11,7 +11,7 @@ Globals:
         DOMAIN_URL: https://chatvious.coding-wielder.com
         SUB_DOMAIN: main.chatvious.coding-wielder.com
         SUB_DOMAIN_URL: https://main.chatvious.coding-wielder.com
-        REGION: "us-west-1"
+        REGION: us-west-1
         DYNAMODB_OPTIONS: '{}'
         IS_DEV_SERVER: false
     LoggingConfig:
@@ -691,7 +691,7 @@ Resources:
       MemorySize: 128
       Timeout: 10
       SnapStart:
-          ApplyOn: PublishedVersions
+        ApplyOn: PublishedVersions
       AutoPublishAlias: SnapStart
       CodeUri: ./src/cognito/lambda-authorizer
       Handler: authorizer.Authorizer::handleRequest
