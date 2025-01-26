@@ -47,11 +47,8 @@ class CognitoData {
     CognitoData cognitoData = new CognitoData();
     String jwks_url = "https://cognito-idp." + System.getenv("REGION") + ".amazonaws.com/" + cognitoData.USER_POOL_ID + "/.well-known/jwks.json";
 
-    System.out.println("StartUp of Lambda");
-
     try {
         if (tokens.access_token != null) {
-            System.out.println("Running with access_token");
             JWKSet jwkSet = JWKSet.load(URI.create(jwks_url).toURL());
             JWKSource<SecurityContext> jwkSource = new ImmutableJWKSet<>(jwkSet);
 
@@ -90,20 +87,15 @@ class CognitoData {
             SignedJWT signedJWT = SignedJWT.parse(tokenResponse.access_token);
             JWTClaimsSet claimsSet = signedJWT.getJWTClaimsSet();
 
-            System.out.println("Refreshed Tokens. claimsSet json below");
-            System.out.println(claimsSet.toJSONObject());
+            System.out.println("Tokens Refreshed");
 
             Policy.Context resContext = buildContext(claimsSet, tokenResponse.access_token, tokenResponse.id_token);
 
             return new Policy(claimsSet.getSubject(), "Allow", methodArn, resContext);
         }
     } catch (Exception e) {
-        System.out.println("Caught Exception. Error Below");
-        System.out.println(e.getMessage());
         return new Policy("Unauthorized", "Deny", methodArn, null);
     }
-    System.out.println("No Tokens");
-
     return new Policy("Unauthorized", "Deny", methodArn, null);
   }
 

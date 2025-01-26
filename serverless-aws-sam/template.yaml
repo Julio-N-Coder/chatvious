@@ -688,7 +688,7 @@ Resources:
     Properties:
       FunctionName: Chatvious_LambdaAuthorizer
       Description: The Lambda Authorizer for chatvious
-      MemorySize: 128
+      MemorySize: 512 # cold start for this takes around 4.25 secs
       Timeout: 10
       SnapStart:
         ApplyOn: PublishedVersions
