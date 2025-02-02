@@ -84,10 +84,8 @@ jobs:
           role-skip-session-tagging: true
       - name: Install dependencies
         run: cd serverless-aws-sam/src && npm install && cd ..
-      - name: Download llrt
-        run: cd serverless-aws-sam && wget https://github.com/awslabs/llrt/releases/download/v0.4.0-beta/llrt-lambda-x64.zip
       - name: Build
-        run: cd serverless-aws-sam/ && sam build
+        run: ./serverless-aws-sam/build.sh
       - name: Deploy
         run: |
           cd serverless-aws-sam/ && \
