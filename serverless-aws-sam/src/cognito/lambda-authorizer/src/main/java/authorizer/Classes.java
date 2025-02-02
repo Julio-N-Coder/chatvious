@@ -92,7 +92,7 @@ class Policy {
     public static class Context {
         public String sub;
         public String username;
-        public String email;
+        public String email = "";
         public String iss;
         public String client_id;
         public String origin_jti;

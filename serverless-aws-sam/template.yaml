@@ -688,14 +688,11 @@ Resources:
     Properties:
       FunctionName: Chatvious_LambdaAuthorizer
       Description: The Lambda Authorizer for chatvious
-      MemorySize: 512 # cold start for this takes around 4.25 secs
+      MemorySize: 128
       Timeout: 10
-      SnapStart:
-        ApplyOn: PublishedVersions
-      AutoPublishAlias: SnapStart
-      CodeUri: ./src/cognito/lambda-authorizer
-      Handler: authorizer.Authorizer::handleRequest
-      Runtime: java21
+      CodeUri: ./src/cognito/lambda-authorizer/target/function.zip
+      Handler: not.used.in.provided.runtime
+      Runtime: provided
       Architectures:
         - x86_64
       Environment:

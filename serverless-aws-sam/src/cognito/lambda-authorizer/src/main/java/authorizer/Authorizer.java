@@ -4,22 +4,20 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.text.ParseException;
+import java.util.NoSuchElementException;
+
+import org.eclipse.microprofile.jwt.JsonWebToken;
 
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
 import com.fasterxml.jackson.jr.ob.JSON;
-import com.nimbusds.jose.JWSAlgorithm;
-import com.nimbusds.jose.jwk.JWKSet;
-import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
-import com.nimbusds.jose.jwk.source.JWKSource;
-import com.nimbusds.jose.proc.JWSVerificationKeySelector;
-import com.nimbusds.jose.proc.SecurityContext;
-import com.nimbusds.jwt.JWTClaimsSet;
-import com.nimbusds.jwt.SignedJWT;
-import com.nimbusds.jwt.proc.ConfigurableJWTProcessor;
-import com.nimbusds.jwt.proc.DefaultJWTProcessor;
 
+import io.quarkus.runtime.annotations.RegisterForReflection;
+import io.smallrye.jwt.auth.principal.JWTParser;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+
+@RegisterForReflection
 class BaseTokens {
     public String access_token;
     public String id_token;
@@ -29,6 +27,7 @@ class Tokens extends BaseTokens {
     String refresh_token;
 }
 
+@RegisterForReflection
 class RefreshedTokens extends BaseTokens {
     public String token_type;
     public String expires_in;
@@ -40,80 +39,74 @@ class CognitoData {
     String COGNITO_DOMAIN = System.getenv("COGNITO_DOMAIN");
 }
 
-    public class Authorizer implements RequestHandler<APIGatewayTokenAuthorizerEvent, Policy> {
-      public Policy handleRequest(final APIGatewayTokenAuthorizerEvent input, final Context context) {
-    String methodArn = input.getMethodArn();
-    Tokens tokens = decomposeTokensString(input.getAuthorizationToken());
-    CognitoData cognitoData = new CognitoData();
-    String jwks_url = "https://cognito-idp." + System.getenv("REGION") + ".amazonaws.com/" + cognitoData.USER_POOL_ID + "/.well-known/jwks.json";
+@Named("Authorizer")
+public class Authorizer implements RequestHandler<APIGatewayTokenAuthorizerEvent, Policy> {
 
-    try {
-        if (tokens.access_token != null) {
-            JWKSet jwkSet = JWKSet.load(URI.create(jwks_url).toURL());
-            JWKSource<SecurityContext> jwkSource = new ImmutableJWKSet<>(jwkSet);
+    @Inject
+    JWTParser parser;
 
-            ConfigurableJWTProcessor<SecurityContext> jwtProcessor = new DefaultJWTProcessor<>();
-            jwtProcessor.setJWSKeySelector(new JWSVerificationKeySelector<>(JWSAlgorithm.RS256, jwkSource));
+    public Policy handleRequest(final APIGatewayTokenAuthorizerEvent input, final Context context) {
+        String methodArn = input.getMethodArn();
+        Tokens tokens = decomposeTokensString(input.getAuthorizationToken());
+        CognitoData cognitoData = new CognitoData();
 
-            // token validation
-            JWTClaimsSet claimsSet = jwtProcessor.process(tokens.access_token, null);
+        try {
+            if (tokens.access_token != null) {
+                JsonWebToken jwt = parser.parse(tokens.access_token);
 
-            Policy.Context resContext = buildContext(claimsSet, null, null);
+                Policy.Context resContext = buildContext(jwt, null, null);
 
-            return new Policy(claimsSet.getSubject(), "Allow", methodArn, resContext);
-        } else if (tokens.refresh_token != null) {
-            System.out.println("Running in RefreshedToken");
-            // attempt to refresh tokens
-            String requestBody = String.format("grant_type=refresh_token&client_id=%s&refresh_token=%s", cognitoData.CLIENT_ID, tokens.refresh_token);
+                return new Policy(jwt.getSubject(), "Allow", methodArn, resContext);
+            } else if (tokens.refresh_token != null) {
+                System.out.println("Running in RefreshedToken");
+                // attempt to refresh tokens
+                String requestBody = String.format("grant_type=refresh_token&client_id=%s&refresh_token=%s", cognitoData.CLIENT_ID, tokens.refresh_token);
 
-            HttpClient client = HttpClient.newHttpClient();
+                HttpClient client = HttpClient.newHttpClient();
 
-            HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(cognitoData.COGNITO_DOMAIN + "/oauth2/token"))
-                .header("Content-Type", "application/x-www-form-urlencoded")
-                .POST(HttpRequest.BodyPublishers.ofString(requestBody))
-                .build();
+                HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(cognitoData.COGNITO_DOMAIN + "/oauth2/token"))
+                    .header("Content-Type", "application/x-www-form-urlencoded")
+                    .POST(HttpRequest.BodyPublishers.ofString(requestBody))
+                    .build();
 
-            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+                HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
 
-            if (response.statusCode() != 200) {
-                return new Policy("Unauthorized", "Deny", methodArn, null);
+                if (response.statusCode() != 200) {
+                    return new Policy("Unauthorized", "Deny", methodArn, null);
+                }
+
+                JSON json = JSON.builder().build();
+                RefreshedTokens tokenResponse = json.beanFrom(RefreshedTokens.class, response.body());
+                
+                // parse access token and set claims with token
+                JsonWebToken jwt = parser.parseOnly(tokenResponse.access_token);
+
+                Policy.Context resContext = buildContext(jwt, tokenResponse.access_token, tokenResponse.id_token);
+
+                return new Policy(jwt.getSubject(), "Allow", methodArn, resContext);
             }
-
-            JSON json = JSON.builder().build();
-            RefreshedTokens tokenResponse = json.beanFrom(RefreshedTokens.class, response.body());
-            
-            // parse access token and set claims with token
-            SignedJWT signedJWT = SignedJWT.parse(tokenResponse.access_token);
-            JWTClaimsSet claimsSet = signedJWT.getJWTClaimsSet();
-
-            System.out.println("Tokens Refreshed");
-
-            Policy.Context resContext = buildContext(claimsSet, tokenResponse.access_token, tokenResponse.id_token);
-
-            return new Policy(claimsSet.getSubject(), "Allow", methodArn, resContext);
+        } catch (Exception e) {
+            System.out.println("Exception Error. Message: " + e.getMessage());
+            return new Policy("Unauthorized", "Deny", methodArn, null);
         }
-    } catch (Exception e) {
         return new Policy("Unauthorized", "Deny", methodArn, null);
-    }
-    return new Policy("Unauthorized", "Deny", methodArn, null);
   }
 
-  private Policy.Context buildContext(JWTClaimsSet claimsSet, String access_token, String id_token) throws ParseException {
+  private Policy.Context buildContext(JsonWebToken jwt, String access_token, String id_token) throws NoSuchElementException {
     Policy.Context resContext = new Policy.Context();
 
-    resContext.sub = claimsSet.getSubject();
-    resContext.username = claimsSet.getClaimAsString("username");
-    resContext.iss = claimsSet.getIssuer();
-    resContext.client_id = claimsSet.getClaimAsString("client_id");
-    resContext.origin_jti = claimsSet.getJWTID();
-    resContext.event_id = claimsSet.getClaimAsString("event_id");
-    resContext.token_use = claimsSet.getClaimAsString("token_use");
-    resContext.auth_time = ((Number) claimsSet.getClaim("auth_time")).intValue();
-    resContext.exp = claimsSet.getExpirationTime().getTime() / 1000;
-    resContext.iat = claimsSet.getIssueTime().getTime() / 1000;
-    resContext.jti = claimsSet.getJWTID();
-    resContext.email = claimsSet.getClaimAsString("email");
+    resContext.sub = jwt.getSubject();
+    resContext.username = jwt.<String>claim("username").get();
+    resContext.iss = jwt.getIssuer();
+    resContext.client_id = jwt.<String>claim("client_id").get();
+    resContext.origin_jti = jwt.<String>claim("origin_jti").get();
+    resContext.event_id = jwt.<String>claim("event_id").get();
+    resContext.token_use = jwt.<String>claim("token_use").get();
+    resContext.auth_time = ((Number) jwt.claim("auth_time").get()).intValue();
+    resContext.exp = jwt.getExpirationTime() / 1000;
+    resContext.iat = jwt.getIssuedAtTime() / 1000;
+    resContext.jti = jwt.getTokenID();
     
     if (access_token != null && id_token != null) {
         resContext.access_token = access_token;

@@ -7,3 +7,4 @@ coverage
 .python-version
 llrt-lambda-x64.zip
 target
+dependency-reduced-pom.xml
