@@ -21,7 +21,7 @@ cd "$LAMBDA_AUTH_DIR"
 # build sam project
 cd "$SCRIPT_DIR"
 if ! [ -f "llrt-lambda-x64.zip" ]; then
-  wget "https://github.com/awslabs/llrt/releases/download/v0.4.0-beta/llrt-lambda-x64.zip"
+  wget "https://github.com/awslabs/llrt/releases/download/v0.6.2-beta/llrt-lambda-x64.zip"
 fi
 
 sam build
