@@ -82,7 +82,7 @@ export default function About() {
         </div>
       </div>
       <div id="socials" className="flex">
-        <a href="https://github.com/Night-Coder-404/chatvious">
+        <a href="https://github.com/Julio-N-Coder/chatvious">
           <svg
             className="w-[48px] h-[48px] text-gray-800 dark:text-white"
             aria-hidden="true"

@@ -17,7 +17,9 @@ export default function Navbar({ isDarkMode, setIsDarkMode }: NavbarProps) {
   );
   const [firstRotate, setFirstRotate] = useState(false);
   const [themeChecked, setThemeChecked] = useState(false);
-  const themeSwitchRef = useRef<HTMLInputElement>(null);
+  const themeSwitchRef = useRef<HTMLInputElement>(
+    null
+  ) as React.RefObject<HTMLInputElement>;
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const location = useLocation();
 
