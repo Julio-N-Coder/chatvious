@@ -103,7 +103,7 @@ export default function Navbar({ isDarkMode, setIsDarkMode }: NavbarProps) {
               ></path>
             </svg>
           </summary>
-          <ul className="p-2 shadow menu dropdown-content z-[1] bg-base-100 rounded-box w-52">
+          <ul className="p-2 shadow-sm menu dropdown-content z-1 bg-base-100 rounded-box w-52">
             <li>
               <NavLink
                 to="/"
@@ -208,7 +208,7 @@ export default function Navbar({ isDarkMode, setIsDarkMode }: NavbarProps) {
               ></path>
             </svg>
           </summary>
-          <ul className="p-2 shadow menu dropdown-content z-[1] bg-base-100 rounded-box w-52">
+          <ul className="p-2 shadow-sm menu dropdown-content z-1 bg-base-100 rounded-box w-52">
             {isLoggedIn ? (
               <p onClick={signOut}>Log Out</p>
             ) : (
