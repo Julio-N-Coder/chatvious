@@ -15,12 +15,7 @@ import {
 } from "./fakeEjsPageData.js";
 const app = express();
 
-app.use(express.static("../dist/public"));
 app.set("view engine", "ejs");
-
-app.get("/about", (req, res) => {
-  res.sendFile(path.resolve("..", "dist", "public", "index.html"));
-});
 
 app.get("/dashboard", (req, res) => {
   res.render(

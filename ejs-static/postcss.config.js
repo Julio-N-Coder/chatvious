@@ -1,13 +1,11 @@
-import tailwindcss from "tailwindcss";
-import autoprefixer from "autoprefixer";
+import tailwindcss from "@tailwindcss/postcss";
 import cssnano from "cssnano";
 
 const postcss = {
-  plugins: [tailwindcss, autoprefixer],
+  plugins: [
+    tailwindcss,
+    ...(process.env.NODE_ENV === "production" ? [cssnano()] : []),
+  ],
 };
-
-if (process.env.NODE_ENV === "production") {
-  postcss.plugins.splice(1, 0, cssnano);
-}
 
 export default postcss;
