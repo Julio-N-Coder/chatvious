@@ -3,8 +3,8 @@
 @import "tailwindcss/utilities";
 
 @font-face {
-  font-family: 'Roboto';
-  src: url('../fonts/Roboto-Regular.ttf') format('ttf');
+  font-family: "Roboto";
+  src: url("../fonts/Roboto-Regular.ttf") format("truetype");
   font-weight: 400;
   font-style: normal;
 }
@@ -14,7 +14,7 @@
 }
 
 .nav-tabs-lg {
-  @apply btn-ghost p-2 rounded-lg text-neutral-content text-2xl
+  @apply btn-ghost p-2 rounded-lg text-neutral-content text-2xl;
 }
 
 .break-anywhere {

@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from "react";
-import { Link, NavLink, useLocation } from "react-router-dom";
+import { NavLink, useLocation } from "react-router-dom";
 import { Sun, Moon } from "../sun-moon";
 import { preferedAndThemeToggle, toggleDarkModeMainText } from "./themeChanger";
 import { SignUp, LogIn } from "../../components/sign-up-log-in";
@@ -83,9 +83,9 @@ export default function Navbar({ isDarkMode, setIsDarkMode }: NavbarProps) {
   }, []);
 
   return (
-    <nav className="px-2 md:px-4 lg:px-10 py-5 flex justify-between navbar bg-neutral gap-2">
+    <nav className="px-2 md:px-4 lg:px-10 py-4 flex justify-between navbar bg-base-300 gap-2">
       {/* left side div */}
-      <div className="xsm:space-x-2">
+      <div className="flex xsm:gap-2 items-center">
         {/* 3 line nav icon */}
         <details className="dropdown md:hidden">
           <summary className="xsm:m-1 btn btn-ghost btn-square m-0">
@@ -93,7 +93,7 @@ export default function Navbar({ isDarkMode, setIsDarkMode }: NavbarProps) {
               xmlns="http://www.w3.org/2000/svg"
               fill="none"
               viewBox="0 0 24 24"
-              className="inline-block w-8 h-8 stroke-current text-neutral-content"
+              className="inline-block w-8 h-8 stroke-current text-base-content"
             >
               <path
                 strokeLinecap="round"
@@ -107,7 +107,9 @@ export default function Navbar({ isDarkMode, setIsDarkMode }: NavbarProps) {
             <li>
               <NavLink
                 to="/"
-                className={({ isActive }) => (isActive ? `btn-active` : ``)}
+                className={({ isActive }) =>
+                  isActive ? `bg-neutral text-neutral-content` : ``
+                }
               >
                 Chatvious
               </NavLink>
@@ -115,7 +117,9 @@ export default function Navbar({ isDarkMode, setIsDarkMode }: NavbarProps) {
             <li>
               <NavLink
                 to="/about"
-                className={({ isActive }) => (isActive ? `btn-active` : ``)}
+                className={({ isActive }) =>
+                  isActive ? `bg-neutral text-neutral-content` : ``
+                }
               >
                 About
               </NavLink>
@@ -133,19 +137,17 @@ export default function Navbar({ isDarkMode, setIsDarkMode }: NavbarProps) {
             </li>
           </ul>
         </details>
-        <Link
+        <NavLink
           to="/"
-          className="text-3xl xsm:text-4xl text-neutral-content hidden md:block"
+          className="text-3xl xsm:text-4xl text-base-content hidden md:inline"
         >
           Chatvious
-        </Link>
+        </NavLink>
         {/* big tabs pages for big screens */}
         <NavLink
           to="/about"
           className={({ isActive }) =>
-            isActive
-              ? `btn-active nav-tabs-lg hidden md:block`
-              : `nav-tabs-lg hidden md:block`
+            isActive ? `btn-active nav-tabs-lg` : `nav-tabs-lg`
           }
         >
           About
@@ -156,7 +158,7 @@ export default function Navbar({ isDarkMode, setIsDarkMode }: NavbarProps) {
               ? "http://localhost:3000"
               : process.env.DOMAIN_URL
           }/dashboard`}
-          className="nav-tabs-lg hidden md:block"
+          className="nav-tabs-lg"
         >
           DashBoard
         </a>
