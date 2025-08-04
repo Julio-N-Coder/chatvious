@@ -1,19 +1,19 @@
 <% if (ownedRooms.length > 0) { %> <% ownedRooms.map((ownedRoom) => { %>
 <div
-  class="bg-neutral rounded-sm p-2 flex flex-col items-center mdsm:flex-row mdsm:justify-between"
+  class="bg-base-300 rounded-sm p-2 border border-black flex flex-col items-center mdsm:flex-row mdsm:justify-between"
 >
-  <span class="text-lg font-bold self-center text-neutral-content">
+  <span class="text-lg font-bold self-center text-base-content">
     <%= ownedRoom.roomName %></span
   >
   <div class="space-x-2">
     <a
       href="/rooms/<%= ownedRoom.RoomID %>"
-      class="btn btn-sm text-lg font-bold"
+      class="btn btn-sm btn-accent text-lg font-bold"
       >Room Info</a
     >
     <a
       href="chat-room/<%= ownedRoom.RoomID %>"
-      class="btn btn-sm text-lg font-bold"
+      class="btn btn-sm btn-accent text-lg font-bold"
       >Join Room</a
     >
   </div>
