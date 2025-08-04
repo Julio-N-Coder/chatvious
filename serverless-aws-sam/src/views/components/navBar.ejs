@@ -1,8 +1,8 @@
 <nav
-  class="px-2 md:px-4 lg:px-10 py-5 flex justify-between navbar bg-neutral gap-2"
+  class="px-2 md:px-4 lg:px-10 py-4 flex justify-between navbar bg-base-100 gap-2"
 >
   <%# left side div %>
-  <div class="xsm:space-x-2">
+  <div class="flex xsm:gap-2 items-center">
     <%# 3 line nav icon %>
     <details class="dropdown md:hidden">
       <summary class="xsm:m-1 btn btn-ghost btn-square m-0">
@@ -10,7 +10,7 @@
           xmlns="http://www.w3.org/2000/svg"
           fill="none"
           viewBox="0 0 24 24"
-          class="inline-block w-8 h-8 stroke-current text-neutral-content"
+          class="inline-block w-8 h-8 stroke-current text-base-content"
         >
           <path
             strokeLinecap="round"
@@ -38,18 +38,18 @@
     </details>
     <a
       href="<%= staticContentUrl %>/"
-      class="hidden xsm:block text-4xl text-neutral-content sm:ml-2"
+      class="text-3xl xsm:text-4xl text-base-content hidden xsm:inline"
     >
       Chatvious
     </a>
     <%# big tabs pages for big screens %>
     <a
       href="<%= staticContentUrl %>/about"
-      class="nav-tabs-lg hidden md:block sm:ml-2"
+      class="nav-tabs-lg"
     >
       About
     </a>
-    <a href="/dashboard" class="nav-tabs-lg hidden md:block sm:ml-2">
+    <a href="/dashboard" class="nav-tabs-lg">
       DashBoard
     </a>
   </div>
@@ -78,7 +78,7 @@
           xmlns="http://www.w3.org/2000/svg"
           fill="none"
           viewBox="0 0 24 24"
-          class="inline-block w-5 h-5 stroke-current text-neutral-content"
+          class="inline-block w-5 h-5 stroke-current text-base-content"
         >
           <path
             strokeLinecap="round"

@@ -1,6 +1,8 @@
 @import "tailwindcss";
 
 @config '../../tailwind.config.js';
+@source inline("{bg-{blue,green,orange,yellow,sky,purple,pink}-500}");
+@source inline("bg-error text-error-content bg-success text-success-content");
 
 @layer base {
   *,
@@ -24,7 +26,7 @@
 }
 
 .nav-tabs-lg {
-  @apply btn-ghost p-2 rounded-lg text-neutral-content text-2xl;
+  @apply hidden md:btn btn-ghost md:btn-xl md:px-2 text-base-content;
 }
 
 .break-anywhere {

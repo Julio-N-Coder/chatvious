@@ -200,7 +200,7 @@ export default function Navbar({ isDarkMode, setIsDarkMode }: NavbarProps) {
               xmlns="http://www.w3.org/2000/svg"
               fill="none"
               viewBox="0 0 24 24"
-              className="inline-block w-5 h-5 stroke-current text-neutral-content"
+              className="inline-block w-5 h-5 stroke-current text-base-content"
             >
               <path
                 strokeLinecap="round"
