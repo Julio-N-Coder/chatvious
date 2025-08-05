@@ -1,9 +1,22 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Chatvious</title>
+    <script>
+      if (
+        localStorage.theme === "dark" ||
+        (!("theme" in localStorage) &&
+          window.matchMedia("(prefers-color-scheme: dark)").matches)
+      ) {
+        document.documentElement.dataset.theme = "dark";
+        localStorage.setItem("theme", "dark");
+      } else {
+        document.documentElement.dataset.theme = "light";
+        localStorage.setItem("theme", "light");
+      }
+    </script>
   </head>
   <body>
     <div class="roboto" id="root"></div>

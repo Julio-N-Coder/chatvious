@@ -1,84 +1,26 @@
 import React, { useEffect, useState, useRef } from "react";
-import { NavLink, useLocation } from "react-router-dom";
+import { NavLink } from "react-router-dom";
 import { Sun, Moon } from "../sun-moon";
-import { preferedAndThemeToggle, toggleDarkModeMainText } from "./themeChanger";
 import { SignUp, LogIn } from "../../components/sign-up-log-in";
 import { signOut, checkAuthStatus } from "../../lib/auth";
 
-type NavbarProps = {
-  isDarkMode?: boolean;
-  setIsDarkMode?: React.Dispatch<React.SetStateAction<boolean>>;
-};
-
-export default function Navbar({ isDarkMode, setIsDarkMode }: NavbarProps) {
-  const [isDefaultDarkMode, setIsDefaultDarkMode] = useState(false);
-  const [preferedTheme, setPreferedTheme] = useState<"dark" | "light" | null>(
-    null
-  );
-  const [firstRotate, setFirstRotate] = useState(false);
-  const [themeChecked, setThemeChecked] = useState(false);
+export default function Navbar() {
   const themeSwitchRef = useRef<HTMLInputElement>(
     null
   ) as React.RefObject<HTMLInputElement>;
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const location = useLocation();
 
-  function updateTheme() {
-    if (location.pathname === "/") {
-      toggleDarkModeMainText(isDefaultDarkMode, themeSwitchRef, setIsDarkMode);
+  function themeToggle() {
+    if (localStorage.theme === "dark") {
+      document.documentElement.dataset.theme = "light";
+      localStorage.setItem("theme", "light");
+    } else {
+      document.documentElement.dataset.theme = "dark";
+      localStorage.setItem("theme", "dark");
     }
-    preferedAndThemeToggle(
-      isDefaultDarkMode,
-      themeSwitchRef,
-      setThemeChecked,
-      setPreferedTheme
-    );
   }
 
   useEffect(() => {
-    const darkModeMediaQuery = window.matchMedia(
-      "(prefers-color-scheme: dark)"
-    );
-    const isOSDefaultDarkMode = darkModeMediaQuery.matches;
-
-    setIsDefaultDarkMode(isOSDefaultDarkMode);
-
-    // checks OS default to rotate theme switch or not
-    // and change main text color
-    if (isOSDefaultDarkMode) {
-      setFirstRotate(true);
-      if (setIsDarkMode != undefined) {
-        setIsDarkMode(true);
-      }
-    }
-
-    // check for preference with and check against default theme
-    // then check theme or not depending on preference
-    const preference = localStorage.getItem("theme");
-    if (preference) {
-      if (isOSDefaultDarkMode) {
-        if (preference === "light") {
-          setPreferedTheme("light");
-          setThemeChecked(true);
-          if (setIsDarkMode != undefined) {
-            setIsDarkMode(false);
-          }
-        } else {
-          setPreferedTheme("dark");
-        }
-      } else {
-        if (preference === "dark") {
-          setPreferedTheme("dark");
-          setThemeChecked(true);
-        } else {
-          setPreferedTheme("light");
-          if (setIsDarkMode != undefined) {
-            setIsDarkMode(false);
-          }
-        }
-      }
-    }
-
     checkAuthStatus(setIsLoggedIn);
   }, []);
 
@@ -171,11 +113,9 @@ export default function Navbar({ isDarkMode, setIsDarkMode }: NavbarProps) {
           <input
             type="checkbox"
             ref={themeSwitchRef}
-            checked={themeChecked}
-            value={`${isDefaultDarkMode ? "light" : "dark"}`}
-            // rotate to make switch look like it's checked the same way regardless of os default. use "rotate-180"
-            className={`toggle theme-controller ${firstRotate && "rotate-180"}`}
-            onChange={updateTheme}
+            // rotate to make switch look like it's checked the same way regardless of theme
+            className={`toggle ${localStorage.theme == "dark" && "rotate-180"}`}
+            onChange={themeToggle}
           />
           <Moon />
         </label>

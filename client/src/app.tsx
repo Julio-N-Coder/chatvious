@@ -4,7 +4,6 @@ import { SignUp, LogIn } from "../components/sign-up-log-in";
 import { signOut, checkAuthStatus } from "../lib/auth";
 
 export default function App() {
-  let [isDarkMode, setIsDarkMode] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -91,7 +90,7 @@ export default function App() {
 
     function movingTextShadow() {
       ctx.clearRect(0, 0, canvasWidth.current, canvasHeight.current);
-      ctx.fillStyle = `${isDarkMode ? "white" : "black"}`;
+      ctx.fillStyle = `${localStorage.theme === "dark" ? "white" : "black"}`;
       ctx.fillText(
         "Chatvious",
         canvasWidth.current / 2,
@@ -101,11 +100,11 @@ export default function App() {
       requestAnimationFrame(movingTextShadow);
     }
     movingTextShadow();
-  }, [isDarkMode]);
+  }, []);
 
   return (
     <div ref={containerRef} className="flex flex-col h-screen antialiased">
-      <Navbar setIsDarkMode={setIsDarkMode} isDarkMode={isDarkMode} />
+      <Navbar />
       {/* Main */}
       <div
         onMouseMove={(e) => {
@@ -123,7 +122,7 @@ export default function App() {
             <div className="absolute -z-10 title-shadow w-full"></div>
             <h1
               className={`font-bold text-7xl xsm:text-8xl sm:text-9xl ${
-                isDarkMode && "text-white"
+                localStorage.theme === "dark" && "text-white"
               }`}
             >
               Chatvious
