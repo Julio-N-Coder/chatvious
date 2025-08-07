@@ -32,6 +32,6 @@ create_db_table() {
         --key-schema \
         AttributeName=PartitionKey,KeyType=HASH \
         AttributeName=SortKey,KeyType=RANGE \
-        --provisioned-throughput ReadCapacityUnits=5,WriteCapacityUnits=5 \
+        --provisioned-throughput ReadCapacityUnits=1,WriteCapacityUnits=1 \
         >/dev/null 2>&1
 }
