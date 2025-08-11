@@ -635,6 +635,34 @@ Resources:
         Target: es2020
         Sourcemap: false
 
+  SignUpSignIn:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ./src/auth/sign_up_in
+      Handler: bootstrap
+      Runtime: provided.al2023
+      Architectures:
+        - x86_64
+      Events:
+        ChatviousRestApiGETSignUpSignIn:
+          Type: Api
+          Properties:
+            Path: /signupin
+            Method: GET
+            RestApiId: !Ref ChatviousRestApi
+            Auth:
+              Authorizer: NONE
+        ChatviousRestApiOPTIONSSignUpSignIn:
+          Type: Api
+          Properties:
+            Path: /signupin
+            Method: OPTIONS
+            RestApiId: !Ref ChatviousRestApi
+            Auth:
+              Authorizer: NONE
+    Metadata:
+      BuildMethod: rust-cargolambda
+
   callback:
     Type: AWS::Serverless::Function
     Properties:
