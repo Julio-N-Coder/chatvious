@@ -7,6 +7,7 @@ use serde_json::json;
 
 use rand::Rng;
 
+mod cryptographic;
 pub mod models;
 mod validate_body;
 pub use crate::validate_body::validate_body;
@@ -47,8 +48,8 @@ pub struct Response {
 
 const COLORS: [&'static str; 7] = ["blue", "green", "orange", "yellow", "sky", "purple", "pink"];
 pub fn get_random_color() -> &'static str {
-    let mut rng = rand::rng();
-    COLORS[rng.random_range(0..COLORS.len())]
+    let mut rng = rand::thread_rng();
+    COLORS[rng.gen_range(0..COLORS.len())]
 }
 
 pub fn return_error(

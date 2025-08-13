@@ -29,6 +29,7 @@ async fn function_handler(event: LambdaEvent<Value>) -> Result<sign_up_in::Respo
 
     // if a signin request
     // check whether user exists in dynamodb via username, return error if they don't exists
+    // validate password with stored hash
     // fetch their info like sub id
     // generate new tokens
     // return tokens
