@@ -1,6 +1,13 @@
 use std::collections::HashMap;
 
-use crate::{Body, Request, RequestBody, ValidateBodyEnum};
+use lambda_runtime::Error;
+
+use crate::{Body, Request, RequestBody, Response};
+
+pub enum ValidateBodyEnum {
+    Body((Body, HashMap<String, String>)),
+    Response(Result<Response, Error>),
+}
 
 pub fn validate_body(request: Request, headers: HashMap<String, String>) -> ValidateBodyEnum {
     fn validate_error(headers: HashMap<String, String>, message: &str) -> ValidateBodyEnum {

@@ -20,6 +20,11 @@ async fn function_handler(event: LambdaEvent<Value>) -> Result<sign_up_in::Respo
     // store the user and their info in dynamodb
     // return tokens
 
+    // EQUAL
+    // fetch user
+    // generate new tokens
+    // return tokens
+
     // if a signin request
     // check whether user exists in dynamodb via username, return error if they don't exists
     // fetch their info like sub id
@@ -41,8 +46,11 @@ async fn function_handler(event: LambdaEvent<Value>) -> Result<sign_up_in::Respo
         ValidateBodyEnum::Response(validate_response) => return validate_response,
     };
 
+    // fetch user
     if body.sign_up_or_in == "signup" {
+        // check user fetch
     } else {
+        // check user fetch
     }
 
     let resp = sign_up_in::Response {

@@ -7,8 +7,10 @@ use serde_json::json;
 
 use rand::Rng;
 
+mod models;
 mod validate_body;
 pub use crate::validate_body::validate_body;
+pub use crate::validate_body::ValidateBodyEnum;
 
 #[derive(Debug, Deserialize)]
 pub struct Request {
@@ -41,11 +43,6 @@ pub struct Response {
     pub headers: Option<HashMap<String, String>>,
     pub statusCode: i32,
     pub body: String,
-}
-
-pub enum ValidateBodyEnum {
-    Body((Body, HashMap<String, String>)),
-    Response(Result<Response, Error>),
 }
 
 const COLORS: [&'static str; 7] = ["blue", "green", "orange", "yellow", "sky", "purple", "pink"];
