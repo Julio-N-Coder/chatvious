@@ -4,6 +4,8 @@ use lambda_runtime::{run, service_fn, Error, LambdaEvent};
 
 use serde_json::Value;
 
+use sign_up_in::models::DynamoDBClient;
+use sign_up_in::models::UserItem;
 use sign_up_in::ValidateBodyEnum;
 
 async fn function_handler(event: LambdaEvent<Value>) -> Result<sign_up_in::Response, Error> {
@@ -46,11 +48,21 @@ async fn function_handler(event: LambdaEvent<Value>) -> Result<sign_up_in::Respo
         ValidateBodyEnum::Response(validate_response) => return validate_response,
     };
 
-    // fetch user
+    let db_client = DynamoDBClient::new().await;
+    // Dynamodb returns an empty vector if user does not exist but is a successful request
+    let user_vec = match db_client.find_by_name_scan(&body.username).await {
+        Ok(user_vec) => user_vec,
+        Err(_) => return sign_up_in::return_error(headers, 500, "Error while validating Info"),
+    };
+
     if body.sign_up_or_in == "signup" {
-        // check user fetch
+        if user_vec.len() > 0 {
+            return sign_up_in::return_error(headers, 403, "User Already Exists");
+        }
     } else {
-        // check user fetch
+        if user_vec.len() < 1 {
+            return sign_up_in::return_error(headers, 401, "Have not Signed Up");
+        }
     }
 
     let resp = sign_up_in::Response {

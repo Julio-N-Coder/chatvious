@@ -7,7 +7,7 @@ use std::collections::HashMap;
 use std::env;
 
 #[derive(Debug, Serialize, Deserialize)]
-struct UserItem {
+pub struct UserItem {
     partition_key: String,
     sort_key: String,
     user_id: String,
@@ -81,13 +81,14 @@ impl DynamoDBClient {
         Client::new(&config)
     }
 
-    async fn find_by_name_scan(&self, attribute_value: &str) -> Result<Vec<UserItem>, Error> {
+    pub async fn find_by_name_scan(&self, attribute_value: &str) -> Result<Vec<UserItem>, Error> {
         let attribute_name = "userName";
         let result = self
             .client
             .scan()
             .table_name(self.table_name.clone())
-            .filter_expression(format!("{} = :val", attribute_name))
+            .filter_expression("#attr = :val")
+            .expression_attribute_names("#attr", attribute_name)
             .expression_attribute_values(":val", AttributeValue::S(attribute_value.to_string()))
             .send()
             .await?;

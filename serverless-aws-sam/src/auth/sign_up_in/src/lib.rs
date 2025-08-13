@@ -7,7 +7,7 @@ use serde_json::json;
 
 use rand::Rng;
 
-mod models;
+pub mod models;
 mod validate_body;
 pub use crate::validate_body::validate_body;
 pub use crate::validate_body::ValidateBodyEnum;
@@ -51,10 +51,14 @@ pub fn get_random_color() -> &'static str {
     COLORS[rng.random_range(0..COLORS.len())]
 }
 
-pub fn return_error(headers: HashMap<String, String>, message: &str) -> Result<Response, Error> {
+pub fn return_error(
+    headers: HashMap<String, String>,
+    status_code: i32,
+    message: &str,
+) -> Result<Response, Error> {
     Ok(Response {
         headers: Some(headers),
-        statusCode: 400,
+        statusCode: status_code,
         body: json!({
             "error": message
         })

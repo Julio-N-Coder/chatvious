@@ -11,7 +11,7 @@ pub enum ValidateBodyEnum {
 
 pub fn validate_body(request: Request, headers: HashMap<String, String>) -> ValidateBodyEnum {
     fn validate_error(headers: HashMap<String, String>, message: &str) -> ValidateBodyEnum {
-        ValidateBodyEnum::Response(crate::return_error(headers, message))
+        ValidateBodyEnum::Response(crate::return_error(headers, 400, message))
     }
 
     let request_body: RequestBody = match &request.body {
