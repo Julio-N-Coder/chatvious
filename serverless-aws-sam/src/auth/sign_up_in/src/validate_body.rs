@@ -62,12 +62,12 @@ mod tests {
     fn create_request_with_body(body: Option<String>) -> Request {
         Request {
             path: "/test".to_string(),
-            httpMethod: "POST".to_string(),
+            http_method: "POST".to_string(),
             headers: None,
-            queryStringParameters: None,
-            pathParameters: None,
+            query_string_parameters: None,
+            path_parameters: None,
             body,
-            isBase64Encoded: false,
+            is_base64_encoded: false,
         }
     }
 

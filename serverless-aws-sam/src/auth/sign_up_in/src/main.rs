@@ -66,7 +66,7 @@ async fn function_handler(event: LambdaEvent<Value>) -> Result<sign_up_in::Respo
         // validate password. will return Result<true> if valid
         match PasswordManager::verify_password(&body.password, &user.hashed_password) {
             Ok(is_valid) => {
-                if is_valid {
+                if !is_valid {
                     return sign_up_in::return_error(headers, 401, "Unauthorized");
                 }
             }
@@ -84,7 +84,7 @@ async fn function_handler(event: LambdaEvent<Value>) -> Result<sign_up_in::Respo
 
     let resp = sign_up_in::Response {
         headers: Some(headers),
-        statusCode: 200,
+        status_code: 200,
         body: "Hello World!".to_string(),
     };
 

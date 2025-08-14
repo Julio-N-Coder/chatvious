@@ -19,12 +19,16 @@ pub use crate::validate_body::ValidateBodyEnum;
 #[derive(Debug, Deserialize)]
 pub struct Request {
     pub path: String,
-    pub httpMethod: String,
+    #[serde(rename = "httpMethod")]
+    pub http_method: String,
     pub headers: Option<HashMap<String, String>>,
-    pub queryStringParameters: Option<HashMap<String, String>>,
-    pub pathParameters: Option<HashMap<String, String>>,
+    #[serde(rename = "queryStringParameters")]
+    pub query_string_parameters: Option<HashMap<String, String>>,
+    #[serde(rename = "pathParameters")]
+    pub path_parameters: Option<HashMap<String, String>>,
     pub body: Option<String>,
-    pub isBase64Encoded: bool,
+    #[serde(rename = "isBase64Encoded")]
+    pub is_base64_encoded: bool,
 }
 
 #[derive(Debug, Deserialize)]
@@ -45,7 +49,8 @@ pub struct Body {
 #[derive(Serialize)]
 pub struct Response {
     pub headers: Option<HashMap<String, String>>,
-    pub statusCode: i32,
+    #[serde(rename = "statusCode")]
+    pub status_code: i32,
     pub body: String,
 }
 
@@ -89,7 +94,7 @@ pub fn return_error(
 ) -> Result<Response, Error> {
     Ok(Response {
         headers: Some(headers),
-        statusCode: status_code,
+        status_code,
         body: json!({
             "error": message
         })
