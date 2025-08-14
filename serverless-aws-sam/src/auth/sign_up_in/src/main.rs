@@ -65,6 +65,21 @@ async fn function_handler(event: LambdaEvent<Value>) -> Result<sign_up_in::Respo
         }
 
         let user = user_vec.into_iter().next().unwrap();
+
+        // validate password. will return Result<true> if valid
+        match PasswordManager::verify_password(&body.password, &user.hashed_password) {
+            Ok(is_valid) => {
+                if is_valid {
+                    return sign_up_in::return_error(headers, 401, "Unauthorized");
+                }
+            }
+            Err(_) => {
+                println!("Password hashing error");
+                return sign_up_in::return_error(headers, 500, "Server Error");
+            }
+        }
+
+        let sub_id = &user.user_id;
     }
 
     let resp = sign_up_in::Response {
