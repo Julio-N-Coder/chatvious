@@ -6,20 +6,13 @@ use serde_json::Value;
 
 use sign_up_in::models::DynamoDBClient;
 use sign_up_in::models::UserItem;
+use sign_up_in::PasswordManager;
 use sign_up_in::ValidateBodyEnum;
 
 async fn function_handler(event: LambdaEvent<Value>) -> Result<sign_up_in::Response, Error> {
-    // json parse body
-    // check whether request is for signin or signup
-
     // if a signup request
-    // check whether username is greater then 3 and less than 20
-    // check whether user exists already in dynamodb via username, return error if they exists
-    // get random color from this get_random_color function
-    // hash and salt password
-    // generate a new sub id
-    // generate new tokens
     // store the user and their info in dynamodb
+    // generate new tokens
     // return tokens
 
     // EQUAL
@@ -28,9 +21,6 @@ async fn function_handler(event: LambdaEvent<Value>) -> Result<sign_up_in::Respo
     // return tokens
 
     // if a signin request
-    // check whether user exists in dynamodb via username, return error if they don't exists
-    // validate password with stored hash
-    // fetch their info like sub id
     // generate new tokens
     // return tokens
 
@@ -60,10 +50,21 @@ async fn function_handler(event: LambdaEvent<Value>) -> Result<sign_up_in::Respo
         if user_vec.len() > 0 {
             return sign_up_in::return_error(headers, 403, "User Already Exists");
         }
+
+        let new_user = match UserItem::build(&body.username, &body.password) {
+            Ok(new_user) => new_user,
+            Err(_) => {
+                println!("Password Hashing Error");
+                return sign_up_in::return_error(headers, 500, "Server Error");
+            }
+        };
+        let sub_id = &new_user.user_id;
     } else {
         if user_vec.len() < 1 {
             return sign_up_in::return_error(headers, 401, "Have not Signed Up");
         }
+
+        let user = user_vec.into_iter().next().unwrap();
     }
 
     let resp = sign_up_in::Response {
