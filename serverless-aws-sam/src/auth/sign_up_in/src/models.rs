@@ -1,5 +1,7 @@
 use aws_config::BehaviorVersion;
 use aws_credential_types::Credentials;
+use aws_sdk_dynamodb::error::SdkError;
+use aws_sdk_dynamodb::operation::put_item::PutItemError;
 use aws_sdk_dynamodb::types::AttributeValue;
 use aws_sdk_dynamodb::{Client, Error};
 use serde::{Deserialize, Serialize};
@@ -161,5 +163,42 @@ impl DynamoDBClient {
             }
         }
         Ok(items)
+    }
+
+    pub async fn store_new_user(&self, new_user: &UserItem) -> Result<(), SdkError<PutItemError>> {
+        let mut user_map = HashMap::new();
+        user_map.insert(
+            "PartitionKey".to_string(),
+            AttributeValue::S(new_user.partition_key.clone()),
+        );
+        user_map.insert(
+            "SortKey".to_string(),
+            AttributeValue::S(new_user.sort_key.clone()),
+        );
+        user_map.insert(
+            "userID".to_string(),
+            AttributeValue::S(new_user.user_id.clone()),
+        );
+        user_map.insert(
+            "userName".to_string(),
+            AttributeValue::S(new_user.user_name.clone()),
+        );
+        // ownedRooms and joinedRooms will allways be empty for new users
+        user_map.insert("ownedRooms".to_string(), AttributeValue::L(vec![]));
+        user_map.insert("joinedRooms".to_string(), AttributeValue::L(vec![]));
+        user_map.insert(
+            "profileColor".to_string(),
+            AttributeValue::S(new_user.profile_color.clone()),
+        );
+
+        // maybe try adding exponention backoff
+        self.client
+            .put_item()
+            .table_name(&self.table_name)
+            .set_item(Some(user_map))
+            .send()
+            .await?;
+
+        Ok(())
     }
 }

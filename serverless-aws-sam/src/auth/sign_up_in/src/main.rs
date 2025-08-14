@@ -10,20 +10,6 @@ use sign_up_in::PasswordManager;
 use sign_up_in::ValidateBodyEnum;
 
 async fn function_handler(event: LambdaEvent<Value>) -> Result<sign_up_in::Response, Error> {
-    // if a signup request
-    // store the user and their info in dynamodb
-    // generate new tokens
-    // return tokens
-
-    // EQUAL
-    // fetch user
-    // generate new tokens
-    // return tokens
-
-    // if a signin request
-    // generate new tokens
-    // return tokens
-
     let request: sign_up_in::Request = serde_json::from_value(event.payload)?;
     println!("{:#?}", request);
 
@@ -58,7 +44,18 @@ async fn function_handler(event: LambdaEvent<Value>) -> Result<sign_up_in::Respo
                 return sign_up_in::return_error(headers, 500, "Server Error");
             }
         };
+
         let sub_id = &new_user.user_id;
+
+        // generate new tokens
+
+        // store the new user
+        if let Err(_) = db_client.store_new_user(&new_user).await {
+            println!("Failed to Store user");
+            return sign_up_in::return_error(headers, 500, "Server Error");
+        }
+
+        // return tokens
     } else {
         if user_vec.len() < 1 {
             return sign_up_in::return_error(headers, 401, "Have not Signed Up");
@@ -80,6 +77,9 @@ async fn function_handler(event: LambdaEvent<Value>) -> Result<sign_up_in::Respo
         }
 
         let sub_id = &user.user_id;
+
+        // generate new tokens
+        // return tokens
     }
 
     let resp = sign_up_in::Response {
