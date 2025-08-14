@@ -5,13 +5,17 @@ use aws_sdk_dynamodb::{Client, Error};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::env;
+use uuid::Uuid;
+
+use crate::PasswordManager;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct UserItem {
     partition_key: String,
     sort_key: String,
-    user_id: String,
+    pub user_id: String,
     user_name: String,
+    pub hashed_password: String,
     owned_rooms: Vec<HashMap<String, String>>,
     joined_rooms: Vec<HashMap<String, String>>,
     profile_color: String,
@@ -35,6 +39,24 @@ struct InnerCredentials {
 pub struct DynamoDBClient {
     client: Client,
     table_name: String,
+}
+
+impl UserItem {
+    pub fn build(user_name: &str, password: &str) -> Result<Self, argon2::password_hash::Error> {
+        let user_id = Uuid::new_v4().to_string();
+        let hashed_password = PasswordManager::hash_password(password)?;
+
+        Ok(UserItem {
+            partition_key: format!("USER#{}", user_id),
+            sort_key: "PROFILE".to_string(),
+            user_id,
+            user_name: user_name.to_string(),
+            hashed_password,
+            owned_rooms: vec![],
+            joined_rooms: vec![],
+            profile_color: crate::get_random_color().to_string(),
+        })
+    }
 }
 
 impl DynamoDBClient {
@@ -81,6 +103,9 @@ impl DynamoDBClient {
         Client::new(&config)
     }
 
+    // look into indexing username or just use username as partionkey rather than an id
+    // if I do use username rather than id
+    // will have to update other code to fetch with username rather than id
     pub async fn find_by_name_scan(&self, attribute_value: &str) -> Result<Vec<UserItem>, Error> {
         let attribute_name = "userName";
         let result = self
@@ -127,6 +152,7 @@ impl DynamoDBClient {
                     sort_key: convert_strings(&item, "SortKey"),
                     user_id: convert_strings(&item, "userID"),
                     user_name: convert_strings(&item, "userName"),
+                    hashed_password: convert_strings(&item, "hashedPassword"),
                     owned_rooms: convert_rooms(&item, "ownedRooms"),
                     joined_rooms: convert_rooms(&item, "joinedRooms"),
                     profile_color: convert_strings(&item, "profileColor"),
