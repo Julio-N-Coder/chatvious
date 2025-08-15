@@ -1,17 +1,12 @@
 use std::collections::HashMap;
 
-use lambda_runtime::Error;
+use crate::{Body, LambdaReturnEnum, Request, RequestBody};
 
-use crate::{Body, Request, RequestBody, Response};
-
-pub enum ValidateBodyEnum {
-    Body((Body, HashMap<String, String>)),
-    Response(Result<Response, Error>),
-}
+pub type ValidateBodyEnum = LambdaReturnEnum<(Body, HashMap<String, String>)>;
 
 pub fn validate_body(request: Request, headers: HashMap<String, String>) -> ValidateBodyEnum {
     fn validate_error(headers: HashMap<String, String>, message: &str) -> ValidateBodyEnum {
-        ValidateBodyEnum::Response(crate::return_error(headers, 400, message))
+        LambdaReturnEnum::Response(crate::return_error(headers, 400, message))
     }
 
     let request_body: RequestBody = match &request.body {
@@ -39,7 +34,7 @@ pub fn validate_body(request: Request, headers: HashMap<String, String>) -> Vali
         return validate_error(headers, "sign_up_or_in must be either 'signin' or 'signup'");
     }
 
-    ValidateBodyEnum::Body((
+    LambdaReturnEnum::Body((
         Body {
             sign_up_or_in,
             username,

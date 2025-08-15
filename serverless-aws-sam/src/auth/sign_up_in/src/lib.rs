@@ -1,15 +1,12 @@
-use std::collections::HashMap;
-
-use lambda_runtime::Error;
-
-use serde::{Deserialize, Serialize};
-use serde_json::json;
-
 use argon2::{
     password_hash::{rand_core::OsRng, PasswordHash, PasswordHasher, PasswordVerifier, SaltString},
     Argon2,
 };
+use lambda_runtime::Error;
 use rand::Rng;
+use serde::{Deserialize, Serialize};
+use serde_json::json;
+use std::collections::HashMap;
 
 pub mod models;
 mod validate_body;
@@ -52,6 +49,14 @@ pub struct Response {
     #[serde(rename = "statusCode")]
     pub status_code: i32,
     pub body: String,
+}
+
+/// Returns the specified type in the success case
+///
+/// Returns a Lambda Response in Response variant
+pub enum LambdaReturnEnum<T> {
+    Body(T),
+    Response(Result<Response, Error>),
 }
 
 pub struct PasswordManager;
