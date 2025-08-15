@@ -18,3 +18,4 @@ tracing-subscriber = { version = "0.3", default-features = false, features = [
 aws-config = "1.8.5"
 aws-credential-types = "1.2.5"
 aws-sdk-dynamodb = "1.87.0"
+aws-sdk-ssm = "1.90.0"
