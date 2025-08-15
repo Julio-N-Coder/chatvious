@@ -1,0 +1,16 @@
+{
+  "/chatvious/public_key": {
+    "value": "keys/public_key.pem",
+    "file": true,
+    "type": "SecureString",
+    "version": 1,
+    "last_modified": "2025-01-15T10:00:00.000Z"
+  },
+  "/chatvious/private_key": {
+    "value": "keys/private_key.pem",
+    "file": true,
+    "type": "SecureString",
+    "version": 1,
+    "last_modified": "2025-01-15T10:00:00.000Z"
+  }
+}

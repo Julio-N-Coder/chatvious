@@ -8,3 +8,5 @@ coverage
 llrt-lambda-x64.zip
 target
 dependency-reduced-pom.xml
+serverless-aws-sam/src/aws-mock/keys/*
+!serverless-aws-sam/src/aws-mock/keys/.gitkeep
