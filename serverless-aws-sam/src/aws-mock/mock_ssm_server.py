@@ -78,7 +78,7 @@ class MockSSMHandler(BaseHTTPRequestHandler):
                         "Value": value,
                         "Version": param.get("version", 1),
                         "LastModifiedDate": param.get(
-                            "last_modified", datetime.now().isoformat()
+                            "last_modified", datetime.now().timestamp()
                         ),
                         "ARN": f"arn:aws:ssm:us-east-1:123456789012:parameter{parameter_name}",
                         "DataType": "text",
@@ -138,7 +138,7 @@ class MockSSMHandler(BaseHTTPRequestHandler):
 def main():
     port = int(os.getenv("SSM_MOCK_PORT", 8009))
 
-    server = HTTPServer(("localhost", port), MockSSMHandler)
+    server = HTTPServer(("0.0.0.0", port), MockSSMHandler)
 
     try:
         server.serve_forever()
