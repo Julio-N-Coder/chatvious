@@ -13,14 +13,14 @@ use crate::PasswordManager;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct UserItem {
-    partition_key: String,
-    sort_key: String,
+    pub partition_key: String,
+    pub sort_key: String,
     pub user_id: String,
-    user_name: String,
+    pub user_name: String,
     pub hashed_password: String,
-    owned_rooms: Vec<HashMap<String, String>>,
-    joined_rooms: Vec<HashMap<String, String>>,
-    profile_color: String,
+    pub owned_rooms: Vec<HashMap<String, String>>,
+    pub joined_rooms: Vec<HashMap<String, String>>,
+    pub profile_color: String,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -148,18 +148,20 @@ impl DynamoDBClient {
 
         let mut items = Vec::new();
         if let Some(db_items) = result.items {
-            for item in db_items {
-                let my_item = UserItem {
-                    partition_key: convert_strings(&item, "PartitionKey"),
-                    sort_key: convert_strings(&item, "SortKey"),
-                    user_id: convert_strings(&item, "userID"),
-                    user_name: convert_strings(&item, "userName"),
-                    hashed_password: convert_strings(&item, "hashedPassword"),
-                    owned_rooms: convert_rooms(&item, "ownedRooms"),
-                    joined_rooms: convert_rooms(&item, "joinedRooms"),
-                    profile_color: convert_strings(&item, "profileColor"),
-                };
-                items.push(my_item);
+            if db_items.len() > 0 {
+                for item in db_items {
+                    let my_item = UserItem {
+                        partition_key: convert_strings(&item, "PartitionKey"),
+                        sort_key: convert_strings(&item, "SortKey"),
+                        user_id: convert_strings(&item, "userID"),
+                        user_name: convert_strings(&item, "userName"),
+                        hashed_password: convert_strings(&item, "hashedPassword"),
+                        owned_rooms: convert_rooms(&item, "ownedRooms"),
+                        joined_rooms: convert_rooms(&item, "joinedRooms"),
+                        profile_color: convert_strings(&item, "profileColor"),
+                    };
+                    items.push(my_item);
+                }
             }
         }
         Ok(items)
@@ -182,6 +184,10 @@ impl DynamoDBClient {
         user_map.insert(
             "userName".to_string(),
             AttributeValue::S(new_user.user_name.clone()),
+        );
+        user_map.insert(
+            "hashedPassword".to_string(),
+            AttributeValue::S(new_user.hashed_password.clone()),
         );
         // ownedRooms and joinedRooms will allways be empty for new users
         user_map.insert("ownedRooms".to_string(), AttributeValue::L(vec![]));
