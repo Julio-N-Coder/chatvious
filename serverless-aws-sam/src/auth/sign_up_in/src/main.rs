@@ -6,12 +6,14 @@ use serde_json::Value;
 
 use sign_up_in::models::DynamoDBClient;
 use sign_up_in::models::UserItem;
+use sign_up_in::tokens;
+use sign_up_in::tokens::TokenSet;
 use sign_up_in::PasswordManager;
+use sign_up_in::Response;
 use sign_up_in::ValidateBodyEnum;
 
-async fn function_handler(event: LambdaEvent<Value>) -> Result<sign_up_in::Response, Error> {
+async fn function_handler(event: LambdaEvent<Value>) -> Result<Response, Error> {
     let request: sign_up_in::Request = serde_json::from_value(event.payload)?;
-    println!("{:#?}", request);
 
     let mut headers = HashMap::new();
     headers.insert(
@@ -29,7 +31,10 @@ async fn function_handler(event: LambdaEvent<Value>) -> Result<sign_up_in::Respo
     // Dynamodb returns an empty vector if user does not exist but is a successful request
     let user_vec = match db_client.find_by_name_scan(&body.username).await {
         Ok(user_vec) => user_vec,
-        Err(_) => return sign_up_in::return_error(headers, 500, "Error while validating Info"),
+        Err(_) => {
+            println!("validing user info error");
+            return sign_up_in::return_error(headers, 500, "Error while validating Info");
+        }
     };
 
     if body.sign_up_or_in == "signup" {
@@ -45,9 +50,13 @@ async fn function_handler(event: LambdaEvent<Value>) -> Result<sign_up_in::Respo
             }
         };
 
-        let sub_id = &new_user.user_id;
-
-        // generate new tokens
+        let token_set = match tokens::generate_token_set(&new_user).await {
+            Ok(token_set) => token_set,
+            Err(_) => {
+                println!("Token Generation Error");
+                return sign_up_in::return_error(headers, 500, "Server Error");
+            }
+        };
 
         // store the new user
         if let Err(_) = db_client.store_new_user(&new_user).await {
@@ -55,7 +64,7 @@ async fn function_handler(event: LambdaEvent<Value>) -> Result<sign_up_in::Respo
             return sign_up_in::return_error(headers, 500, "Server Error");
         }
 
-        // return tokens
+        return_lambda_success(headers, token_set)
     } else {
         if user_vec.len() < 1 {
             return sign_up_in::return_error(headers, 401, "Have not Signed Up");
@@ -76,19 +85,28 @@ async fn function_handler(event: LambdaEvent<Value>) -> Result<sign_up_in::Respo
             }
         }
 
-        let sub_id = &user.user_id;
+        let token_set = match tokens::generate_token_set(&user).await {
+            Ok(token_set) => token_set,
+            Err(_) => {
+                println!("Token Generation Error");
+                return sign_up_in::return_error(headers, 500, "Server Error");
+            }
+        };
 
-        // generate new tokens
-        // return tokens
+        return_lambda_success(headers, token_set)
     }
+}
 
-    let resp = sign_up_in::Response {
+fn return_lambda_success(
+    headers: HashMap<String, String>,
+    token_set: TokenSet,
+) -> Result<Response, Error> {
+    // I need to set other headers like cookies, etc.
+    Ok(Response {
         headers: Some(headers),
         status_code: 200,
-        body: "Hello World!".to_string(),
-    };
-
-    Ok(resp)
+        body: serde_json::to_string(&token_set)?,
+    })
 }
 
 #[tokio::main]

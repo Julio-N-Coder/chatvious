@@ -16,7 +16,6 @@ pub fn validate_body(request: Request, headers: HashMap<String, String>) -> Vali
         },
         None => return validate_error(headers, "Missing request body"),
     };
-    println!("{:#?}", request_body);
 
     let Some(sign_up_or_in) = request_body.sign_up_or_in else {
         return validate_error(headers, "Did not specify signin or signup");

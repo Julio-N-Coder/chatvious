@@ -643,6 +643,9 @@ Resources:
       Runtime: provided.al2023
       Architectures:
         - x86_64
+      Environment:
+        Variables:
+          SSM_ENDPOINT_URL: ""
       Events:
         ChatviousRestApiGETSignUpSignIn:
           Type: Api
