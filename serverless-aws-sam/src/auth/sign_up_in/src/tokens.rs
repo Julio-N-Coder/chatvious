@@ -1,24 +1,107 @@
+use crate::models::UserItem;
 use aws_config::meta::region::RegionProviderChain;
 use aws_config::BehaviorVersion;
 use aws_sdk_ssm::Client;
+use chrono::{Duration, Utc};
+use jsonwebtoken::{encode, Algorithm, EncodingKey, Header};
+use serde::{Deserialize, Serialize};
 use std::env;
+use uuid::Uuid;
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct AccessTokenClaims {
+    pub sub: String,       // Subject (user ID)
+    pub iss: String,       // Issuer
+    pub aud: String,       // Audience
+    pub exp: i64,          // Expiration time
+    pub iat: i64,          // Issued at
+    pub token_use: String, // "access"
+    pub scope: String,     // Scopes (space-separated)
+    pub auth_time: i64,    // Authentication time
+    pub username: String,  // Username
+    pub client_id: String, // Client ID
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct IdTokenClaims {
+    pub sub: String,
+    pub iss: String,
+    pub aud: String, // Audience (client_id)
+    pub exp: i64,
+    pub iat: i64,
+    pub token_use: String, // "id"
+    pub auth_time: i64,
+    pub email: Option<String>,
+    pub email_verified: Option<bool>,
+    pub username: Option<String>,
+    pub given_name: Option<String>,
+    pub name: Option<String>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct RefreshTokenClaims {
+    pub sub: String,
+    pub iss: String,
+    pub aud: String,
+    pub exp: i64,
+    pub iat: i64,
+    pub token_use: String,
+    pub auth_time: i64,
+    pub client_id: String,
+    pub username: String,
+}
+
+#[derive(Debug, Serialize)]
+pub struct TokenSet {
+    pub access_token: String,
+    pub id_token: String,
+    pub refresh_token: String,
+    pub expires_in: i64, // Access token expiration in seconds
+}
+
+#[derive(Debug)]
+pub struct TokenConfig {
+    pub issuer: String,
+    pub audience: String,
+    pub client_id: String,
+    pub access_token_expires_in: Duration,  // Default: 1 hour
+    pub id_token_expires_in: Duration,      // Default: 1 hour
+    pub refresh_token_expires_in: Duration, // Default: 365 days
+}
+
+impl Default for TokenConfig {
+    fn default() -> Self {
+        let audience = "chatvious-app".to_string();
+
+        Self {
+            issuer: "chatvious".to_string(),
+            client_id: audience.clone(),
+            audience,
+            access_token_expires_in: Duration::hours(1),
+            id_token_expires_in: Duration::hours(1),
+            refresh_token_expires_in: Duration::days(365),
+        }
+    }
+}
 
 async fn create_ssm_client() -> Client {
     let mut config_loader = aws_config::defaults(BehaviorVersion::latest());
 
     // Check if we're running in local development mode
     if let Ok(endpoint) = env::var("SSM_ENDPOINT_URL") {
-        println!("Using custom SSM endpoint: {}", endpoint);
-        config_loader = config_loader.endpoint_url(endpoint);
+        if !endpoint.is_empty() {
+            println!("Using custom SSM endpoint: {}", endpoint);
+            config_loader = config_loader.endpoint_url(endpoint);
 
-        let credentials = aws_sdk_ssm::config::Credentials::new(
-            "dummy-access-key",
-            "dummy-secret-key",
-            None,
-            None,
-            "local-development",
-        );
-        config_loader = config_loader.credentials_provider(credentials);
+            let credentials = aws_sdk_ssm::config::Credentials::new(
+                "dummy-access-key",
+                "dummy-secret-key",
+                None,
+                None,
+                "local-development",
+            );
+            config_loader = config_loader.credentials_provider(credentials);
+        }
     }
 
     let region_provider = RegionProviderChain::default_provider().or_else("us-west-1");
@@ -52,4 +135,92 @@ async fn retrieve_private_key_string() -> Result<String, aws_sdk_ssm::Error> {
     get_parameter(&ssm_client, "/chatvious/private_key", true).await
 }
 
-// generate tokens function
+async fn retrieve_private_key() -> Result<EncodingKey, Box<dyn std::error::Error + Send + Sync>> {
+    let pem_string = retrieve_private_key_string().await?;
+
+    // Use jsonwebtoken's built-in PEM parsing for ED25519
+    let encoding_key = EncodingKey::from_ed_pem(pem_string.as_bytes())?;
+    Ok(encoding_key)
+}
+
+async fn generate_token_set_base(
+    user_info: &UserItem,
+    config: &TokenConfig,
+    scopes: Option<&str>,
+) -> Result<TokenSet, Box<dyn std::error::Error + Send + Sync>> {
+    let encoding_key = retrieve_private_key().await?;
+
+    let mut header = Header::new(Algorithm::EdDSA);
+    header.kid = Some(Uuid::new_v4().to_string()); // Key ID - might want to use a consistent one
+
+    let now = Utc::now();
+    let auth_time = now.timestamp();
+    let iat = now.timestamp();
+
+    // Generate Access Token
+    let access_exp = (now + config.access_token_expires_in).timestamp();
+    let access_claims = AccessTokenClaims {
+        sub: user_info.user_id.clone(),
+        iss: config.issuer.clone(),
+        aud: config.audience.clone(),
+        exp: access_exp,
+        iat,
+        token_use: "access".to_string(),
+        scope: scopes.unwrap_or("openid profile email").to_string(),
+        auth_time,
+        username: user_info.user_name.clone(),
+        client_id: config.client_id.clone(),
+    };
+
+    let access_token = encode(&header, &access_claims, &encoding_key)?;
+
+    // Generate ID Token
+    let id_exp = (now + config.id_token_expires_in).timestamp();
+    let id_claims = IdTokenClaims {
+        sub: user_info.user_id.clone(),
+        iss: config.issuer.clone(),
+        aud: config.client_id.clone(), // ID token audience is the client_id
+        exp: id_exp,
+        iat,
+        token_use: "id".to_string(),
+        auth_time,
+        email: None,
+        email_verified: None,
+        username: Some(user_info.user_name.clone()),
+        given_name: None,
+        name: None,
+    };
+
+    let id_token = encode(&header, &id_claims, &encoding_key)?;
+
+    // Generate Refresh Token
+    let refresh_exp = (now + config.refresh_token_expires_in).timestamp();
+    let refresh_claims = RefreshTokenClaims {
+        sub: user_info.user_id.clone(),
+        iss: config.issuer.clone(),
+        aud: config.audience.clone(),
+        exp: refresh_exp,
+        iat,
+        token_use: "refresh".to_string(),
+        auth_time,
+        client_id: config.client_id.clone(),
+        username: user_info.user_name.clone(),
+    };
+
+    let refresh_token = encode(&header, &refresh_claims, &encoding_key)?;
+
+    Ok(TokenSet {
+        access_token,
+        id_token,
+        refresh_token,
+        expires_in: config.access_token_expires_in.num_seconds(),
+    })
+}
+
+pub async fn generate_token_set(
+    user_info: &UserItem,
+) -> Result<TokenSet, Box<dyn std::error::Error + Send + Sync>> {
+    let config = TokenConfig::default();
+
+    generate_token_set_base(user_info, &config, None).await
+}
