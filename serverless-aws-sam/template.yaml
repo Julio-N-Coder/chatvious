@@ -33,6 +33,10 @@ Parameters:
     Type: String
     Default: Z0830272VPDW4QLTGOLN
     Description: The Hosted Zone ID for the chatvious domain
+  JwtPrivateKey:
+    Type: String
+    Description: The private key to be stored in SSM Parameter Store for signing JWTs.
+    NoEcho: true
 
 Resources:
   ChatviousTable:
@@ -638,14 +642,27 @@ Resources:
   SignUpSignIn:
     Type: AWS::Serverless::Function
     Properties:
+      FunctionName: chatvious_SignUpSignIn
+      Description: Authenticates users, stores user info, returns jwt's
       CodeUri: ./src/auth/sign_up_in
       Handler: bootstrap
       Runtime: provided.al2023
+      MemorySize: 256
+      Timeout: 6
       Architectures:
         - x86_64
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref ChatviousTable
+        - Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Action:
+                - ssm:GetParameter
+              Resource: !Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter${JwtPrivateKeyParameter}
       Environment:
         Variables:
-          SSM_ENDPOINT_URL: ""
+          SSM_ENDPOINT_URL: ''
       Events:
         ChatviousRestApiGETSignUpSignIn:
           Type: Api
@@ -732,6 +749,15 @@ Resources:
           USER_POOL_ID: !Ref UserPool
           USER_POOL_CLIENT_ID: !Ref UserPoolClient
           USER_POOL_ARN: !GetAtt UserPool.Arn
+
+  JwtPrivateKeyParameter:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: /chatvious/private_key
+      # SecureString not supported by cloudformation
+      Type: String
+      Description: Private key for signing JWTs.
+      Value: !Ref JwtPrivateKey
 
   ChatviousRestApi:
     Type: AWS::Serverless::Api
