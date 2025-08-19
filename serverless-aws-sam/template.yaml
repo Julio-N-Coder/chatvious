@@ -1,4 +1,4 @@
-AWSTemplateFormatVersion: '2010-09-09'
+AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
 Description: AWS Sam Template for chatvious
 
@@ -12,7 +12,7 @@ Globals:
         SUB_DOMAIN: main.chatvious.coding-wielder.com
         SUB_DOMAIN_URL: https://main.chatvious.coding-wielder.com
         REGION: us-west-1
-        DYNAMODB_OPTIONS: '{}'
+        DYNAMODB_OPTIONS: "{}"
         IS_DEV_SERVER: false
     LoggingConfig:
       LogFormat: JSON
@@ -283,7 +283,7 @@ Resources:
       BuildMethod: esbuild
       BuildProperties:
         External:
-          - '@aws-sdk'
+          - "@aws-sdk"
         Minify: true
         Bundle: true
         Target: es2020
@@ -321,7 +321,7 @@ Resources:
       BuildMethod: esbuild
       BuildProperties:
         External:
-          - '@aws-sdk'
+          - "@aws-sdk"
         Minify: true
         Bundle: true
         Target: es2020
@@ -359,7 +359,7 @@ Resources:
       BuildMethod: esbuild
       BuildProperties:
         External:
-          - '@aws-sdk'
+          - "@aws-sdk"
         Minify: true
         Bundle: true
         Target: es2020
@@ -397,7 +397,7 @@ Resources:
       BuildMethod: esbuild
       BuildProperties:
         External:
-          - '@aws-sdk'
+          - "@aws-sdk"
         Minify: true
         Bundle: true
         Target: es2020
@@ -435,7 +435,7 @@ Resources:
       BuildMethod: esbuild
       BuildProperties:
         External:
-          - '@aws-sdk'
+          - "@aws-sdk"
         Minify: true
         Bundle: true
         Target: es2020
@@ -473,7 +473,7 @@ Resources:
       BuildMethod: esbuild
       BuildProperties:
         External:
-          - '@aws-sdk'
+          - "@aws-sdk"
         Minify: true
         Bundle: true
         Target: es2020
@@ -511,7 +511,7 @@ Resources:
       BuildMethod: esbuild
       BuildProperties:
         External:
-          - '@aws-sdk'
+          - "@aws-sdk"
         Minify: true
         Bundle: true
         Target: es2020
@@ -549,7 +549,7 @@ Resources:
       BuildMethod: esbuild
       BuildProperties:
         External:
-          - '@aws-sdk'
+          - "@aws-sdk"
         Minify: true
         Bundle: true
         Target: es2020
@@ -586,7 +586,7 @@ Resources:
       BuildMethod: esbuild
       BuildProperties:
         External:
-          - '@aws-sdk'
+          - "@aws-sdk"
         Minify: true
         Bundle: true
         Target: es2020
@@ -609,7 +609,7 @@ Resources:
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref ChatviousTable
-        - Version: '2012-10-17'
+        - Version: "2012-10-17"
           Statement:
             - Effect: Allow
               Action:
@@ -633,7 +633,7 @@ Resources:
       BuildMethod: esbuild
       BuildProperties:
         External:
-          - '@aws-sdk'
+          - "@aws-sdk"
         Minify: true
         Bundle: true
         Target: es2020
@@ -654,7 +654,7 @@ Resources:
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref ChatviousTable
-        - Version: '2012-10-17'
+        - Version: "2012-10-17"
           Statement:
             - Effect: Allow
               Action:
@@ -662,12 +662,12 @@ Resources:
               Resource: !Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter${JwtPrivateKeyParameter}
       Environment:
         Variables:
-          SSM_ENDPOINT_URL: ''
+          SSM_ENDPOINT_URL: ""
       Events:
         ChatviousRestApiGETSignUpSignIn:
           Type: Api
           Properties:
-            Path: /signupin
+            Path: /auth/signupin
             Method: GET
             RestApiId: !Ref ChatviousRestApi
             Auth:
@@ -675,7 +675,39 @@ Resources:
         ChatviousRestApiOPTIONSSignUpSignIn:
           Type: Api
           Properties:
-            Path: /signupin
+            Path: /auth/signupin
+            Method: OPTIONS
+            RestApiId: !Ref ChatviousRestApi
+            Auth:
+              Authorizer: NONE
+    Metadata:
+      BuildMethod: rust-cargolambda
+
+  TokenRefresh:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: Chatvious_TokenRefresh
+      Description: Callback route to exchange cognito auth codes for tokens
+      CodeUri: ./src/auth/token_refresh
+      Handler: bootstrap
+      Runtime: provided.al2023
+      MemorySize: 256
+      Timeout: 6
+      Architectures:
+        - x86_64
+      Events:
+        ChatviousRestApiGETTokenRefresh:
+          Type: Api
+          Properties:
+            Path: /auth/token_refresh
+            Method: GET
+            RestApiId: !Ref ChatviousRestApi
+            Auth:
+              Authorizer: NONE
+        ChatviousRestApiOPTIONSTokenRefresh:
+          Type: Api
+          Properties:
+            Path: /auth/token_refresh
             Method: OPTIONS
             RestApiId: !Ref ChatviousRestApi
             Auth:
@@ -725,7 +757,7 @@ Resources:
       BuildMethod: esbuild
       BuildProperties:
         External:
-          - '@aws-sdk'
+          - "@aws-sdk"
         Minify: true
         Bundle: true
         Target: es2020
@@ -774,7 +806,7 @@ Resources:
               ReauthorizeEvery: 0
         DefaultAuthorizer: LambdaAuthorizer
       MethodSettings:
-        - HttpMethod: '*'
+        - HttpMethod: "*"
           ResourcePath: /*
           ThrottlingRateLimit: 10
           ThrottlingBurstLimit: 15
@@ -787,9 +819,9 @@ Resources:
         Route53:
           HostedZoneId: !Ref ChatviousDomainHostedZoneId
       Cors:
-        AllowMethods: '''OPTIONS, POST, GET'''
-        AllowHeaders: '''Content-Type,Cookie'''
-        AllowOrigin: '''*'''
+        AllowMethods: "'OPTIONS, POST, GET'"
+        AllowHeaders: "'Content-Type,Cookie'"
+        AllowOrigin: "'*'"
         MaxAge: 5
 
   WebSocketManageConnectionsPolicy:
@@ -797,7 +829,7 @@ Resources:
     Properties:
       ManagedPolicyName: !Sub Chatvious_WebSocketManageConnectionsPolicy_${AWS::Region}
       PolicyDocument:
-        Version: '2012-10-17'
+        Version: "2012-10-17"
         Statement:
           - Effect: Allow
             Action:
@@ -1130,7 +1162,7 @@ Resources:
       BuildMethod: esbuild
       BuildProperties:
         External:
-          - '@aws-sdk'
+          - "@aws-sdk"
         Minify: true
         Target: es2020
         Sourcemap: false
@@ -1158,7 +1190,7 @@ Resources:
       BuildMethod: esbuild
       BuildProperties:
         External:
-          - '@aws-sdk'
+          - "@aws-sdk"
         Minify: true
         Bundle: true
         Target: es2020
