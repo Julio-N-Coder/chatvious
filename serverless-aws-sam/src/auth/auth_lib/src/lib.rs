@@ -1,6 +1,6 @@
 use argon2::{
-    password_hash::{rand_core::OsRng, PasswordHash, PasswordHasher, PasswordVerifier, SaltString},
     Argon2,
+    password_hash::{PasswordHash, PasswordHasher, PasswordVerifier, SaltString, rand_core::OsRng},
 };
 use lambda_runtime::Error;
 use rand::Rng;
@@ -11,8 +11,8 @@ use std::collections::HashMap;
 pub mod models;
 pub mod tokens;
 mod validate_body;
-pub use crate::validate_body::validate_body;
 pub use crate::validate_body::ValidateBodyEnum;
+pub use crate::validate_body::validate_body;
 
 #[derive(Debug, Deserialize)]
 pub struct Request {

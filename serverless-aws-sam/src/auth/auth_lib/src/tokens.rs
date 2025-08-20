@@ -1,9 +1,9 @@
 use crate::models::UserItem;
-use aws_config::meta::region::RegionProviderChain;
 use aws_config::BehaviorVersion;
+use aws_config::meta::region::RegionProviderChain;
 use aws_sdk_ssm::Client;
 use chrono::{Duration, Utc};
-use jsonwebtoken::{encode, Algorithm, EncodingKey, Header};
+use jsonwebtoken::{Algorithm, EncodingKey, Header, encode};
 use serde::{Deserialize, Serialize};
 use std::env;
 use uuid::Uuid;
