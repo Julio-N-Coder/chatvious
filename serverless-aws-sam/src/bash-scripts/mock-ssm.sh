@@ -31,7 +31,7 @@ start_mock_ssm() {
 
 	echo "Mock SSM server will run on http://localhost:8009"
 
-	python3 "${MOCK_SSM_SERVER_DIR}/mock_ssm_server.py"
+	exec python3 "${MOCK_SSM_SERVER_DIR}/mock_ssm_server.py"
 }
 
 start_mock_ssm
