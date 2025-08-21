@@ -1,32 +1,8 @@
-use std::collections::HashMap;
-
+use auth_lib::Request;
+use auth_lib::Response;
 use lambda_runtime::{Error, LambdaEvent, run, service_fn};
-
-use serde::{Deserialize, Serialize};
 use serde_json::Value;
-
-#[derive(Debug, Deserialize)]
-struct Request {
-    path: String,
-    #[serde(rename = "httpMethod")]
-    http_method: String,
-    headers: Option<HashMap<String, String>>,
-    #[serde(rename = "queryStringParameters")]
-    query_string_parameters: Option<HashMap<String, String>>,
-    #[serde(rename = "pathParameters")]
-    path_parameters: Option<HashMap<String, String>>,
-    body: Option<String>,
-    #[serde(rename = "isBase64Encoded")]
-    is_base64_encoded: bool,
-}
-
-#[derive(Serialize)]
-struct Response {
-    #[serde(rename = "statusCode")]
-    status_code: i32,
-    headers: HashMap<String, String>,
-    body: String,
-}
+use std::collections::HashMap;
 
 async fn function_handler(event: LambdaEvent<Value>) -> Result<Response, Error> {
     let payload = event.payload;
@@ -39,7 +15,7 @@ async fn function_handler(event: LambdaEvent<Value>) -> Result<Response, Error> 
 
     let resp = Response {
         status_code: 200,
-        headers,
+        headers: Some(headers),
         body: "Hello World!".to_string(),
     };
 
