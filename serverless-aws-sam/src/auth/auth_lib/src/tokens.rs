@@ -3,7 +3,7 @@ use aws_config::BehaviorVersion;
 use aws_config::meta::region::RegionProviderChain;
 use aws_sdk_ssm::Client;
 use chrono::{Duration, Utc};
-use jsonwebtoken::{Algorithm, EncodingKey, Header, encode};
+use jsonwebtoken::{Algorithm, DecodingKey, EncodingKey, Header, Validation, decode, encode};
 use serde::{Deserialize, Serialize};
 use std::env;
 use uuid::Uuid;
@@ -69,6 +69,41 @@ pub struct TokenConfig {
     pub refresh_token_expires_in: Duration, // Default: 365 days
 }
 
+#[derive(Debug)]
+pub enum TokenVerificationError {
+    InvalidToken(jsonwebtoken::errors::Error),
+    InvalidTokenUse(String),
+    SsmError(aws_sdk_ssm::Error),
+    PemParsingError(jsonwebtoken::errors::Error),
+}
+
+pub trait TokenUseClaims {
+    fn get_token_use(&self) -> &str;
+}
+
+impl TokenUseClaims for RefreshTokenClaims {
+    fn get_token_use(&self) -> &str {
+        &self.token_use
+    }
+}
+
+impl std::fmt::Display for TokenVerificationError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            TokenVerificationError::InvalidToken(e) => write!(f, "Invalid token: {}", e),
+            TokenVerificationError::InvalidTokenUse(expected) => {
+                write!(f, "Invalid token use, expected: {}", expected)
+            }
+            TokenVerificationError::SsmError(e) => {
+                write!(f, "SSM parameter retrieval error: {}", e)
+            }
+            TokenVerificationError::PemParsingError(e) => write!(f, "PEM key parsing error: {}", e),
+        }
+    }
+}
+
+impl std::error::Error for TokenVerificationError {}
+
 impl Default for TokenConfig {
     fn default() -> Self {
         let audience = "chatvious-app".to_string();
@@ -130,17 +165,60 @@ async fn get_parameter(
         .to_string())
 }
 
-async fn retrieve_private_key_string() -> Result<String, aws_sdk_ssm::Error> {
+async fn retrieve_key_string(key_name: &str) -> Result<String, aws_sdk_ssm::Error> {
     let ssm_client = create_ssm_client().await;
-    get_parameter(&ssm_client, "/chatvious/private_key", true).await
+    get_parameter(&ssm_client, key_name, true).await
 }
 
-async fn retrieve_private_key() -> Result<EncodingKey, Box<dyn std::error::Error + Send + Sync>> {
-    let pem_string = retrieve_private_key_string().await?;
+async fn retrieve_private_key() -> Result<EncodingKey, TokenVerificationError> {
+    let pem_string = retrieve_key_string("/chatvious/private_key")
+        .await
+        .map_err(TokenVerificationError::SsmError)?;
 
     // Use jsonwebtoken's built-in PEM parsing for ED25519
-    let encoding_key = EncodingKey::from_ed_pem(pem_string.as_bytes())?;
+    let encoding_key = EncodingKey::from_ed_pem(pem_string.as_bytes())
+        .map_err(TokenVerificationError::PemParsingError)?;
     Ok(encoding_key)
+}
+
+async fn retrieve_public_key() -> Result<DecodingKey, TokenVerificationError> {
+    let pem_string = retrieve_key_string("/chatvious/public_key")
+        .await
+        .map_err(TokenVerificationError::SsmError)?;
+
+    let decoding_key = DecodingKey::from_ed_pem(pem_string.as_bytes())
+        .map_err(TokenVerificationError::PemParsingError)?;
+    Ok(decoding_key)
+}
+
+pub async fn verify_refresh_token(
+    token: &str,
+) -> Result<RefreshTokenClaims, TokenVerificationError> {
+    verify_token::<RefreshTokenClaims>(token, "refresh").await
+}
+
+async fn verify_token<T>(token: &str, expected_token_use: &str) -> Result<T, TokenVerificationError>
+where
+    T: for<'de> Deserialize<'de> + TokenUseClaims,
+{
+    let decoding_key = retrieve_public_key().await?;
+
+    let mut validation = Validation::new(Algorithm::EdDSA);
+    validation.set_required_spec_claims(&["exp"]);
+
+    let token_data = decode::<T>(token, &decoding_key, &validation)
+        .map_err(TokenVerificationError::InvalidToken)?;
+
+    let claims = token_data.claims;
+
+    // Verify token use
+    if claims.get_token_use() != expected_token_use {
+        return Err(TokenVerificationError::InvalidTokenUse(
+            expected_token_use.to_string(),
+        ));
+    }
+
+    Ok(claims)
 }
 
 async fn generate_token_set_base(

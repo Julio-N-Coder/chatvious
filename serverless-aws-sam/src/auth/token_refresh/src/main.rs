@@ -1,5 +1,6 @@
 use auth_lib::Request;
 use auth_lib::Response;
+use auth_lib::{tokens, tokens::TokenVerificationError};
 use lambda_runtime::{Error, LambdaEvent, run, service_fn};
 use serde_json::Value;
 use std::collections::HashMap;
@@ -25,7 +26,20 @@ async fn function_handler(event: LambdaEvent<Value>) -> Result<Response, Error> 
         Err(_) => return auth_lib::return_error(headers, 401, "Unauthorized"),
     };
 
-    // validate refresh token
+    let refresh_token_claims = match tokens::verify_refresh_token(&body.refresh_token).await {
+        Ok(refresh_token_claims) => refresh_token_claims,
+        Err(token_error) => match token_error {
+            TokenVerificationError::SsmError(_) => {
+                println!("SSM parameter retrieval error");
+                return auth_lib::return_error(headers, 500, "Internal Server Error");
+            }
+            TokenVerificationError::PemParsingError(_) => {
+                println!("PEM key parsing error");
+                return auth_lib::return_error(headers, 500, "Internal Server Error");
+            }
+            _ => return auth_lib::return_error(headers, 401, "Unauthorized"),
+        },
+    };
 
     let resp = Response {
         status_code: 200,
