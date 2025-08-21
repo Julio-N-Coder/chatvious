@@ -5,13 +5,27 @@ use serde_json::Value;
 use std::collections::HashMap;
 
 async fn function_handler(event: LambdaEvent<Value>) -> Result<Response, Error> {
+    // validate json body has refresh_token
+    // verify refresh_token
+    // generate tokens
+    // return tokens
+
     let payload = event.payload;
     let request: Request = serde_json::from_value(payload)?;
     println!("{:#?}", request);
 
-    // Prepare the response
     let mut headers = HashMap::new();
-    headers.insert("Content-Type".to_string(), "text/html".to_string());
+    headers.insert(
+        String::from("Content-Type"),
+        String::from("application/json"),
+    );
+
+    let body = match token_refresh::validate_body(&request) {
+        Ok(body) => body,
+        Err(_) => return auth_lib::return_error(headers, 401, "Unauthorized"),
+    };
+
+    // validate refresh token
 
     let resp = Response {
         status_code: 200,
