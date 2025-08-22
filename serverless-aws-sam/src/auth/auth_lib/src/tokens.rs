@@ -1,4 +1,3 @@
-use crate::models::UserItem;
 use aws_config::BehaviorVersion;
 use aws_config::meta::region::RegionProviderChain;
 use aws_sdk_ssm::Client;
@@ -51,6 +50,12 @@ pub struct RefreshTokenClaims {
     pub username: String,
 }
 
+#[derive(Debug)]
+pub struct UserInfoForTokens {
+    pub user_id: String,
+    pub user_name: String,
+}
+
 #[derive(Debug, Serialize)]
 pub struct TokenSet {
     pub access_token: String,
@@ -59,14 +64,27 @@ pub struct TokenSet {
     pub expires_in: i64, // Access token expiration in seconds
 }
 
+#[derive(Debug, Serialize)]
+pub struct RefreshedTokenSet {
+    pub access_token: String,
+    pub id_token: String,
+    pub expires_in: i64, // Access token expiration in seconds
+}
+
 #[derive(Debug)]
 pub struct TokenConfig {
     pub issuer: String,
     pub audience: String,
     pub client_id: String,
+    pub is_sign_up_in: bool,
     pub access_token_expires_in: Duration,  // Default: 1 hour
     pub id_token_expires_in: Duration,      // Default: 1 hour
     pub refresh_token_expires_in: Duration, // Default: 365 days
+}
+
+pub enum TokenSetEnum {
+    TokenSet(TokenSet),
+    RefreshedTokenSet(RefreshedTokenSet),
 }
 
 #[derive(Debug)]
@@ -112,6 +130,7 @@ impl Default for TokenConfig {
             issuer: "chatvious".to_string(),
             client_id: audience.clone(),
             audience,
+            is_sign_up_in: true,
             access_token_expires_in: Duration::hours(1),
             id_token_expires_in: Duration::hours(1),
             refresh_token_expires_in: Duration::days(365),
@@ -222,10 +241,10 @@ where
 }
 
 async fn generate_token_set_base(
-    user_info: &UserItem,
+    user_info: &UserInfoForTokens,
     config: &TokenConfig,
     scopes: Option<&str>,
-) -> Result<TokenSet, Box<dyn std::error::Error + Send + Sync>> {
+) -> Result<TokenSetEnum, Box<dyn std::error::Error + Send + Sync>> {
     let encoding_key = retrieve_private_key().await?;
 
     let mut header = Header::new(Algorithm::EdDSA);
@@ -271,6 +290,14 @@ async fn generate_token_set_base(
 
     let id_token = encode(&header, &id_claims, &encoding_key)?;
 
+    if !config.is_sign_up_in {
+        return Ok(TokenSetEnum::RefreshedTokenSet(RefreshedTokenSet {
+            access_token,
+            id_token,
+            expires_in: config.access_token_expires_in.num_seconds(),
+        }));
+    }
+
     // Generate Refresh Token
     let refresh_exp = (now + config.refresh_token_expires_in).timestamp();
     let refresh_claims = RefreshTokenClaims {
@@ -287,18 +314,41 @@ async fn generate_token_set_base(
 
     let refresh_token = encode(&header, &refresh_claims, &encoding_key)?;
 
-    Ok(TokenSet {
+    Ok(TokenSetEnum::TokenSet(TokenSet {
         access_token,
         id_token,
         refresh_token,
         expires_in: config.access_token_expires_in.num_seconds(),
-    })
+    }))
 }
 
 pub async fn generate_token_set(
-    user_info: &UserItem,
+    token_user_info: &UserInfoForTokens,
 ) -> Result<TokenSet, Box<dyn std::error::Error + Send + Sync>> {
     let config = TokenConfig::default();
 
-    generate_token_set_base(user_info, &config, None).await
+    match generate_token_set_base(token_user_info, &config, None).await {
+        Ok(token_set_enum) => match token_set_enum {
+            TokenSetEnum::TokenSet(token_set) => Ok(token_set),
+            TokenSetEnum::RefreshedTokenSet(_) => {
+                Err(Box::from("Wrong TokenSetEnum variant returned"))
+            }
+        },
+        Err(error) => Err(error),
+    }
+}
+
+pub async fn generate_refreshed_token_set(
+    token_user_info: &UserInfoForTokens,
+) -> Result<RefreshedTokenSet, Box<dyn std::error::Error + Send + Sync>> {
+    let mut config = TokenConfig::default();
+    config.is_sign_up_in = false;
+
+    match generate_token_set_base(token_user_info, &config, None).await {
+        Ok(token_set_enum) => match token_set_enum {
+            TokenSetEnum::TokenSet(_) => Err(Box::from("Wrong TokenSetEnum variant returned")),
+            TokenSetEnum::RefreshedTokenSet(refreshed_token_set) => Ok(refreshed_token_set),
+        },
+        Err(error) => Err(error),
+    }
 }
