@@ -41,7 +41,7 @@ if !(printf '%s\n' "${FUNCTION_IDS[@]}" | grep -Fxq -- "$TARGET"); then
 	exit 1
 fi
 
-star_mock_ssm() {
+start_mock_ssm() {
 	"${SERVERLESS_BASE_DIR}/src/aws-mock/mock_ssm_server.py" &
 	mock_ssm_pid="$!"
 }
@@ -59,6 +59,37 @@ cleanup() {
 }
 trap cleanup EXIT
 
+rest_api_event_custom_common() {
+	local http_method="$1"
+	local path="$2"
+	local body="$3"
+	local base_event_file="${SERVERLESS_BASE_DIR}/events/restAPIEvent.json"
+
+	if ! [ -f "$base_event_file" ]; then
+		echo "Error: Base event file $base_event_file not found"
+		return 1
+	fi
+
+	if [[ -z "$http_method" || -z "$path" ]]; then
+		echo "Usage: rest_api_event_custom_common <http_method> <path> [body_json] | 'sam command'"
+		echo "Example: rest_api_event_custom_common 'GET' '/signinup' '{\"username\":\"test\"}' | 'sam command'"
+		return 1
+	fi
+
+	if [[ -z "$body" ]]; then
+		body_json='""'
+	else
+		# Escape the body JSON for embedding in the event
+		body_json=$(echo "$body" | jq -R .)
+	fi
+
+	jq --arg method "$http_method" \
+		--arg path "$path" \
+		--argjson body "$body_json" \
+		'.httpMethod = $method | .path = $path | .body = $body' \
+		"$base_event_file"
+}
+
 # add a check to see if dynamodb is already runing on port 8000
 
 "${SCRIPT_DIR}/dynamodb-start.sh" "$DYNAMODB_CONTAINER_NAME"
@@ -71,9 +102,11 @@ echo "DynamoDB is ready."
 cd "$SERVERLESS_BASE_DIR"
 
 if [ "$TARGET" = "SignUpSignIn" ]; then
-	star_mock_ssm
+	start_mock_ssm
+	body="{\"username\":\"test_user\", \"password\": \"1234\", \"sign_up_or_in\": \"signup\"}"
 
-	sam local invoke --add-host host.docker.internal:host-gateway \
-		--event "events/SignUp.json" \
-		--env-vars "env-vars/env.json" SignUpSignIn
+	rest_api_event_custom_common "GET" "/auth/signinup" "$body" |
+		sam local invoke --add-host host.docker.internal:host-gateway \
+			--event "-" \
+			--env-vars "env-vars/env.json" SignUpSignIn
 fi
