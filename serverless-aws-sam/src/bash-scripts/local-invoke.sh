@@ -12,8 +12,8 @@ if [ -z "$1" ]; then
 	exit 2
 fi
 
-if ! yq --version &>/dev/null; then
-	echo "yq not installed" >&2
+if ! (yq --version && jq -V) &>/dev/null; then
+	echo "yq or jq not installed" >&2
 	exit 1
 fi
 
@@ -42,7 +42,7 @@ if !(printf '%s\n' "${FUNCTION_IDS[@]}" | grep -Fxq -- "$TARGET"); then
 fi
 
 start_mock_ssm() {
-	"${SERVERLESS_BASE_DIR}/src/aws-mock/mock_ssm_server.py" &
+	"${SERVERLESS_BASE_DIR}/src/utils/aws-mock/mock_ssm_server.py" &
 	mock_ssm_pid="$!"
 }
 
