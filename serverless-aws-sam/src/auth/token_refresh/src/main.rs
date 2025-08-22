@@ -1,16 +1,14 @@
 use auth_lib::Request;
 use auth_lib::Response;
-use auth_lib::{tokens, tokens::TokenVerificationError};
+use auth_lib::{
+    tokens,
+    tokens::{TokenVerificationError, UserInfoForTokens},
+};
 use lambda_runtime::{Error, LambdaEvent, run, service_fn};
 use serde_json::Value;
 use std::collections::HashMap;
 
 async fn function_handler(event: LambdaEvent<Value>) -> Result<Response, Error> {
-    // validate json body has refresh_token
-    // verify refresh_token
-    // generate tokens
-    // return tokens
-
     let payload = event.payload;
     let request: Request = serde_json::from_value(payload)?;
     println!("{:#?}", request);
@@ -20,6 +18,19 @@ async fn function_handler(event: LambdaEvent<Value>) -> Result<Response, Error> 
         String::from("Content-Type"),
         String::from("application/json"),
     );
+
+    // check if Content-Type header is application/json
+    if let Some(request_headers) = &request.headers {
+        if let Some(content_type) = request_headers.get("Content-Type") {
+            if !content_type.eq("application/json") {
+                return auth_lib::return_error(headers, 400, "Invalid Content-Type");
+            } else {
+                return auth_lib::return_error(headers, 400, "Invalid Content-Type");
+            }
+        }
+    } else {
+        return auth_lib::return_error(headers, 400, "Invalid Content-Type");
+    }
 
     let body = match token_refresh::validate_body(&request) {
         Ok(body) => body,
@@ -40,6 +51,18 @@ async fn function_handler(event: LambdaEvent<Value>) -> Result<Response, Error> 
             _ => return auth_lib::return_error(headers, 401, "Unauthorized"),
         },
     };
+
+    let token_user_info = UserInfoForTokens {
+        user_id: refresh_token_claims.sub,
+        user_name: refresh_token_claims.username,
+    };
+
+    let refreshed_token_set = match tokens::generate_refreshed_token_set(&token_user_info).await {
+        Ok(token_set) => token_set,
+        Err(_) => return auth_lib::return_error(headers, 500, "Internal Server Error"),
+    };
+
+    //  return refreshed tokens in body via json string
 
     let resp = Response {
         status_code: 200,

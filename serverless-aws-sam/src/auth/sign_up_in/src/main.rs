@@ -10,7 +10,7 @@ use auth_lib::ValidateBodyEnum;
 use auth_lib::models::DynamoDBClient;
 use auth_lib::models::UserItem;
 use auth_lib::tokens;
-use auth_lib::tokens::TokenSet;
+use auth_lib::tokens::{TokenSet, UserInfoForTokens};
 
 async fn function_handler(event: LambdaEvent<Value>) -> Result<Response, Error> {
     let request: auth_lib::Request = serde_json::from_value(event.payload)?;
@@ -49,8 +49,12 @@ async fn function_handler(event: LambdaEvent<Value>) -> Result<Response, Error> 
                 return auth_lib::return_error(headers, 500, "Server Error");
             }
         };
+        let token_user_info = UserInfoForTokens {
+            user_id: new_user.user_id.clone(),
+            user_name: new_user.user_name.clone(),
+        };
 
-        let token_set = match tokens::generate_token_set(&new_user).await {
+        let token_set = match tokens::generate_token_set(&token_user_info).await {
             Ok(token_set) => token_set,
             Err(_) => {
                 println!("Token Generation Error");
@@ -85,7 +89,12 @@ async fn function_handler(event: LambdaEvent<Value>) -> Result<Response, Error> 
             }
         }
 
-        let token_set = match tokens::generate_token_set(&user).await {
+        let token_user_info = UserInfoForTokens {
+            user_id: user.user_id,
+            user_name: user.user_name,
+        };
+
+        let token_set = match tokens::generate_token_set(&token_user_info).await {
             Ok(token_set) => token_set,
             Err(_) => {
                 println!("Token Generation Error");
