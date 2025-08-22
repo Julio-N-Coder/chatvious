@@ -11,7 +11,6 @@ use std::collections::HashMap;
 async fn function_handler(event: LambdaEvent<Value>) -> Result<Response, Error> {
     let payload = event.payload;
     let request: Request = serde_json::from_value(payload)?;
-    println!("{:#?}", request);
 
     let mut headers = HashMap::new();
     headers.insert(
@@ -24,9 +23,9 @@ async fn function_handler(event: LambdaEvent<Value>) -> Result<Response, Error> 
         if let Some(content_type) = request_headers.get("Content-Type") {
             if !content_type.eq("application/json") {
                 return auth_lib::return_error(headers, 400, "Invalid Content-Type");
-            } else {
-                return auth_lib::return_error(headers, 400, "Invalid Content-Type");
             }
+        } else {
+            return auth_lib::return_error(headers, 400, "Invalid Content-Type");
         }
     } else {
         return auth_lib::return_error(headers, 400, "Invalid Content-Type");
@@ -62,15 +61,17 @@ async fn function_handler(event: LambdaEvent<Value>) -> Result<Response, Error> 
         Err(_) => return auth_lib::return_error(headers, 500, "Internal Server Error"),
     };
 
-    //  return refreshed tokens in body via json string
+    let json_body = match serde_json::to_string(&refreshed_token_set) {
+        Ok(json_body) => json_body,
+        Err(_) => return auth_lib::return_error(headers, 500, "Internal Server Error"),
+    };
 
     let resp = Response {
         status_code: 200,
         headers: Some(headers),
-        body: "Hello World!".to_string(),
+        body: json_body,
     };
 
-    // Return `Response` (it will be serialized to JSON automatically by the runtime)
     Ok(resp)
 }
 

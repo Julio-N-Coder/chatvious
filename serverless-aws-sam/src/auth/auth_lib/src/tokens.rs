@@ -189,6 +189,8 @@ async fn retrieve_key_string(key_name: &str) -> Result<String, aws_sdk_ssm::Erro
     get_parameter(&ssm_client, key_name, true).await
 }
 
+// for refresh_tokens function, it connects to the ssm client 2 seperate times
+// because it retrives both the private and public key. Maybe try using only one connection
 async fn retrieve_private_key() -> Result<EncodingKey, TokenVerificationError> {
     let pem_string = retrieve_key_string("/chatvious/private_key")
         .await
@@ -224,6 +226,8 @@ where
 
     let mut validation = Validation::new(Algorithm::EdDSA);
     validation.set_required_spec_claims(&["exp"]);
+    // will add aud validation later. set it with validation.set_audience()
+    validation.validate_aud = false;
 
     let token_data = decode::<T>(token, &decoding_key, &validation)
         .map_err(TokenVerificationError::InvalidToken)?;
