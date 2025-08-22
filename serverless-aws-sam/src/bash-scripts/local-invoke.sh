@@ -6,6 +6,7 @@ SERVERLESS_BASE_DIR="$(dirname "$(dirname "$SCRIPT_DIR")")"
 SAM_TEMPLATE="${SERVERLESS_BASE_DIR}/template.yaml"
 DYNAMODB_CONTAINER_NAME="chatvious-dynamodb-1283"
 mock_ssm_pid=""
+is_dynamodb_started=""
 
 if [ -z "$1" ]; then
 	echo "Function Logical Id not specified" >&2
@@ -46,6 +47,17 @@ start_mock_ssm() {
 	mock_ssm_pid="$!"
 }
 
+start_dynamodb() {
+	# add a check to see if dynamodb is already runing on port 8000
+
+	"${SCRIPT_DIR}/dynamodb-start.sh" "$DYNAMODB_CONTAINER_NAME"
+	source "${SCRIPT_DIR}/db-helpers.sh"
+	wait_for_dynamodb
+	create_db_table "chatvious"
+	echo "DynamoDB is ready."
+	is_dynamodb_started="1"
+}
+
 cleanup() {
 	echo "Running cleanup..."
 
@@ -53,9 +65,11 @@ cleanup() {
 		kill "$mock_ssm_pid"
 	fi
 
-	echo "Stopping and removing dynamodb container"
-	docker stop "${DYNAMODB_CONTAINER_NAME}" 2>/dev/null
-	docker rm "${DYNAMODB_CONTAINER_NAME}" 2>/dev/null
+	if [ -n "$is_dynamodb_started" ]; then
+		echo "Stopping and removing dynamodb container"
+		docker stop "${DYNAMODB_CONTAINER_NAME}" 2>/dev/null
+		docker rm "${DYNAMODB_CONTAINER_NAME}" 2>/dev/null
+	fi
 }
 trap cleanup EXIT
 
@@ -90,18 +104,11 @@ rest_api_event_custom_common() {
 		"$base_event_file"
 }
 
-# add a check to see if dynamodb is already runing on port 8000
-
-"${SCRIPT_DIR}/dynamodb-start.sh" "$DYNAMODB_CONTAINER_NAME"
-source "${SCRIPT_DIR}/db-helpers.sh"
-wait_for_dynamodb
-create_db_table "chatvious"
-echo "DynamoDB is ready."
-
 # Will add more for other functions
 cd "$SERVERLESS_BASE_DIR"
 
 if [ "$TARGET" = "SignUpSignIn" ]; then
+	start_dynamodb
 	start_mock_ssm
 	body="{\"username\":\"test_user\", \"password\": \"1234\", \"sign_up_or_in\": \"signup\"}"
 
@@ -109,4 +116,15 @@ if [ "$TARGET" = "SignUpSignIn" ]; then
 		sam local invoke --add-host host.docker.internal:host-gateway \
 			--event "-" \
 			--env-vars "env-vars/env.json" SignUpSignIn
+fi
+
+if [ "$TARGET" = "TokenRefresh" ]; then
+	start_mock_ssm
+	REFRESH_TOKEN=$("${SERVERLESS_BASE_DIR}/src/utils/jwt/generate_jwt.sh")
+	body="{\"refresh_token\":\"${REFRESH_TOKEN}\"}"
+
+	rest_api_event_custom_common "GET" "/auth/token_refresh" "$body" |
+		sam local invoke --add-host host.docker.internal:host-gateway \
+			--event "-" \
+			--env-vars "env-vars/env.json" TokenRefresh
 fi
