@@ -42,7 +42,7 @@ if !(printf '%s\n' "${FUNCTION_IDS[@]}" | grep -Fxq -- "$TARGET"); then
 fi
 
 star_mock_ssm() {
-	"${SCRIPT_DIR}/mock-ssm.sh" &
+	"${SERVERLESS_BASE_DIR}/src/aws-mock/mock_ssm_server.py" &
 	mock_ssm_pid="$!"
 }
 

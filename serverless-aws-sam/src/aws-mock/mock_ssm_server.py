@@ -8,11 +8,13 @@ import json
 import os
 import sys
 from http.server import HTTPServer, BaseHTTPRequestHandler
-import xml.etree.ElementTree as ET
 from datetime import datetime
 import hashlib
+import shutil
+import subprocess
 
 FILE_DIR = os.path.abspath(os.path.dirname(__file__))
+KEYS_DIR = os.path.join(FILE_DIR, "keys")
 
 
 class MockSSMHandler(BaseHTTPRequestHandler):
@@ -135,10 +137,73 @@ class MockSSMHandler(BaseHTTPRequestHandler):
         pass  # Suppress default HTTP logs
 
 
-def main():
-    port = int(os.getenv("SSM_MOCK_PORT", 8009))
+def check_and_generate_keys():
+    """
+    Checks if OpenSSL is installed and generates ED25519 keys if they don't exist.
+    """
+    # 1. Check if the 'openssl' command is available
+    if not shutil.which("openssl"):
+        print(
+            "Error: openssl command not found. It is required to generate keys.",
+            file=sys.stderr,
+        )
+        sys.exit(1)
 
-    server = HTTPServer(("0.0.0.0", port), MockSSMHandler)
+    private_key_path = os.path.join(KEYS_DIR, "private_key.pem")
+    public_key_path = os.path.join(KEYS_DIR, "public_key.pem")
+
+    # 3. Generate the private key if it's missing
+    if not os.path.exists(private_key_path):
+        print("Generating local private key...")
+        try:
+            subprocess.run(
+                [
+                    "openssl",
+                    "genpkey",
+                    "-algorithm",
+                    "ED25519",
+                    "-out",
+                    str(private_key_path),
+                ],
+                check=True,
+                capture_output=True,
+                text=True,
+            )
+        except subprocess.CalledProcessError as e:
+            print(f"Error generating private key: {e.stderr}", file=sys.stderr)
+            sys.exit(1)
+
+    # 4. Generate the public key from the private key if it's missing
+    if not os.path.exists(public_key_path):
+        print("Generating local public key...")
+        try:
+            subprocess.run(
+                [
+                    "openssl",
+                    "pkey",
+                    "-in",
+                    str(private_key_path),
+                    "-pubout",
+                    "-out",
+                    str(public_key_path),
+                ],
+                check=True,
+                capture_output=True,
+                text=True,
+            )
+        except subprocess.CalledProcessError as e:
+            print(f"Error generating public key: {e.stderr}", file=sys.stderr)
+            sys.exit(1)
+
+
+def main():
+    check_and_generate_keys()
+
+    port = int(os.getenv("SSM_MOCK_PORT", 8009))
+    server_address = ("0.0.0.0", port)
+    server = HTTPServer(server_address, MockSSMHandler)
+
+    print(f"Starting Mock SSM Parameter Store server on http://localhost:{port}...")
 
     try:
         server.serve_forever()
