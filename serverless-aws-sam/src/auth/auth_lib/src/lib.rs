@@ -9,9 +9,6 @@ pub mod models;
 #[cfg(feature = "dynamodb")]
 pub use crate::models::PasswordManager;
 pub mod tokens;
-mod validate_body;
-pub use crate::validate_body::ValidateBodyEnum;
-pub use crate::validate_body::validate_body;
 
 #[derive(Debug, Deserialize)]
 pub struct Request {

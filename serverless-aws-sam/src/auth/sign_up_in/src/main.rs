@@ -1,12 +1,12 @@
 use auth_lib::PasswordManager;
 use auth_lib::Response;
-use auth_lib::ValidateBodyEnum;
 use auth_lib::models::DynamoDBClient;
 use auth_lib::models::UserItem;
 use auth_lib::tokens;
 use auth_lib::tokens::{TokenSet, UserInfoForTokens};
 use lambda_runtime::{Error, LambdaEvent, run, service_fn};
 use serde_json::Value;
+use sign_up_in::ValidateBodyEnum;
 use std::collections::HashMap;
 
 async fn function_handler(event: LambdaEvent<Value>) -> Result<Response, Error> {
@@ -19,7 +19,7 @@ async fn function_handler(event: LambdaEvent<Value>) -> Result<Response, Error> 
     );
 
     // validate body
-    let (body, headers) = match auth_lib::validate_body(request, headers) {
+    let (body, headers) = match sign_up_in::validate_body(request, headers) {
         ValidateBodyEnum::Body(body_header_tuple) => body_header_tuple,
         ValidateBodyEnum::Response(validate_response) => return validate_response,
     };

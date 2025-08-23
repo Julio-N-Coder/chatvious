@@ -1,12 +1,11 @@
+use auth_lib::{Body, LambdaReturnEnum, Request, RequestBody};
 use std::collections::HashMap;
-
-use crate::{Body, LambdaReturnEnum, Request, RequestBody};
 
 pub type ValidateBodyEnum = LambdaReturnEnum<(Body, HashMap<String, String>)>;
 
 pub fn validate_body(request: Request, headers: HashMap<String, String>) -> ValidateBodyEnum {
     fn validate_error(headers: HashMap<String, String>, message: &str) -> ValidateBodyEnum {
-        LambdaReturnEnum::Response(crate::return_error(headers, 400, message))
+        LambdaReturnEnum::Response(auth_lib::return_error(headers, 400, message))
     }
 
     let request_body: RequestBody = match &request.body {
