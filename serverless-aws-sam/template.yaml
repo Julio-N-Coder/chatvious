@@ -691,7 +691,7 @@ Resources:
       CodeUri: ./src/auth/token_refresh
       Handler: bootstrap
       Runtime: provided.al2023
-      MemorySize: 256
+      MemorySize: 128
       Timeout: 6
       Architectures:
         - x86_64

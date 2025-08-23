@@ -12,4 +12,4 @@ tracing = { version = "0.1", features = ["log"] }
 tracing-subscriber = { version = "0.3", default-features = false, features = [
     "fmt",
 ] }
-auth_lib = { path = "../auth_lib" }
+auth_lib = { path = "../auth_lib", features = ["dynamodb"] }

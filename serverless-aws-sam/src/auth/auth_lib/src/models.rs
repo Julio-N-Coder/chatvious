@@ -1,3 +1,7 @@
+use argon2::{
+    Argon2,
+    password_hash::{PasswordHash, PasswordHasher, PasswordVerifier, SaltString, rand_core::OsRng},
+};
 use aws_config::BehaviorVersion;
 use aws_credential_types::Credentials;
 use aws_sdk_dynamodb::error::SdkError;
@@ -8,8 +12,6 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::env;
 use uuid::Uuid;
-
-use crate::PasswordManager;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct UserItem {
@@ -22,6 +24,8 @@ pub struct UserItem {
     pub joined_rooms: Vec<HashMap<String, String>>,
     pub profile_color: String,
 }
+
+pub struct PasswordManager;
 
 #[derive(Debug, Serialize, Deserialize)]
 struct DynamoDbOptions {
@@ -206,5 +210,54 @@ impl DynamoDBClient {
             .await?;
 
         Ok(())
+    }
+}
+
+impl PasswordManager {
+    /// Hash a password with a random salt using Argon2
+    pub fn hash_password(password: &str) -> Result<String, argon2::password_hash::Error> {
+        let salt = SaltString::generate(&mut OsRng);
+        let argon2 = Argon2::default();
+        let password_hash = argon2.hash_password(password.as_bytes(), &salt)?;
+        Ok(password_hash.to_string())
+    }
+
+    /// Verify a password against a stored hash
+    pub fn verify_password(
+        password: &str,
+        hash: &str,
+    ) -> Result<bool, argon2::password_hash::Error> {
+        let parsed_hash = PasswordHash::new(hash)?;
+        let argon2 = Argon2::default();
+
+        match argon2.verify_password(password.as_bytes(), &parsed_hash) {
+            Ok(()) => Ok(true),
+            Err(argon2::password_hash::Error::Password) => Ok(false),
+            Err(e) => Err(e),
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::PasswordManager;
+
+    #[test]
+    fn password_hashing_and_verification_test() {
+        let password = "my_secure_password123";
+
+        // Hash the password
+        let hash = PasswordManager::hash_password(password).unwrap();
+        println!("Generated hash: {}", hash);
+
+        // Verify correct password
+        let is_valid = PasswordManager::verify_password(password, &hash).unwrap();
+        assert!(is_valid);
+
+        // Verify incorrect password
+        let is_invalid = PasswordManager::verify_password("wrong_password", &hash).unwrap();
+        assert!(!is_invalid);
+
+        println!("Password verification test passed!");
     }
 }

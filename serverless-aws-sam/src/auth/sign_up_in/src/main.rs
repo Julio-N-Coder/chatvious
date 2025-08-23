@@ -1,9 +1,3 @@
-use std::collections::HashMap;
-
-use lambda_runtime::{Error, LambdaEvent, run, service_fn};
-
-use serde_json::Value;
-
 use auth_lib::PasswordManager;
 use auth_lib::Response;
 use auth_lib::ValidateBodyEnum;
@@ -11,6 +5,9 @@ use auth_lib::models::DynamoDBClient;
 use auth_lib::models::UserItem;
 use auth_lib::tokens;
 use auth_lib::tokens::{TokenSet, UserInfoForTokens};
+use lambda_runtime::{Error, LambdaEvent, run, service_fn};
+use serde_json::Value;
+use std::collections::HashMap;
 
 async fn function_handler(event: LambdaEvent<Value>) -> Result<Response, Error> {
     let request: auth_lib::Request = serde_json::from_value(event.payload)?;
