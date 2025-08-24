@@ -11,7 +11,7 @@ DYNAMODB_CONTAINER_NAME="chatvious-dynamodb-3821"
 # run dynamodb starting script in the background and save pid
 "${SCRIPT_DIR}/dynamodb-start.sh" "$DYNAMODB_CONTAINER_NAME"
 
-source "${SCRIPT_DIR}/db-helpers.sh"
+source "${SCRIPT_DIR}/utils/db-helpers.sh"
 wait_for_dynamodb
 create_db_table "chatvious-test"
 echo "DynamoDB is ready."
