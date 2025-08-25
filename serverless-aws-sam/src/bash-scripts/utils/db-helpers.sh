@@ -35,3 +35,15 @@ create_db_table() {
 		--provisioned-throughput ReadCapacityUnits=1,WriteCapacityUnits=1 \
 		>/dev/null 2>&1
 }
+
+get_db_item() {
+	local user_sub="$1"
+	local table_name="$2"
+
+	aws --endpoint-url http://localhost:8000 --no-cli-pager dynamodb get-item \
+		--table-name "$table_name" \
+		--key "{
+       \"PartitionKey\": {\"S\": \"USER#$user_sub\"},
+       \"SortKey\": {\"S\": \"PROFILE\"}
+   }"
+}
