@@ -133,3 +133,29 @@ expected_code="200"
 # SignUpSignIn Tests
 SignUpSignIn_function "signup"
 SignUpSignIn_function "signin"
+
+# TokenRefresh Test
+body="{\"refresh_token\":\"${refresh_token}\"}"
+
+echo -e "${GREEN}Running TokenRefresh Test"
+echo -e "$RESET"
+
+response="$(rest_api_event_custom_common "GET" "/auth/token_refresh" "$body" | local_invoke_stdin "TokenRefresh" | tail -n 1)"
+is_resonse_valid_json
+
+actual_code=$(echo "$response" | jq '.statusCode')
+check_status_code
+
+body=$(echo "$response" | jq -r '.body')
+body_validation
+
+access_token=$(get_access_token)
+id_token=$(get_id_token)
+expires_in=$(get_expires_in)
+
+check_access_token
+check_id_token
+check_expires_in
+
+echo -e "${GREEN}Tests Passed"
+echo -e "$RESET"
