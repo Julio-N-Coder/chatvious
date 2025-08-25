@@ -15,12 +15,18 @@ start_mock_ssm() {
 }
 
 start_dynamodb() {
-	# add a check to see if dynamodb is already runing on port 8000
-
-	"${BASH_SCRIPTS_DIR}/dynamodb-start.sh" "$DYNAMODB_CONTAINER_NAME"
 	source "${BASH_SCRIPTS_DIR}/utils/db-helpers.sh"
-	wait_for_dynamodb
-	create_db_table "chatvious"
+	# checks to see if dynamodb is already runing on port 8000 and if chatvious table name exists
+	if check_for_dynamodb; then
+		if ! check_dynamodb_table_exists "chatvious"; then
+			create_db_table "chatvious"
+		fi
+	else
+		"${BASH_SCRIPTS_DIR}/dynamodb-start.sh" "$DYNAMODB_CONTAINER_NAME"
+		wait_for_dynamodb
+		create_db_table "chatvious"
+	fi
+
 	echo "DynamoDB is ready."
 	is_dynamodb_started="1"
 }

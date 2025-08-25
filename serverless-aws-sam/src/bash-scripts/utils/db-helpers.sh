@@ -9,7 +9,7 @@ wait_for_dynamodb() {
 	MAX_WAIT=10
 	WAIT_TIME=0
 
-	until curl -s http://localhost:8000 >/dev/null; do
+	until check_for_dynamodb; do
 		if [ "$WAIT_TIME" -ge "$MAX_WAIT" ]; then
 			echo "DynamoDB did not become ready in time. Exiting."
 			exit 1
@@ -18,6 +18,23 @@ wait_for_dynamodb() {
 		WAIT_TIME=$((WAIT_TIME + 1))
 		sleep 1
 	done
+}
+
+check_for_dynamodb() {
+	if curl -s http://localhost:8000 >/dev/null; then
+		return 0
+	fi
+	return 1
+}
+
+check_dynamodb_table_exists() {
+	local table_name="$1"
+	local endpoint="http://localhost:8000"
+
+	if aws dynamodb describe-table --table-name "$table_name" --endpoint-url "$endpoint" >/dev/null 2>&1; then
+		return 0
+	fi
+	return 1
 }
 
 create_db_table() {
