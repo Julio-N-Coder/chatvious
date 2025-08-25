@@ -8,6 +8,7 @@ stack_name = "chatvious-app"
 cached = true
 # Parallel builds don't work. Sam moves functions all at once into "/tmp" which fills it up.
 parallel = false
+# Beta Features are enabled for cargo lambda support
 beta_features = true
 
 [default.validate.parameters]
