@@ -211,11 +211,23 @@ SignUpSignIn_function() {
 expected_code="200"
 
 # SignUpSignIn Tests
+if [ ! -d "${SERVERLESS_BASE_DIR}/.aws-sam/build/SignUpSignIn" ]; then
+	cd "$SERVERLESS_BASE_DIR"
+	echo "${GREEN}SignUpSignIn not built, building SignUpSignIn${RESET}"
+	sam build SignUpSignIn
+fi
+
 SignUpSignIn_function "signup"
 dynamodb_signin_user_check "chatvious"
 SignUpSignIn_function "signin"
 
 # TokenRefresh Test
+if [ ! -d "${SERVERLESS_BASE_DIR}/.aws-sam/build/TokenRefresh" ]; then
+	cd "$SERVERLESS_BASE_DIR"
+	echo "${GREEN}TokenRefresh not built, building TokenRefresh${RESET}"
+	sam build TokenRefresh
+fi
+
 body="{\"refresh_token\":\"${refresh_token}\"}"
 
 echo -e "${GREEN}Running TokenRefresh Test"
