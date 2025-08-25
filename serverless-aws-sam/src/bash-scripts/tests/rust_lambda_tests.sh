@@ -101,6 +101,86 @@ check_expires_in() {
 	fi
 }
 
+decode_jwt_payload() {
+	local token="$1"
+
+	# Extract the payload (second part after splitting by '.')
+	local payload=$(echo "$token" | cut -d. -f2)
+
+	# Add padding if needed (base64url doesn't use padding, but base64 does)
+	local padded_payload="$payload"
+	case $((${#payload} % 4)) in
+	2) padded_payload="${payload}==" ;;
+	3) padded_payload="${payload}=" ;;
+	esac
+
+	# Convert base64url to base64 (replace - with + and _ with /)
+	padded_payload=$(echo "$padded_payload" | sed 's/-/+/g; s/_/\//g')
+
+	# Decode and return
+	echo "$padded_payload" | base64 -d 2>/dev/null
+}
+
+# Function to extract sub from JWT token
+get_user_sub() {
+	local token="$1"
+	local payload=$(decode_jwt_payload "$token")
+
+	if [[ -z "$payload" ]]; then
+		echo "ERROR: Failed to decode JWT token" >&2
+		return 1
+	fi
+
+	local sub=$(echo "$payload" | jq -r '.sub // empty')
+	if [[ -z "$sub" ]]; then
+		echo "ERROR: No 'sub' field found in token" >&2
+		return 1
+	fi
+
+	echo "$sub"
+}
+
+check_user_exists_in_dynamo() {
+	local user_sub="$1"
+	local table_name="$2"
+
+	echo "Checking if user exists in DynamoDB table: $table_name"
+	echo "Looking for user with sub: $user_sub"
+
+	# Use get-item to check if user exists
+	local dynamo_response=$(get_db_item "$user_sub" "$table_name" 2>/dev/null)
+
+	# Check if item was found
+	local item=$(echo "$dynamo_response" | jq -r '.Item // empty')
+	if [[ -z "$item" || "$item" == "null" ]]; then
+		echo "ERROR: User not found in DynamoDB table" >&2
+		exit 1
+	fi
+
+	echo "✓ User found in DynamoDB table"
+}
+
+dynamodb_signin_user_check() {
+	local table_name="$1"
+
+	echo -e "${GREEN}Checking User after SignUp${RESET}"
+
+	# Extract user sub from access token
+	echo "=== Extracting user information ==="
+	local user_sub=$(get_user_sub "$access_token")
+	if [[ $? -ne 0 || -z "$user_sub" ]]; then
+		echo "ERROR: Failed to extract user sub from access token" >&2
+		exit 1
+	fi
+
+	echo "✓ Extracted user sub: $user_sub"
+
+	echo "=== Checking DynamoDB ==="
+	check_user_exists_in_dynamo "$user_sub" "$table_name"
+
+	echo -e "✓ Sign-in validation complete - user authenticated and exists in database\n"
+}
+
 SignUpSignIn_function() {
 	sign_up_or_in="$1"
 	body="{\"username\":\"test_user\", \"password\": \"1234\", \"sign_up_or_in\": \"${sign_up_or_in}\"}"
@@ -132,6 +212,7 @@ expected_code="200"
 
 # SignUpSignIn Tests
 SignUpSignIn_function "signup"
+dynamodb_signin_user_check "chatvious"
 SignUpSignIn_function "signin"
 
 # TokenRefresh Test
