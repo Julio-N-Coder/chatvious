@@ -60,15 +60,16 @@ public class Authorizer implements RequestHandler<APIGatewayTokenAuthorizerEvent
             } else if (tokens.refresh_token != null) {
                 System.out.println("Running in RefreshedToken");
                 // attempt to refresh tokens
-                String requestBody = String.format("grant_type=refresh_token&client_id=%s&refresh_token=%s", cognitoData.CLIENT_ID, tokens.refresh_token);
+                String requestBody = String.format("grant_type=refresh_token&client_id=%s&refresh_token=%s",
+                        cognitoData.CLIENT_ID, tokens.refresh_token);
 
                 HttpClient client = HttpClient.newHttpClient();
 
                 HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(cognitoData.COGNITO_DOMAIN + "/oauth2/token"))
-                    .header("Content-Type", "application/x-www-form-urlencoded")
-                    .POST(HttpRequest.BodyPublishers.ofString(requestBody))
-                    .build();
+                        .uri(URI.create(cognitoData.COGNITO_DOMAIN + "/oauth2/token"))
+                        .header("Content-Type", "application/x-www-form-urlencoded")
+                        .POST(HttpRequest.BodyPublishers.ofString(requestBody))
+                        .build();
 
                 HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
 
@@ -78,7 +79,7 @@ public class Authorizer implements RequestHandler<APIGatewayTokenAuthorizerEvent
 
                 JSON json = JSON.builder().build();
                 RefreshedTokens tokenResponse = json.beanFrom(RefreshedTokens.class, response.body());
-                
+
                 // parse access token and set claims with token
                 JsonWebToken jwt = parser.parseOnly(tokenResponse.access_token);
 
@@ -91,58 +92,61 @@ public class Authorizer implements RequestHandler<APIGatewayTokenAuthorizerEvent
             return new Policy("Unauthorized", "Deny", methodArn, null);
         }
         return new Policy("Unauthorized", "Deny", methodArn, null);
-  }
-
-  private Policy.Context buildContext(JsonWebToken jwt, String access_token, String id_token) throws NoSuchElementException {
-    Policy.Context resContext = new Policy.Context();
-
-    resContext.sub = jwt.getSubject();
-    resContext.username = jwt.<String>claim("username").get();
-    resContext.iss = jwt.getIssuer();
-    resContext.client_id = jwt.<String>claim("client_id").get();
-    resContext.origin_jti = jwt.<String>claim("origin_jti").get();
-    resContext.event_id = jwt.<String>claim("event_id").get();
-    resContext.token_use = jwt.<String>claim("token_use").get();
-    resContext.auth_time = ((Number) jwt.claim("auth_time").get()).intValue();
-    resContext.exp = jwt.getExpirationTime() / 1000;
-    resContext.iat = jwt.getIssuedAtTime() / 1000;
-    resContext.jti = jwt.getTokenID();
-    
-    if (access_token != null && id_token != null) {
-        resContext.access_token = access_token;
-        resContext.id_token = id_token;
     }
 
-    return resContext;
-  }
+    private Policy.Context buildContext(JsonWebToken jwt, String access_token, String id_token)
+            throws NoSuchElementException {
+        Policy.Context resContext = new Policy.Context();
 
-  private Tokens decomposeTokensString(String cookieString) {
-    Tokens tokens = new Tokens();
-    if (cookieString.length() < 1) {
+        resContext.sub = jwt.getSubject();
+        resContext.username = jwt.<String>claim("username").get();
+        resContext.iss = jwt.getIssuer();
+        resContext.client_id = jwt.<String>claim("client_id").get();
+        resContext.origin_jti = jwt.<String>claim("origin_jti").get();
+        resContext.event_id = jwt.<String>claim("event_id").get();
+        resContext.token_use = jwt.<String>claim("token_use").get();
+        resContext.auth_time = ((Number) jwt.claim("auth_time").get()).intValue();
+        resContext.exp = jwt.getExpirationTime() / 1000;
+        resContext.iat = jwt.getIssuedAtTime() / 1000;
+        resContext.jti = jwt.getTokenID();
+
+        if (access_token != null && id_token != null) {
+            resContext.access_token = access_token;
+            resContext.id_token = id_token;
+        }
+
+        return resContext;
+    }
+
+    private Tokens decomposeTokensString(String cookieString) {
+        Tokens tokens = new Tokens();
+        if (cookieString.length() < 1) {
+            return tokens;
+        }
+        int found = 0;
+        String[] tokenNames = { "refresh_token", "access_token", "id_token" };
+        String[] cookies = cookieString.split(";");
+
+        for (String cookie : cookies) {
+            int startI = 0;
+            if (cookie.charAt(0) == ' ') {
+                startI = 1;
+            }
+
+            if (cookie.startsWith(tokenNames[0], startI)) {
+                tokens.refresh_token = cookie.substring(tokenNames[0].length() + 1 + startI, cookie.length());
+                found += 1;
+            } else if (cookie.startsWith(tokenNames[1], startI)) {
+                tokens.access_token = cookie.substring(tokenNames[1].length() + 1 + startI, cookie.length());
+                found += 1;
+            } else if (cookie.startsWith(tokenNames[2], startI)) {
+                tokens.id_token = cookie.substring(tokenNames[2].length() + 1 + startI, cookie.length());
+                found += 1;
+            }
+            if (found == tokenNames.length) {
+                break;
+            }
+        }
         return tokens;
     }
-    int found = 0;
-    String[] tokenNames = {"refresh_token", "access_token", "id_token"};
-    String[] cookies = cookieString.split(";");
-
-    for (String cookie : cookies) {
-        int startI = 0;
-        if (cookie.charAt(0) == ' ') {
-            startI = 1;
-        }
-
-        if (cookie.startsWith(tokenNames[0], startI)) {
-            tokens.refresh_token = cookie.substring(tokenNames[0].length() + 1 + startI, cookie.length());
-            found += 1;
-        } else if (cookie.startsWith(tokenNames[1], startI)) {
-            tokens.access_token = cookie.substring(tokenNames[1].length() + 1 + startI, cookie.length()); 
-            found += 1;
-        } else if (cookie.startsWith(tokenNames[2], startI)) {
-            tokens.id_token = cookie.substring(tokenNames[2].length() + 1 + startI, cookie.length()); 
-            found += 1;
-        }
-        if (found == tokenNames.length) {break;}
-    }
-    return tokens;
-  }
 }

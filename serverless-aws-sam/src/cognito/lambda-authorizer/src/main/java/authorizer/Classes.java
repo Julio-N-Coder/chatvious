@@ -1,33 +1,33 @@
 package authorizer;
 
 class APIGatewayTokenAuthorizerEvent {
-  private String type;
-  private String authorizationToken;
-  private String methodArn;
+    private String type;
+    private String authorizationToken;
+    private String methodArn;
 
-  public String getType() {
-      return type;
-  }
+    public String getType() {
+        return type;
+    }
 
-  public void setType(String type) {
-      this.type = type;
-  }
+    public void setType(String type) {
+        this.type = type;
+    }
 
-  public String getAuthorizationToken() {
-      return authorizationToken;
-  }
+    public String getAuthorizationToken() {
+        return authorizationToken;
+    }
 
-  public void setAuthorizationToken(String authorizationToken) {
-      this.authorizationToken = authorizationToken;
-  }
+    public void setAuthorizationToken(String authorizationToken) {
+        this.authorizationToken = authorizationToken;
+    }
 
-  public String getMethodArn() {
-      return methodArn;
-  }
+    public String getMethodArn() {
+        return methodArn;
+    }
 
-  public void setMethodArn(String methodArn) {
-      this.methodArn = methodArn;
-  }
+    public void setMethodArn(String methodArn) {
+        this.methodArn = methodArn;
+    }
 }
 
 class Policy {
@@ -101,7 +101,7 @@ class Policy {
         public int auth_time;
         public long exp;
         public long iat;
-        public String  jti;
+        public String jti;
         public String access_token;
         public String id_token;
     }
