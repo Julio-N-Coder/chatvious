@@ -17,6 +17,15 @@ async fn function_handler(event: LambdaEvent<Value>) -> Result<Response, Error> 
         String::from("Content-Type"),
         String::from("application/json"),
     );
+    headers.insert("Access-Control-Allow-Origin".to_string(), "*".to_string());
+    headers.insert(
+        "Access-Control-Allow-Headers".to_string(),
+        "Content-Type".to_string(),
+    );
+    headers.insert(
+        "Access-Control-Allow-Methods".to_string(),
+        "OPTIONS,POST,GET".to_string(),
+    );
 
     // validate body
     let (body, headers) = match sign_up_in::validate_body(request, headers) {

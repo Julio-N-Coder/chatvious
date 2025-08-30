@@ -200,7 +200,7 @@ expected_code="200"
 # SignUpSignIn Tests
 if [ ! -d "${SERVERLESS_BASE_DIR}/.aws-sam/build/SignUpSignIn" ]; then
 	cd "$SERVERLESS_BASE_DIR"
-	echo "${GREEN}SignUpSignIn not built, building SignUpSignIn${RESET}"
+	echo -e "${GREEN}SignUpSignIn not built, building SignUpSignIn${RESET}"
 	sam build SignUpSignIn
 fi
 
@@ -211,7 +211,7 @@ SignUpSignIn_function "signin"
 # TokenRefresh Test
 if [ ! -d "${SERVERLESS_BASE_DIR}/.aws-sam/build/TokenRefresh" ]; then
 	cd "$SERVERLESS_BASE_DIR"
-	echo "${GREEN}TokenRefresh not built, building TokenRefresh${RESET}"
+	echo -e "${GREEN}TokenRefresh not built, building TokenRefresh${RESET}"
 	sam build TokenRefresh
 fi
 

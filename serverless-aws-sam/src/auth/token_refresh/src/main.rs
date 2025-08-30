@@ -17,11 +17,23 @@ async fn function_handler(event: LambdaEvent<Value>) -> Result<Response, Error> 
         String::from("Content-Type"),
         String::from("application/json"),
     );
+    headers.insert("Access-Control-Allow-Origin".to_string(), "*".to_string());
+    headers.insert(
+        "Access-Control-Allow-Headers".to_string(),
+        "Content-Type".to_string(),
+    );
+    headers.insert(
+        "Access-Control-Allow-Methods".to_string(),
+        "OPTIONS,POST,GET".to_string(),
+    );
 
-    // check if Content-Type header is application/json
+    // check if Content-Type header is application/json. Can be lowercase
     if let Some(request_headers) = &request.headers {
-        if let Some(content_type) = request_headers.get("Content-Type") {
-            if !content_type.eq("application/json") {
+        if let Some(content_type) = request_headers
+            .get("Content-Type")
+            .or_else(|| request_headers.get("content-type"))
+        {
+            if !content_type.eq_ignore_ascii_case("application/json") {
                 return auth_lib::return_error(headers, 400, "Invalid Content-Type");
             }
         } else {
