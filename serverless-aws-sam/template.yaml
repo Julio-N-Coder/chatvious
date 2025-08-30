@@ -725,54 +725,6 @@ Resources:
     Metadata:
       BuildMethod: rust-cargolambda
 
-  callback:
-    Type: AWS::Serverless::Function
-    Properties:
-      Description: Callback route to exchange cognito auth codes for tokens
-      FunctionName: Chatvious_callback
-      Architectures:
-        - x86_64
-      MemorySize: 128
-      Timeout: 10
-      CodeUri: ./src
-      Handler: cognito/callback/callback.handler
-      Runtime: provided.al2023
-      Layers:
-        - !Ref LlrtLayer
-      Environment:
-        Variables:
-          COGNITO_DOMAIN: !Sub https://${UserPoolDomain}.auth.${AWS::Region}.amazoncognito.com
-          USER_POOL_ID: !Ref UserPool
-          USER_POOL_CLIENT_ID: !Ref UserPoolClient
-          USER_POOL_ARN: !GetAtt UserPool.Arn
-          CALLBACK_URL: https://chatvious.coding-wielder.com/callback
-      Events:
-        ChatviousRestApiGETcallback:
-          Type: Api
-          Properties:
-            Path: /callback
-            Method: GET
-            RestApiId: !Ref ChatviousRestApi
-            Auth:
-              Authorizer: NONE
-        ChatviousRestApiOPTIONSCallback:
-          Type: Api
-          Properties:
-            Path: /callback
-            Method: OPTIONS
-            RestApiId: !Ref ChatviousRestApi
-            Auth:
-              Authorizer: NONE
-    Metadata:
-      BuildMethod: esbuild
-      BuildProperties:
-        External:
-          - "@aws-sdk"
-        Minify: true
-        Bundle: true
-        Target: es2020
-        Sourcemap: false
-
   LambdaAuthorizer:
     Type: AWS::Serverless::Function
     Properties:
@@ -1155,69 +1107,6 @@ Resources:
         ThrottlingBurstLimit: 10
         ThrottlingRateLimit: 15
 
-  saveUserDataFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      CodeUri: ./src
-      Handler: cognito/post-signUp-trigger/saveUserData.handler
-      Runtime: provided.al2023
-      Layers:
-        - !Ref LlrtLayer
-      MemorySize: 128
-      Timeout: 4
-      Architectures:
-        - x86_64
-      Policies:
-        - DynamoDBCrudPolicy:
-            TableName: !Ref ChatviousTable
-      Environment:
-        Variables:
-          CHATVIOUSTABLE_TABLE_NAME: !Ref ChatviousTable
-          CHATVIOUSTABLE_TABLE_ARN: !GetAtt ChatviousTable.Arn
-      Events:
-        CognitoUserPoolPostConfirmationTrigger:
-          Type: Cognito
-          Properties:
-            UserPool: !Ref UserPool
-            Trigger: PostConfirmation
-    Metadata:
-      BuildMethod: esbuild
-      BuildProperties:
-        External:
-          - "@aws-sdk"
-        Minify: true
-        Target: es2020
-        Sourcemap: false
-
-  CognitoPreSignUp:
-    Type: AWS::Serverless::Function
-    Properties:
-      Description: A Cognito PreSignUp trigger for custom user input validation
-      CodeUri: ./src
-      Handler: cognito/pre-signUp-trigger/index.handler
-      Runtime: provided.al2023
-      Layers:
-        - !Ref LlrtLayer
-      MemorySize: 128
-      Timeout: 6
-      Architectures:
-        - x86_64
-      Events:
-        CognitoUserPoolPreSignup:
-          Type: Cognito
-          Properties:
-            UserPool: !Ref UserPool
-            Trigger: PreSignUp
-    Metadata:
-      BuildMethod: esbuild
-      BuildProperties:
-        External:
-          - "@aws-sdk"
-        Minify: true
-        Bundle: true
-        Target: es2020
-        Sourcemap: false
-
   UserPool:
     Type: AWS::Cognito::UserPool
     Properties:
@@ -1376,7 +1265,8 @@ Metadata:
         - promoteOrDemoteUser
         - fetchNewMessages
         - deleteAccount
-        - callback
+        - SignUpSignIn
+        - TokenRefresh
     Group2:
       Label: EJS Page Renderers
       Members:
@@ -1405,11 +1295,6 @@ Metadata:
       Members:
         - CloudFrontDistribution
         - WebAppOriginAccessControl
-    Group6:
-      Label: UserPoolTriggers
-      Members:
-        - saveUserDataFunction
-        - CognitoPreSignUp
 
 Outputs:
   DynamoDBTableName:
