@@ -62,8 +62,8 @@ class MockSSMHandler(BaseHTTPRequestHandler):
             parameter_name = request_data.get("Name", "")
             with_decryption = request_data.get("WithDecryption", False)
 
-            if not with_decryption:
-                print("Make sure to specify to decrypt keys")
+            if with_decryption:
+                print("Make sure to not specify WithDecryption")
 
             if parameter_name in self.parameters:
                 param = self.parameters[parameter_name]

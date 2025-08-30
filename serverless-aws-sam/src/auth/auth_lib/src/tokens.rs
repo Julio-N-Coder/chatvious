@@ -186,7 +186,7 @@ async fn get_parameter(
 
 async fn retrieve_key_string(key_name: &str) -> Result<String, aws_sdk_ssm::Error> {
     let ssm_client = create_ssm_client().await;
-    get_parameter(&ssm_client, key_name, true).await
+    get_parameter(&ssm_client, key_name, false).await
 }
 
 // for refresh_tokens function, it connects to the ssm client 2 seperate times

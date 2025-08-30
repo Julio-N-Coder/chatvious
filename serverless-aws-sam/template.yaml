@@ -785,6 +785,13 @@ Resources:
       Runtime: provided.al2023
       Architectures:
         - x86_64
+      Policies:
+        - Version: "2012-10-17"
+          Statement:
+            - Effect: Allow
+              Action:
+                - ssm:GetParameter
+              Resource: !Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter${JwtPrivateKeyParameter}
       Environment:
         Variables:
           SSM_ENDPOINT_URL: ""
@@ -796,6 +803,14 @@ Resources:
       # SecureString not supported by cloudformation
       Type: String
       Description: Private key for signing JWTs.
+      Value: !Ref JwtPrivateKey
+
+  JwtPublicKeyParameter:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: /chatvious/public_key
+      Type: String
+      Description: Public key for verifing JWTs.
       Value: !Ref JwtPrivateKey
 
   ChatviousRestApi:
