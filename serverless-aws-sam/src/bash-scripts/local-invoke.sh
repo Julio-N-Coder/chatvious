@@ -23,8 +23,6 @@ verify_lambda_function_exists "$TARGET"
 source "${SCRIPT_DIR}/utils/mocks.sh"
 trap cleanup EXIT
 
-# Will add more for other functions
-
 if [ "$TARGET" = "SignUpSignIn" ]; then
 	start_dynamodb
 	start_mock_ssm
@@ -39,4 +37,17 @@ if [ "$TARGET" = "TokenRefresh" ]; then
 	body="{\"refresh_token\":\"${REFRESH_TOKEN}\"}"
 
 	rest_api_event_custom_common "GET" "/auth/token_refresh" "$body" | local_invoke_stdin "$TARGET"
+fi
+
+if [ "$TARGET" = "LambdaAuthorizer" ]; then
+	start_mock_ssm
+	cd "$SERVERLESS_BASE_DIR"
+
+	REFRESH_TOKEN=$(./src/utils/jwt/generate_jwt.sh)
+	cookie_token_string="refresh_token=${REFRESH_TOKEN}"
+	event_file="events/token_authorizer_event.json"
+
+	jq --arg cookie_string "$cookie_token_string" \
+		'.authorizationToken = $cookie_string' \
+		"$event_file" | local_invoke_stdin "$TARGET"
 fi
