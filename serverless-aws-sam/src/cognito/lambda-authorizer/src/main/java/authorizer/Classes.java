@@ -91,17 +91,16 @@ class Policy {
 
     public static class Context {
         public String sub;
+        public String aud;
         public String username;
         public String email = "";
         public String iss;
         public String client_id;
-        public String origin_jti;
-        public String event_id;
         public String token_use;
-        public int auth_time;
+        public long auth_time;
         public long exp;
         public long iat;
-        public String jti;
+        public String scope;
         public String access_token;
         public String id_token;
     }
