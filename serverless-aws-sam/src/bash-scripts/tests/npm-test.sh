@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # This script is a helper script for npm test to start up a dynamodb container
 # for them to use and run the correct test with the specified arguments
