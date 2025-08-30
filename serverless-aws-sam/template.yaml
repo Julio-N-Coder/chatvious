@@ -787,10 +787,7 @@ Resources:
         - x86_64
       Environment:
         Variables:
-          COGNITO_DOMAIN: !Sub https://${UserPoolDomain}.auth.${AWS::Region}.amazoncognito.com
-          USER_POOL_ID: !Ref UserPool
-          USER_POOL_CLIENT_ID: !Ref UserPoolClient
-          USER_POOL_ARN: !GetAtt UserPool.Arn
+          SSM_ENDPOINT_URL: ""
 
   JwtPrivateKeyParameter:
     Type: AWS::SSM::Parameter
