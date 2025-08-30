@@ -49,6 +49,14 @@ check_effect_allow() {
 	fi
 }
 
+check_effect_deny() {
+	if [[ "$statement_effect" != "Deny" ]]; then
+		echo -e "${RED}Policy Statement Effect is Allow" >&2
+		echo -e "$RESET" >&2
+		exit 1
+	fi
+}
+
 success_run() {
 	local refresh_only="$1"
 
@@ -97,6 +105,37 @@ success_run "all_tokens"
 check_access_token_is_null
 check_id_token_is_null
 check_effect_allow
+
+echo -e "${GREEN}Random Cookie String Test"
+echo -e "$RESET"
+
+cd "$SERVERLESS_BASE_DIR"
+REFRESH_TOKEN=$(./src/utils/jwt/generate_jwt.sh)
+event_file="events/token_authorizer_event.json"
+cookie_token_string="refresh_token=fake_token_value.random.fake; random=random_value"
+
+response="$(jq --arg cookie_string "$cookie_token_string" \
+	'.authorizationToken = $cookie_string' \
+	"$event_file" | local_invoke_stdin LambdaAuthorizer | tail -n 1)"
+
+if [[ "$(echo "$response" | jq -r '.principalId')" != "Unauthorized" ]]; then
+	echo -e "${RED}ERROR: principalId is not Unauthorized" >&2
+	echo -e "$RESET" >&2
+	exit 1
+fi
+
+context="$(echo "$response" | jq -c '.context')"
+if check_context; then
+	echo -e "${RED}ERROR: Context is not null or missing" >&2
+	echo -e "$RESET" >&2
+	exit 1
+fi
+
+policy_document=$(echo "$response" | jq -c '.policyDocument')
+statement="$(echo "$policy_document" | jq -c '.Statement[0]')"
+statement_effect="$(echo $statement | jq -r '.Effect')"
+
+check_effect_deny
 
 echo -e "${GREEN}Lambda Authorizer Tests Passed"
 echo -e "$RESET"
