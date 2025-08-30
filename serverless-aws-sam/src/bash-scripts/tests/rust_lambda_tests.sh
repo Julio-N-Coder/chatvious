@@ -33,6 +33,7 @@ start_dynamodb
 start_mock_ssm
 
 source "${BASH_SCRIPTS_DIR}/utils/sam-utils.sh"
+source "${BASH_SCRIPTS_DIR}/utils/test_utils.sh"
 
 is_resonse_valid_json() {
 	if ! echo "$response" | jq . >/dev/null 2>&1; then
@@ -71,20 +72,6 @@ get_refresh_token() {
 
 get_expires_in() {
 	echo "$body" | jq -r '.expires_in'
-}
-
-check_access_token() {
-	if [[ "$access_token" == "null" || -z "$access_token" ]]; then
-		echo "ERROR: access_token is missing or empty"
-		exit 1
-	fi
-}
-
-check_id_token() {
-	if [[ "$id_token" == "null" || -z "$id_token" ]]; then
-		echo "ERROR: id_token is missing or empty"
-		exit 1
-	fi
 }
 
 check_refresh_token() {
@@ -250,5 +237,5 @@ check_access_token
 check_id_token
 check_expires_in
 
-echo -e "${GREEN}Tests Passed"
+echo -e "${GREEN}Rust Tests Passed"
 echo -e "$RESET"

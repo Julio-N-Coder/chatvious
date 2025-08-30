@@ -110,7 +110,6 @@ public class JwtService {
             }
 
             // Verify claims - only check expiration
-            // Check expiration
             Object expObj = payloadMap.get("exp");
             long exp = expObj instanceof Number ? ((Number) expObj).longValue() : Long.parseLong(expObj.toString());
             if (Instant.now().getEpochSecond() >= exp) {
@@ -120,7 +119,6 @@ public class JwtService {
             return true;
 
         } catch (Exception e) {
-            System.err.println("verifyToken method error: " + e);
             return false;
         }
     }
