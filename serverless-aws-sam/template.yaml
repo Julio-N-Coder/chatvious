@@ -780,7 +780,7 @@ Resources:
       Description: The Lambda Authorizer for chatvious
       MemorySize: 128
       Timeout: 10
-      CodeUri: ./src/cognito/lambda-authorizer/target/function.zip
+      CodeUri: ./src/auth/lambda-authorizer/target/function.zip
       Handler: not.used.in.provided.runtime
       Runtime: provided.al2023
       Architectures:

@@ -2,7 +2,7 @@
 set -euo pipefail
 
 SCRIPT_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &>/dev/null && pwd)
-LAMBDA_AUTH_DIR="${SCRIPT_DIR}/src/cognito/lambda-authorizer"
+LAMBDA_AUTH_DIR="${SCRIPT_DIR}/src/auth/lambda-authorizer"
 
 # Default options
 DO_DEFAULT=true
