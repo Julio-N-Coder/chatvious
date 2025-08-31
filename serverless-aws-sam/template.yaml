@@ -806,6 +806,9 @@ Resources:
       Timeout: 10
       Architectures:
         - x86_64
+      Environment:
+        Variables:
+          SSM_ENDPOINT_URL: ""
     Metadata:
       BuildMethod: esbuild
       BuildProperties:

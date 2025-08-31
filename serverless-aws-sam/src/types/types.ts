@@ -228,17 +228,15 @@ type FetchNavUserInfoReturn = Promise<
 interface LambdaAuthorizerClaims {
   [stringKey: string]: string | number;
   sub: string;
-  username: string;
-  email: string;
   iss: string;
-  client_id: string;
-  origin_jti: string;
-  event_id: string;
-  token_use: "access" | "id";
-  auth_time: number;
+  aud: string;
   exp: number;
   iat: number;
-  jti: string;
+  token_use: "access" | "id";
+  scope: string;
+  auth_time: number;
+  username: string;
+  client_id: string;
 }
 
 type PostConfirmationEvent = {
@@ -430,20 +428,15 @@ type FetchAllMessagesReturn = BaseModelsReturnDataKey<
 
 interface AccessTokenPayload {
   sub: string;
-  device_key: string;
-  "cognito:groups": string[];
   iss: string;
-  version: number;
-  client_id: string;
-  origin_jti: string;
-  event_id: string;
+  aud: string;
+  exp: number;
+  iat: number;
   token_use: string;
   scope: string;
   auth_time: number;
-  exp: number;
-  iat: number;
-  jti: string;
   username: string;
+  client_id: string;
 }
 
 export {

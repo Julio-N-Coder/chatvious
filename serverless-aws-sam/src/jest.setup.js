@@ -29,6 +29,7 @@ if (dynamodbType === "local") {
   process.env.DOMAIN_URL = "http://localhost:3000";
   process.env.SUB_DOMAIN = "localhost";
   process.env.SUB_DOMAIN_URL = "http://localhost:8040";
+  process.env.SSM_ENDPOINT_URL = "http://host.docker.internal:8009";
 } else {
   console.log("Using remote DynamoDB");
   process.env.DYNAMODB_OPTIONS = JSON.stringify({});
