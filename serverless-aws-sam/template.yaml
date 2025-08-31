@@ -37,6 +37,10 @@ Parameters:
     Type: String
     Description: The private key to be stored in SSM Parameter Store for signing JWTs.
     NoEcho: true
+  JwtPublicKey:
+    Type: String
+    Description: The public key to be stored in SSM Parameter Store for verifying JWTs.
+    NoEcho: true
 
 Resources:
   ChatviousTable:
@@ -742,7 +746,7 @@ Resources:
       Name: /chatvious/public_key
       Type: String
       Description: Public key for verifing JWTs.
-      Value: !Ref JwtPrivateKey
+      Value: !Ref JwtPublicKey
 
   ChatviousRestApi:
     Type: AWS::Serverless::Api
