@@ -149,9 +149,6 @@ Resources:
         Variables:
           CHATVIOUSTABLE_TABLE_NAME: !Ref ChatviousTable
           CHATVIOUSTABLE_TABLE_ARN: !GetAtt ChatviousTable.Arn
-          USER_POOL_ID: !Ref UserPool
-          USER_POOL_CLIENT_ID: !Ref UserPoolClient
-          USER_POOL_ARN: !GetAtt UserPool.Arn
     Metadata:
       BuildMethod: makefile
 
@@ -181,9 +178,6 @@ Resources:
         Variables:
           CHATVIOUSTABLE_TABLE_NAME: !Ref ChatviousTable
           CHATVIOUSTABLE_TABLE_ARN: !GetAtt ChatviousTable.Arn
-          USER_POOL_ID: !Ref UserPool
-          USER_POOL_CLIENT_ID: !Ref UserPoolClient
-          USER_POOL_ARN: !GetAtt UserPool.Arn
     Metadata:
       BuildMethod: makefile
 
@@ -213,9 +207,6 @@ Resources:
         Variables:
           CHATVIOUSTABLE_TABLE_NAME: !Ref ChatviousTable
           CHATVIOUSTABLE_TABLE_ARN: !GetAtt ChatviousTable.Arn
-          USER_POOL_ID: !Ref UserPool
-          USER_POOL_CLIENT_ID: !Ref UserPoolClient
-          USER_POOL_ARN: !GetAtt UserPool.Arn
     Metadata:
       BuildMethod: makefile
 
@@ -235,9 +226,6 @@ Resources:
         Variables:
           CHATVIOUSTABLE_TABLE_NAME: !Ref ChatviousTable
           CHATVIOUSTABLE_TABLE_ARN: !GetAtt ChatviousTable.Arn
-          USER_POOL_ID: !Ref UserPool
-          USER_POOL_CLIENT_ID: !Ref UserPoolClient
-          USER_POOL_ARN: !GetAtt UserPool.Arn
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref ChatviousTable
@@ -609,12 +597,6 @@ Resources:
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref ChatviousTable
-        - Version: "2012-10-17"
-          Statement:
-            - Effect: Allow
-              Action:
-                - cognito-idp:AdminDeleteUser
-              Resource: !GetAtt UserPool.Arn
       Events:
         ChatviousRestApiPOSTuserdeleteAccount:
           Type: Api
@@ -626,9 +608,6 @@ Resources:
         Variables:
           CHATVIOUSTABLE_TABLE_NAME: !Ref ChatviousTable
           CHATVIOUSTABLE_TABLE_ARN: !GetAtt ChatviousTable.Arn
-          USER_POOL_ID: !Ref UserPool
-          USER_POOL_CLIENT_ID: !Ref UserPoolClient
-          USER_POOL_ARN: !GetAtt UserPool.Arn
     Metadata:
       BuildMethod: esbuild
       BuildProperties:
@@ -687,7 +666,7 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: Chatvious_TokenRefresh
-      Description: Callback route to exchange cognito auth codes for tokens
+      Description: TokenRefresh route to refresh tokens
       CodeUri: ./src/auth/token_refresh
       Handler: bootstrap
       Runtime: provided.al2023
@@ -823,12 +802,6 @@ Resources:
       Timeout: 10
       Architectures:
         - x86_64
-      Environment:
-        Variables:
-          COGNITO_DOMAIN: !Sub https://${UserPoolDomain}.auth.${AWS::Region}.amazoncognito.com
-          USER_POOL_ID: !Ref UserPool
-          USER_POOL_CLIENT_ID: !Ref UserPoolClient
-          USER_POOL_ARN: !GetAtt UserPool.Arn
     Metadata:
       BuildMethod: esbuild
       BuildProperties:
@@ -1107,75 +1080,6 @@ Resources:
         ThrottlingBurstLimit: 10
         ThrottlingRateLimit: 15
 
-  UserPool:
-    Type: AWS::Cognito::UserPool
-    Properties:
-      UserPoolName: !Sub ${AWS::StackName}-UserPool
-      AdminCreateUserConfig:
-        AllowAdminCreateUserOnly: false
-      AutoVerifiedAttributes:
-        - email
-      AliasAttributes:
-        - email
-      UsernameConfiguration:
-        CaseSensitive: false
-      Schema:
-        - AttributeDataType: String
-          Name: email
-          Required: true
-          Mutable: true
-      EmailConfiguration:
-        # Change to DEVELOPER once I setup ses and specify arn here by SourceArn parameter
-        EmailSendingAccount: COGNITO_DEFAULT
-  UserPoolPermission:
-    Type: AWS::Lambda::Permission
-    Properties:
-      Action: lambda:InvokeFunction
-      FunctionName: !Ref saveUserDataFunction
-      Principal: cognito-idp.amazonaws.com
-      SourceArn: !GetAtt UserPool.Arn
-  PreSignUpUserPoolPermission:
-    Type: AWS::Lambda::Permission
-    Properties:
-      Action: lambda:InvokeFunction
-      FunctionName: !Ref CognitoPreSignUp
-      Principal: cognito-idp.amazonaws.com
-      SourceArn: !GetAtt UserPool.Arn
-
-  UserPoolClient:
-    Type: AWS::Cognito::UserPoolClient
-    Properties:
-      ClientName: !Sub ${AWS::StackName}-UserPoolClient
-      GenerateSecret: false
-      UserPoolId: !Ref UserPool
-      ExplicitAuthFlows:
-        - ALLOW_USER_SRP_AUTH
-        - ALLOW_REFRESH_TOKEN_AUTH
-      PreventUserExistenceErrors: ENABLED
-      RefreshTokenValidity: 365
-      TokenValidityUnits:
-        RefreshToken: days
-      SupportedIdentityProviders:
-        - COGNITO
-      AllowedOAuthFlowsUserPoolClient: true
-      CallbackURLs:
-        - https://chatvious.coding-wielder.com/callback
-        - http://localhost:3000/callback
-      LogoutURLs:
-        - https://main.chatvious.coding-wielder.com
-        - http://localhost:8040
-      AllowedOAuthFlows:
-        - code
-      AllowedOAuthScopes:
-        - email
-        - openid
-
-  UserPoolDomain:
-    Type: AWS::Cognito::UserPoolDomain
-    Properties:
-      Domain: chatvious
-      UserPoolId: !Ref UserPool
-
   StaticWebBucket:
     Type: AWS::S3::Bucket
     Properties:
@@ -1304,25 +1208,6 @@ Outputs:
   WebSocketURI:
     Description: The WSS Protocol URI to connect to
     Value: !Sub wss://${WebsocketApiDomain}
-
-  UserPoolId:
-    Description: Cognito User Pool ID
-    Value: !Ref UserPool
-  UserPoolClientId:
-    Description: Cognito User Pool Application Client ID
-    Value: !Ref UserPoolClient
-  UserPoolDomain:
-    Description: Cognito User Pool Domain
-    Value: !Ref UserPoolDomain
-  UserPoolDomainURL:
-    Description: Cognito User Pool Application Client Hosted Domain URL
-    Value: !Sub https://${UserPoolDomain}.auth.${AWS::Region}.amazoncognito.com
-  CognitoLoginURL:
-    Description: Cognito User Pool Application Client Hosted Login UI URL
-    Value: !Sub https://${UserPoolDomain}.auth.${AWS::Region}.amazoncognito.com/login?client_id=${UserPoolClient}&response_type=code&redirect_uri=https://chatvious.coding-wielder.com/callback
-  CognitoSignUpURL:
-    Description: Cognito User Pool Application Client Hosted Sign Up UI URL
-    Value: !Sub https://${UserPoolDomain}.auth.${AWS::Region}.amazoncognito.com/signup?client_id=${UserPoolClient}&response_type=code&redirect_uri=https://chatvious.coding-wielder.com/callback
 
   StaticWebAppDomain:
     Value: !GetAtt CloudFrontDistribution.DomainName
