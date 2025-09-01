@@ -1,53 +1,102 @@
-import { handler } from "../websocket-auth.js";
-import { jest, describe, test, expect, afterEach } from "@jest/globals";
-import { CognitoJwtVerifier } from "aws-jwt-verify";
-import wsRequestAuthorizerEventBase from "../../../../events/wsRequestAuthorizerEvent.json";
 import {
+  jest,
+  describe,
+  test,
+  expect,
+  beforeEach,
+  beforeAll,
+} from "@jest/globals";
+import * as jose from "jose";
+import { mockClient } from "aws-sdk-client-mock";
+import {
+  SSMClient,
+  GetParameterCommand,
+  GetParameterResult,
+} from "@aws-sdk/client-ssm";
+import wsRequestAuthorizerEventBase from "../../../../events/wsRequestAuthorizerEvent.json";
+import { APIGatewayAuthorizerResult } from "aws-lambda";
+import type {
   APIGatewayWebSocketAuthorizerEvent,
   LambdaAuthorizerClaims,
 } from "../../../types/types.js";
 import { buildPolicy } from "../../../lib/handyUtils.js";
 
-let wsRequestAuthorizerEvent: APIGatewayWebSocketAuthorizerEvent = JSON.parse(
-  JSON.stringify(wsRequestAuthorizerEventBase)
-);
+// define mock functions here, but we will apply the mock inside the test suite.
+const mockJwtVerify = jest.fn() as unknown as jest.MockedFunction<
+  typeof jose.jwtVerify
+>;
+const mockImportSPKI = jest.fn() as unknown as jest.MockedFunction<
+  typeof jose.importSPKI
+>;
 
-let access_token = "FakeAccessToken";
-wsRequestAuthorizerEvent.queryStringParameters = {
-  access_token,
-};
+// declare handler here and will dynamically import it after the mocks are in place
+let handler: (
+  event: APIGatewayWebSocketAuthorizerEvent
+) => Promise<APIGatewayAuthorizerResult>;
 
-const fakeAccessTokenPayload: LambdaAuthorizerClaims = {
-  sub: "1234567890",
-  username: "testuser",
-  email: "test@example.com",
-  iss: "https://example.com",
-  client_id: "my-client-id",
-  origin_jti: "origin-jti-value",
-  event_id: "event-id-value",
-  token_use: "access",
-  auth_time: 1658294400,
-  exp: 1658298000,
-  iat: 1658294400,
-  jti: "jwt-id-value",
-};
+const ssmMock = mockClient(SSMClient);
 
 describe("Tests for the Websocket Lambda authorizer", () => {
-  afterEach(() => {
-    wsRequestAuthorizerEvent.queryStringParameters = {
-      access_token,
-    };
+  beforeAll(async () => {
+    // Explicitly mock jose module first with our object
+    jest.unstable_mockModule("jose", () => ({
+      __esModule: true,
+      jwtVerify: mockJwtVerify,
+      importSPKI: mockImportSPKI,
+    }));
+
+    // Dynamically import the handler.
+    const module = await import("../websocket-auth.js");
+    handler = module.handler;
+  });
+
+  let wsRequestAuthorizerEvent: APIGatewayWebSocketAuthorizerEvent;
+  const access_token = "FakeAccessToken";
+
+  const fakeAccessTokenPayload: LambdaAuthorizerClaims = {
+    sub: "1234567890",
+    aud: "chatvious-app",
+    exp: Math.floor(Date.now() / 1000) + 3600,
+    iat: Math.floor(Date.now() / 1000) - 60,
+    iss: "chatvious",
+    username: "testuser",
+    client_id: "my-client-id",
+    token_use: "access",
+    auth_time: Math.floor(Date.now() / 1000) - 60,
+    scope: "openid profile email",
+  };
+
+  const mockPublicKeyPem = `-----BEGIN PUBLIC KEY-----
+MCowBQYDK2VwAyEAGb9ECWmEzf6FQbrBZ9w7lshQhqowtrbLDFw4rXAxZuE=
+-----END PUBLIC KEY-----\n`;
+
+  const mockPublicKey = {} as CryptoKey;
+
+  beforeEach(() => {
     jest.clearAllMocks();
+    ssmMock.reset();
+
+    // Re-apply default successful mocks
+    ssmMock.on(GetParameterCommand).resolves({
+      Parameter: { Value: mockPublicKeyPem },
+    } as GetParameterResult);
+    mockImportSPKI.mockResolvedValue(mockPublicKey);
+
+    wsRequestAuthorizerEvent = JSON.parse(
+      JSON.stringify(wsRequestAuthorizerEventBase)
+    );
+    wsRequestAuthorizerEvent.queryStringParameters = { access_token };
   });
 
   test("Should return a policy document allowing the connection", async () => {
-    // @ts-ignore
-    CognitoJwtVerifier.create = jest.fn(() => ({
-      // @ts-ignore
-      verify: jest.fn().mockResolvedValue(fakeAccessTokenPayload),
-    }));
+    mockJwtVerify.mockResolvedValue({
+      payload: fakeAccessTokenPayload,
+      protectedHeader: { alg: "EdDSA" },
+      key: mockPublicKey,
+    });
 
     const policy = await handler(wsRequestAuthorizerEvent);
+
     expect(policy).toEqual(
       buildPolicy(
         fakeAccessTokenPayload.sub,
@@ -56,17 +105,33 @@ describe("Tests for the Websocket Lambda authorizer", () => {
         fakeAccessTokenPayload
       )
     );
+    expect(ssmMock.calls()).toHaveLength(1);
+    expect(mockImportSPKI).toHaveBeenCalledWith(mockPublicKeyPem, "EdDSA");
+    expect(mockJwtVerify).toHaveBeenCalledWith(access_token, mockPublicKey, {
+      algorithms: ["EdDSA"],
+    });
   });
 
   test("should return a deny policy if token verification fails", async () => {
-    // @ts-ignore
-    CognitoJwtVerifier.create = jest.fn(() => ({
-      verify: jest
-        .fn()
-        // @ts-ignore
-        .mockRejectedValue(new Error("Token verification failed")),
-    }));
+    mockJwtVerify.mockRejectedValue(new Error("Token verification failed"));
+    const policy = await handler(wsRequestAuthorizerEvent);
+    expect(policy).toEqual(
+      buildPolicy("Unauthorized", "Deny", wsRequestAuthorizerEvent.methodArn)
+    );
+  });
 
+  test("should return a deny policy if SSM parameter retrieval fails", async () => {
+    ssmMock
+      .on(GetParameterCommand)
+      .rejects(new Error("SSM parameter not found"));
+    const policy = await handler(wsRequestAuthorizerEvent);
+    expect(policy).toEqual(
+      buildPolicy("Unauthorized", "Deny", wsRequestAuthorizerEvent.methodArn)
+    );
+  });
+
+  test("should return a deny policy if public key import fails", async () => {
+    mockImportSPKI.mockRejectedValue(new Error("Invalid public key format"));
     const policy = await handler(wsRequestAuthorizerEvent);
     expect(policy).toEqual(
       buildPolicy("Unauthorized", "Deny", wsRequestAuthorizerEvent.methodArn)
@@ -77,7 +142,14 @@ describe("Tests for the Websocket Lambda authorizer", () => {
     wsRequestAuthorizerEvent.queryStringParameters = {
       tokens: JSON.stringify({ someRandomKey: "someRandomValue" }),
     };
+    const policy = await handler(wsRequestAuthorizerEvent);
+    expect(policy).toEqual(
+      buildPolicy("Unauthorized", "Deny", wsRequestAuthorizerEvent.methodArn)
+    );
+  });
 
+  test("No query string parameters should return a deny policy", async () => {
+    wsRequestAuthorizerEvent.queryStringParameters = undefined;
     const policy = await handler(wsRequestAuthorizerEvent);
     expect(policy).toEqual(
       buildPolicy("Unauthorized", "Deny", wsRequestAuthorizerEvent.methodArn)
