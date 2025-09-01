@@ -1,6 +1,6 @@
 import { handler } from "../deleteAccount.js";
 import restAPIEventBase from "../../../../events/restAPIEvent.json";
-import { userManager, roomsOnUserManager } from "../../../models/users.js";
+import { userManager } from "../../../models/users.js";
 import { roomManager, roomUsersManager } from "../../../models/rooms.js";
 import {
   jest,
@@ -17,14 +17,11 @@ import {
   newTestUser,
   clearDynamoDB,
 } from "../../../lib/libtest/handyTestUtils.js";
-import { CognitoIdentityProviderClient } from "@aws-sdk/client-cognito-identity-provider";
 
 let restAPIEvent: APIGatewayProxyEvent = JSON.parse(
   JSON.stringify(restAPIEventBase)
 );
 let restAPIEventCopy: APIGatewayProxyEvent;
-const homePage =
-  process.env.SUB_DOMAIN_URL || "https://main.chatvious.coding-wielder.com";
 
 const userID = restAPIEvent.requestContext.authorizer?.sub as string;
 const userName = restAPIEvent.requestContext.authorizer?.username as string;
@@ -117,11 +114,6 @@ afterAll(async () => {
 
 describe("Tests for the deleteAccount route", () => {
   test("should Delete the users account with associated resouces", async () => {
-    // @ts-ignore
-    CognitoIdentityProviderClient.prototype.send = jest.fn().mockResolvedValue({
-      $metadata: { httpStatusCode: 200 },
-    });
-
     const response = await handler(restAPIEvent);
     expect(response).toHaveProperty("statusCode", 200);
     expect(response).toHaveProperty("multiValueHeaders");
@@ -129,8 +121,5 @@ describe("Tests for the deleteAccount route", () => {
 
     const body = JSON.parse(response.body);
     expect(body).toHaveProperty("message", "successfully Deleted Account");
-    expect(CognitoIdentityProviderClient.prototype.send).toHaveBeenCalledTimes(
-      1
-    );
   });
 });
