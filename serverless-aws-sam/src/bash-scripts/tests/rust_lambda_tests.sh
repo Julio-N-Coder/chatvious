@@ -6,6 +6,7 @@ SERVERLESS_BASE_DIR="$(dirname "$(dirname "$BASH_SCRIPTS_DIR")")"
 RUST_AUTH_DIR="${SERVERLESS_BASE_DIR}/src/auth"
 
 GREEN='\033[1;32m'
+RED='\033[1;31m'
 RESET='\033[0m'
 
 # unit tests
@@ -37,7 +38,7 @@ source "${BASH_SCRIPTS_DIR}/utils/test_utils.sh"
 
 is_resonse_valid_json() {
 	if ! echo "$response" | jq . >/dev/null 2>&1; then
-		echo "❌ FAILED: Output was not valid JSON."
+		echo -e "${RED}FAILED: Output was not valid JSON.${RESET}" >&2
 		echo "   Output: $response"
 		exit 1
 	fi
@@ -45,15 +46,16 @@ is_resonse_valid_json() {
 
 body_validation() {
 	if [[ -z "$body" || "$body" == "null" ]]; then
-		echo "ERROR: Response body is missing"
+		echo -e "${RED}ERROR: Response body is missing" >&2
+		echo -e "${RESET}" >&2
 		return 1
 	fi
 }
 
 check_status_code() {
 	if [ ! "$actual_code" -eq "$expected_code" ]; then
-		echo "❌ FAILED: Expected status code $expected_code, but got $actual_code."
-		echo "   Response: $response"
+		echo -e "${RED}FAILED: Expected status code $expected_code, but got $actual_code.${RESET}" >&2
+		echo "   Response: $response" >&2
 		exit 1
 	fi
 }
@@ -74,18 +76,45 @@ get_expires_in() {
 	echo "$body" | jq -r '.expires_in'
 }
 
+get_cookie_value() {
+    local name="$1"
+    echo "$cookies" | grep "^$name=" | sed -E "s/^$name=([^;]+).*/\1/"
+}
+
 check_refresh_token() {
 	if [[ "$refresh_token" == "null" || -z "$refresh_token" ]]; then
-		echo "ERROR: refresh_token is missing or empty"
+		echo -e "${RED}ERROR: refresh_token is missing or empty" >&2
+		echo -e "$RESET" >&2
 		exit 1
 	fi
 }
 
 check_expires_in() {
 	if [[ "$expires_in" == "null" || -z "$expires_in" ]]; then
-		echo "ERROR: expires_in is missing or empty"
+		echo -e "${RED}ERROR: expires_in is missing or empty" >&2
+		echo -e "$RESET" >&2
 		exit 1
 	fi
+}
+
+check_cookie_attr() {
+    local name="$1"
+    local attr="$2"
+    local expected="$3"
+
+    local line
+    line=$(echo "$cookies" | grep "^$name=")
+    if ! echo "$line" | grep -q "$attr=$expected"; then
+        echo -e "${RED}ERROR: $name cookie missing expected $attr=$expected${RESET}" >&2
+        echo "Got: $line" >&2
+        exit 1
+    fi
+}
+
+check_common_cookie_attrs() {
+	local name="$1"
+	check_cookie_attr "$name" "Domain" "localhost"
+	check_cookie_attr "$name" "Path" "/"
 }
 
 decode_jwt_payload() {
@@ -114,13 +143,15 @@ get_user_sub() {
 	local payload=$(decode_jwt_payload "$token")
 
 	if [[ -z "$payload" ]]; then
-		echo "ERROR: Failed to decode JWT token" >&2
+		echo -e "${RED}ERROR: Failed to decode JWT token" >&2
+		echo -e "${RESET}" >&2
 		return 1
 	fi
 
 	local sub=$(echo "$payload" | jq -r '.sub // empty')
 	if [[ -z "$sub" ]]; then
-		echo "ERROR: No 'sub' field found in token" >&2
+		echo -e "${RED}ERROR: No 'sub' field found in token" >&2
+		echo -e "${RESET}" >&2
 		return 1
 	fi
 
@@ -140,7 +171,8 @@ check_user_exists_in_dynamo() {
 	# Check if item was found
 	local item=$(echo "$dynamo_response" | jq -r '.Item // empty')
 	if [[ -z "$item" || "$item" == "null" ]]; then
-		echo "ERROR: User not found in DynamoDB table" >&2
+		echo -e "${RED}ERROR: User not found in DynamoDB table" >&2
+		echo -e "${RESET}" >&2
 		exit 1
 	fi
 
@@ -156,7 +188,8 @@ dynamodb_signin_user_check() {
 	echo "=== Extracting user information ==="
 	local user_sub=$(get_user_sub "$access_token")
 	if [[ $? -ne 0 || -z "$user_sub" ]]; then
-		echo "ERROR: Failed to extract user sub from access token" >&2
+		echo -e "${RED}ERROR: Failed to extract user sub from access token" >&2
+		echo -e "${RESET}" >&2
 		exit 1
 	fi
 
@@ -193,6 +226,19 @@ SignUpSignIn_function() {
 	check_id_token
 	check_refresh_token
 	check_expires_in
+
+	cookies=$(echo "$response" | jq -r '.multiValueHeaders["Set-Cookie"][]')
+	access_token=$(get_cookie_value "access_token")
+	id_token=$(get_cookie_value "id_token")
+	refresh_token=$(get_cookie_value "refresh_token")
+
+	check_access_token
+	check_id_token
+	check_refresh_token
+
+	check_common_cookie_attrs "access_token"
+	check_common_cookie_attrs "id_token"
+	check_common_cookie_attrs "refresh_token"
 }
 
 expected_code="200"
@@ -236,6 +282,16 @@ expires_in=$(get_expires_in)
 check_access_token
 check_id_token
 check_expires_in
+
+cookies=$(echo "$response" | jq -r '.multiValueHeaders["Set-Cookie"][]')
+access_token=$(get_cookie_value "access_token")
+id_token=$(get_cookie_value "id_token")
+
+check_access_token
+check_id_token
+
+check_common_cookie_attrs "access_token"
+check_common_cookie_attrs "id_token"
 
 echo -e "${GREEN}Rust Tests Passed"
 echo -e "$RESET"
