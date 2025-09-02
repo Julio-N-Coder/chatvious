@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef } from "react";
-import Navbar from "../components/navbar/navbar";
 import { SignUp, LogIn } from "../components/sign-up-log-in";
 import { signOut, checkAuthStatus } from "../lib/auth";
 
@@ -104,7 +103,6 @@ export default function App() {
 
   return (
     <div ref={containerRef} className="flex flex-col h-screen antialiased">
-      <Navbar />
       {/* Main */}
       <div
         onMouseMove={(e) => {

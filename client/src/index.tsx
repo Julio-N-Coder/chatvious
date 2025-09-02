@@ -1,29 +1,30 @@
 import "./styles.css";
-// import "./fonts/Roboto-Regular.ttf";
 import { createRoot } from "react-dom/client";
 import React, { lazy, Suspense } from "react";
 import App from "./app";
 const About = lazy(() => import("./about/about"));
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
-import Navbar from "../components/navbar/navbar";
+import Container from "./Container";
 
 const router = createBrowserRouter([
   {
     path: "/",
-    element: <App />,
-  },
-  {
-    path: "/about",
-    element: (
-      <>
-        <Navbar />
-        <Suspense
-          fallback={<div className="container mx-auto">Loading...</div>}
-        >
-          <About />
-        </Suspense>
-      </>
-    ),
+    Component: Container,
+    children: [
+      { index: true, Component: App },
+      {
+        path: "about",
+        element: (
+          <>
+            <Suspense
+              fallback={<div className="container mx-auto">Loading...</div>}
+            >
+              <About />
+            </Suspense>
+          </>
+        ),
+      },
+    ],
   },
 ]);
 
