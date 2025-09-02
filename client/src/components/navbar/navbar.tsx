@@ -25,7 +25,7 @@ export default function Navbar() {
   }, []);
 
   return (
-    <nav className="px-2 md:px-4 lg:px-10 py-4 flex justify-between navbar bg-base-300 gap-2">
+    <nav className="px-2 md:px-4 lg:px-10 py-4 flex justify-between bg-base-300 gap-2">
       {/* left side div */}
       <div className="flex xsm:gap-2 items-center">
         {/* 3 line nav icon */}

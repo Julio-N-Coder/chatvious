@@ -102,7 +102,7 @@ export default function App() {
   }, []);
 
   return (
-    <div ref={containerRef} className="flex flex-col h-screen antialiased">
+    <div ref={containerRef} className="flex flex-grow">
       {/* Main */}
       <div
         onMouseMove={(e) => {

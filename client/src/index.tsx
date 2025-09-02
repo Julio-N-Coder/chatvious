@@ -11,7 +11,6 @@ const router = createBrowserRouter([
     path: "/",
     Component: Container,
     children: [
-      { index: true, Component: App },
       {
         path: "about",
         element: (
@@ -25,6 +24,12 @@ const router = createBrowserRouter([
         ),
       },
     ],
+  },
+  // flex container below is to center elements with navbar on screen
+  {
+    path: "/",
+    element: <Container className="min-h-screen flex flex-col" />,
+    children: [{ index: true, Component: App }],
   },
 ]);
 
