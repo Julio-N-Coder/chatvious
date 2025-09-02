@@ -1,7 +1,6 @@
 import React, { useEffect, useState, useRef } from "react";
 import { NavLink } from "react-router-dom";
 import { Sun, Moon } from "../sun-moon";
-import { SignUp, LogIn } from "../../components/sign-up-log-in";
 import { signOut, checkAuthStatus } from "../../lib/auth";
 
 export default function Navbar() {
@@ -126,11 +125,15 @@ export default function Navbar() {
           </button>
         ) : (
           <>
-            <SignUp className="btn btn-accent hidden sm:flex" />
+            <NavLink to="/signup" className="btn btn-accent hidden sm:flex">
+              Sign up
+            </NavLink>
             <p className="text-neutral-content divider divider-horizontal hidden sm:flex">
               or
             </p>
-            <LogIn className="btn btn-accent hidden sm:flex" />
+            <NavLink to="/login" className="btn btn-accent hidden sm:flex">
+              Log in
+            </NavLink>
           </>
         )}
         {/* thee dots login for small screens / buttons */}
@@ -156,10 +159,10 @@ export default function Navbar() {
             ) : (
               <>
                 <li>
-                  <SignUp />
+                  <NavLink to="/signup">Sign up</NavLink>
                 </li>
                 <li>
-                  <LogIn />
+                  <NavLink to="/login">Log in</NavLink>
                 </li>
               </>
             )}

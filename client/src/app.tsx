@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
-import { SignUp, LogIn } from "./components/sign-up-log-in";
 import { signOut, checkAuthStatus } from "./lib/auth";
+import { NavLink } from "react-router-dom";
 
 export default function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -134,8 +134,12 @@ export default function App() {
             </button>
           ) : (
             <>
-              <SignUp className="btn btn-accent" />
-              <LogIn className="btn btn-accent" />
+              <NavLink to="/signup" className="btn btn-accent">
+                Sign up
+              </NavLink>
+              <NavLink to="/login" className="btn btn-accent">
+                Log in
+              </NavLink>
             </>
           )}
         </div>
