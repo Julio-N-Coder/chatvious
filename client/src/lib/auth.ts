@@ -14,40 +14,18 @@ function getCookie(cookieName: string) {
   return "";
 }
 
-const client_id = process.env.USER_POOL_CLIENT_ID;
-const cognito_domain_url = process.env.COGNITO_DOMAIN_URL;
+function signOut() {
+  document.cookie =
+    "access_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+  document.cookie = "id_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+  document.cookie =
+    "refresh_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
 
-async function signOut() {
-  const refresh_token = getCookie("refresh_token");
+  const redirect_uri = process.env.IS_DEV_SERVER
+    ? "http://localhost:8040/"
+    : (process.env.SUB_DOMAIN_URL as string);
 
-  try {
-    const response = await fetch(`${cognito_domain_url}/oauth2/revoke`, {
-      method: "POST",
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/x-www-form-urlencoded",
-      },
-      body: `token=${refresh_token}&client_id=${client_id}`,
-    });
-
-    if (response.ok === true) {
-      document.cookie =
-        "access_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-      document.cookie =
-        "id_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-      document.cookie =
-        "refresh_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-
-      const redirect_uri = process.env.IS_DEV_SERVER
-        ? "http://localhost:8040/"
-        : (process.env.SUB_DOMAIN_URL as string);
-
-      window.location.href = redirect_uri;
-    }
-  } catch (error) {
-    // handle error and display it to ui
-    console.log(error);
-  }
+  window.location.href = redirect_uri;
 }
 
 function checkAuthStatus(
