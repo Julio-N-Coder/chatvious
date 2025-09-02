@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
-import { SignUp, LogIn } from "../components/sign-up-log-in";
-import { signOut, checkAuthStatus } from "../lib/auth";
+import { SignUp, LogIn } from "./components/sign-up-log-in";
+import { signOut, checkAuthStatus } from "./lib/auth";
 
 export default function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);

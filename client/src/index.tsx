@@ -2,7 +2,7 @@ import "./styles.css";
 import { createRoot } from "react-dom/client";
 import React, { lazy, Suspense } from "react";
 import App from "./app";
-const About = lazy(() => import("./about/about"));
+const About = lazy(() => import("./pages/about/about"));
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import Container from "./Container";
 
