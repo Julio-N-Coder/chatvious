@@ -5,6 +5,8 @@ import App from "./app";
 const About = lazy(() => import("./pages/about/about"));
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import Container from "./Container";
+import LoginPage from "./pages/auth-pages/LoginPage";
+import SignUpPage from "./pages/auth-pages/SignUpPage";
 
 const router = createBrowserRouter([
   {
@@ -29,7 +31,17 @@ const router = createBrowserRouter([
   {
     path: "/",
     element: <Container className="min-h-screen flex flex-col" />,
-    children: [{ index: true, Component: App }],
+    children: [
+      { index: true, Component: App },
+      {
+        path: "login",
+        Component: LoginPage,
+      },
+      {
+        path: "signup",
+        Component: SignUpPage,
+      },
+    ],
   },
 ]);
 
