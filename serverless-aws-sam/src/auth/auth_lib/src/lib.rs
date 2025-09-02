@@ -1,3 +1,4 @@
+use chrono::{Duration, Utc};
 use lambda_runtime::Error;
 use rand::Rng;
 use serde::{Deserialize, Serialize};
@@ -43,6 +44,8 @@ pub struct Body {
 #[derive(Serialize)]
 pub struct Response {
     pub headers: Option<HashMap<String, String>>,
+    #[serde(rename = "multiValueHeaders")]
+    pub multi_value_headers: Option<HashMap<String, Vec<String>>>,
     #[serde(rename = "statusCode")]
     pub status_code: i32,
     pub body: String,
@@ -69,12 +72,35 @@ pub fn return_error(
 ) -> Result<Response, Error> {
     Ok(Response {
         headers: Some(headers),
+        multi_value_headers: None,
         status_code,
         body: json!({
             "error": message
         })
         .to_string(),
     })
+}
+
+pub fn cookie(name: &str, value: &str, domain: &str, max_age: i64) -> String {
+    let expires = Utc::now() + Duration::seconds(max_age);
+
+    // Only add "Secure" if not running locally
+    let secure = if domain == "localhost" {
+        ""
+    } else {
+        "Secure; "
+    };
+
+    format!(
+        "{}={}; Domain={}; Path=/; Expires={}; Max-Age={}; {}{}SameSite=Lax",
+        name,
+        value,
+        domain,
+        expires.format("%a, %d %b %Y %H:%M:%S GMT"),
+        max_age,
+        "", // "HttpOnly; " is off for now
+        secure,
+    )
 }
 
 #[cfg(test)]

@@ -116,10 +116,36 @@ fn return_lambda_success(
     headers: HashMap<String, String>,
     token_set: TokenSet,
 ) -> Result<Response, Error> {
-    // I need to set other headers like cookies, etc.
+    let domain = std::env::var("DOMAIN").unwrap_or_else(|_| "localhost".to_string());
+    let mut multi_value_headers = HashMap::new();
+
+    let cookies = vec![
+        auth_lib::cookie(
+            "access_token",
+            &token_set.access_token,
+            &domain,
+            token_set.expires_in,
+        ),
+        auth_lib::cookie(
+            "id_token",
+            &token_set.id_token,
+            &domain,
+            token_set.expires_in,
+        ),
+        auth_lib::cookie(
+            "refresh_token",
+            &token_set.refresh_token,
+            &domain,
+            365 * 24 * 3600, // 1 year
+        ),
+    ];
+
+    multi_value_headers.insert("Set-Cookie".to_string(), cookies);
+
     Ok(Response {
-        headers: Some(headers),
         status_code: 200,
+        headers: Some(headers),
+        multi_value_headers: Some(multi_value_headers),
         body: serde_json::to_string(&token_set)?,
     })
 }
