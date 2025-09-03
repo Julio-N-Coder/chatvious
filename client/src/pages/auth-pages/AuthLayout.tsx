@@ -5,7 +5,15 @@ import SubmitButton from "../../components/SubmitButton";
 import { UserSvg, KeySvg } from "../../components/svg/Svg";
 import React from "react";
 
+// interface TokenResponse {
+//   access_token: string;
+//   id_token: string;
+//   refresh_token: string;
+//   expires_in: number; // in seconds
+// }
+
 export default function AuthLayout({ type }: { type: string }) {
+  const BACKEND_URL = process.env.DOMAIN_URL as String;
   let [formData, setFormData] = useState({
     username: "",
     password: "",
@@ -13,6 +21,13 @@ export default function AuthLayout({ type }: { type: string }) {
   let [isSubmiting, setIsSubmiting] = useState(false);
   let [hidePopUp, setHidePopUp] = useState(true);
   let [popUpMessage, setPopUpMessage] = useState("");
+  const statusMessages: { [index: number]: string } = {
+    400: "Bad Request",
+    401: "Unauthorized",
+    403: "Forbidden",
+    404: "Not Found",
+    500: "Internal Server Error",
+  };
 
   function handleChangeEvent(event: ChangeEvent<HTMLInputElement>) {
     const type = event.currentTarget.id;
@@ -62,7 +77,43 @@ export default function AuthLayout({ type }: { type: string }) {
 
     if (!validateData()) return;
 
-    console.log("handle data here");
+    const json_body = {
+      sign_up_or_in: type === "signup" ? "signup" : "signin",
+      ...formData,
+    };
+
+    // server already sets tokens in cookies and returns them in json body
+    let response: Response;
+    try {
+      response = await fetch(`${BACKEND_URL}/auth/signupin`, {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(json_body),
+      });
+
+      if (!response.ok) {
+        let message = await response.text();
+        if (!message || message.length < 1) {
+          message = "Failed. Reason: " + statusMessages[response.status];
+        }
+
+        console.error(message);
+        toggleSubmitState();
+        showPopUp(message);
+        return;
+      }
+
+      // const tokenResponse: TokenResponse = await response.json();
+
+      const redirect_uri = `${process.env.DOMAIN_URL}/dashboard`;
+      window.location.href = redirect_uri;
+    } catch (e: any) {
+      toggleSubmitState();
+      showPopUp("Failed, Reason: " + e.message);
+    }
   }
 
   return (
