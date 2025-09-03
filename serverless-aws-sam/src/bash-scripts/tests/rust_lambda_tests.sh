@@ -208,7 +208,7 @@ SignUpSignIn_function() {
 	echo -e "${GREEN}Running SignUpSignIn ${sign_up_or_in} Test"
 	echo -e "$RESET"
 
-	response="$(rest_api_event_custom_common "GET" "/auth/signinup" "$body" | local_invoke_stdin "SignUpSignIn" | tail -n 1)"
+	response="$(rest_api_event_custom_common "POST" "/auth/signinup" "$body" | local_invoke_stdin "SignUpSignIn" | tail -n 1)"
 	is_resonse_valid_json
 
 	actual_code=$(echo "$response" | jq '.statusCode')
@@ -266,7 +266,7 @@ body="{\"refresh_token\":\"${refresh_token}\"}"
 echo -e "${GREEN}Running TokenRefresh Test"
 echo -e "$RESET"
 
-response="$(rest_api_event_custom_common "GET" "/auth/token_refresh" "$body" | local_invoke_stdin "TokenRefresh" | tail -n 1)"
+response="$(rest_api_event_custom_common "POST" "/auth/token_refresh" "$body" | local_invoke_stdin "TokenRefresh" | tail -n 1)"
 is_resonse_valid_json
 
 actual_code=$(echo "$response" | jq '.statusCode')

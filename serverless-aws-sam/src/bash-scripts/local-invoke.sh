@@ -28,7 +28,7 @@ if [ "$TARGET" = "SignUpSignIn" ]; then
 	start_mock_ssm
 	body="{\"username\":\"test_user\", \"password\": \"1234\", \"sign_up_or_in\": \"signup\"}"
 
-	rest_api_event_custom_common "GET" "/auth/signinup" "$body" | local_invoke_stdin "$TARGET"
+	rest_api_event_custom_common "POST" "/auth/signinup" "$body" | local_invoke_stdin "$TARGET"
 fi
 
 if [ "$TARGET" = "TokenRefresh" ]; then

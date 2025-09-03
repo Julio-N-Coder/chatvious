@@ -11,13 +11,19 @@ use std::collections::HashMap;
 
 async fn function_handler(event: LambdaEvent<Value>) -> Result<Response, Error> {
     let request: auth_lib::Request = serde_json::from_value(event.payload)?;
+    let origin =
+        std::env::var("SUB_DOMAIN_URL").unwrap_or_else(|_| "http://localhost:8040".to_string());
 
     let mut headers = HashMap::new();
     headers.insert(
         String::from("Content-Type"),
         String::from("application/json"),
     );
-    headers.insert("Access-Control-Allow-Origin".to_string(), "*".to_string());
+    headers.insert("Access-Control-Allow-Origin".to_string(), origin);
+    headers.insert(
+        "Access-Control-Allow-Credentials".to_string(),
+        "true".to_string(),
+    );
     headers.insert(
         "Access-Control-Allow-Headers".to_string(),
         "Content-Type".to_string(),

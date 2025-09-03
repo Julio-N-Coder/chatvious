@@ -41,6 +41,9 @@ Parameters:
     Type: String
     Description: The public key to be stored in SSM Parameter Store for verifying JWTs.
     NoEcho: true
+  AllowedOrigin:
+    Type: String
+    Default: "http://localhost:8040"
 
 Resources:
   ChatviousTable:
@@ -651,7 +654,7 @@ Resources:
           Type: Api
           Properties:
             Path: /auth/signupin
-            Method: GET
+            Method: POST
             RestApiId: !Ref ChatviousRestApi
             Auth:
               Authorizer: NONE
@@ -693,7 +696,7 @@ Resources:
           Type: Api
           Properties:
             Path: /auth/token_refresh
-            Method: GET
+            Method: POST
             RestApiId: !Ref ChatviousRestApi
             Auth:
               Authorizer: NONE
@@ -778,7 +781,8 @@ Resources:
       Cors:
         AllowMethods: "'OPTIONS, POST, GET'"
         AllowHeaders: "'Content-Type,Cookie'"
-        AllowOrigin: "'*'"
+        AllowOrigin: !Sub "'${AllowedOrigin}'"
+        AllowCredentials: true
         MaxAge: 5
 
   WebSocketManageConnectionsPolicy:
