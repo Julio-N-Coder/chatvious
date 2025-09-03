@@ -9,7 +9,7 @@
     "fullBuild": "npm --prefix ../client run build && npm run build",
     "fullBuild:prod": "npm --prefix ../client run build:prod && npm run build:prod",
     "ejs-lint": "./ejs-lint.sh",
-    "static": "mkdir -p ../dist/public/ejs && cp ./public/client-ejs/ejs.min.js ../dist/public/ejs/ && concurrently 'node static.js' 'nodemon webSocket.js' 'webpack watch --node-env=development'",
+    "static": "mkdir -p ../dist/public/ejs && cp ./public/client-ejs/ejs.min.js ../dist/public/ejs/ && concurrently 'node static.js' 'nodemon webSocket.js' 'webpack watch --node-env=development' 'cd ../client && npm run watch'",
     "static:prod": "mkdir -p ../dist/public/ejs && cp ./public/client-ejs/ejs.min.js ../dist/public/ejs/ && concurrently 'node static.js' 'nodemon webSocket.js' 'webpack watch --mode=production --node-env=production'",
     "dev": "mkdir -p ../dist/public/ejs && cp ./public/client-ejs/ejs.min.js ../dist/public/ejs/ && concurrently 'node static.js' 'nodemon -e js,css,html,ejs --exec \"node script.js\"' 'nodemon webSocket.js' 'webpack watch --node-env=development'"
   },
