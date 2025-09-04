@@ -17,6 +17,7 @@ export default function AuthLayout({ type }: { type: string }) {
   let [formData, setFormData] = useState({
     username: "",
     password: "",
+    honeypot: false,
   });
   let [isSubmiting, setIsSubmiting] = useState(false);
   let [hidePopUp, setHidePopUp] = useState(true);
@@ -31,6 +32,15 @@ export default function AuthLayout({ type }: { type: string }) {
 
   function handleChangeEvent(event: ChangeEvent<HTMLInputElement>) {
     const type = event.currentTarget.id;
+
+    if (type === "honeypot") {
+      setFormData({
+        ...formData,
+        [type]: event.currentTarget.checked,
+      });
+      return;
+    }
+
     const value = event.currentTarget.value;
 
     setFormData({
@@ -42,6 +52,12 @@ export default function AuthLayout({ type }: { type: string }) {
   function validateData(): boolean {
     const username = formData.username;
     const password = formData.password;
+    const honeypot = formData.honeypot;
+
+    if (honeypot) {
+      toggleSubmitState();
+      return false;
+    }
     if (!username || username.length < 3 || username.length > 20) {
       console.error("Username not Valid");
       toggleSubmitState();
@@ -79,7 +95,8 @@ export default function AuthLayout({ type }: { type: string }) {
 
     const json_body = {
       sign_up_or_in: type === "signup" ? "signup" : "signin",
-      ...formData,
+      username: formData.username,
+      password: formData.password,
     };
 
     // server already sets tokens in cookies and returns them in json body
@@ -125,6 +142,12 @@ export default function AuthLayout({ type }: { type: string }) {
       />
       <div className="bg-base-200 p-4 rounded-2xl flex flex-col items-center gap-4">
         <form onSubmit={handleSubmit} className="flex flex-col items-center">
+          <input
+            type="checkbox"
+            onChange={handleChangeEvent}
+            id="honeypot"
+            className="hidden"
+          />
           <fieldset>
             <div>
               <label htmlFor="username">
