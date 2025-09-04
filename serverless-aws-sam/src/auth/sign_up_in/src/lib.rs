@@ -1,5 +1,21 @@
-use auth_lib::{Body, LambdaReturnEnum, Request, RequestBody};
+use auth_lib::{LambdaReturnEnum, Request};
+use serde::Deserialize;
 use std::collections::HashMap;
+
+#[derive(Debug, Deserialize)]
+pub struct RequestBody {
+    pub username: Option<String>,
+    pub password: Option<String>,
+    // options are signup and signin
+    pub sign_up_or_in: Option<String>,
+}
+
+#[derive(Deserialize)]
+pub struct Body {
+    pub username: String,
+    pub password: String,
+    pub sign_up_or_in: String,
+}
 
 pub type ValidateBodyEnum = LambdaReturnEnum<(Body, HashMap<String, String>)>;
 

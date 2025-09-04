@@ -26,21 +26,6 @@ pub struct Request {
     pub is_base64_encoded: bool,
 }
 
-#[derive(Debug, Deserialize)]
-pub struct RequestBody {
-    pub username: Option<String>,
-    pub password: Option<String>,
-    // options are signup and signin
-    pub sign_up_or_in: Option<String>,
-}
-
-#[derive(Deserialize)]
-pub struct Body {
-    pub username: String,
-    pub password: String,
-    pub sign_up_or_in: String,
-}
-
 #[derive(Serialize)]
 pub struct Response {
     pub headers: Option<HashMap<String, String>>,
