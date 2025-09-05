@@ -406,14 +406,12 @@ class RoomUsersManager extends BaseModels {
     const roomMembersDB = roomMembersResponse.Items as RoomMemberDB[];
 
     const roomMembers: RoomMember[] = roomMembersDB.map((member) => {
-      const joinedAt = member.GSISortKey.split("#")[2] as string;
-
       return {
         userName: member.userName,
         userID: member.userID,
         RoomID,
         RoomUserStatus: member.RoomUserStatus,
-        joinedAt,
+        joinedAt: member.joinedAt,
         profileColor: member.profileColor,
       };
     });
@@ -458,14 +456,13 @@ class RoomUsersManager extends BaseModels {
     if (roomMemberDB == undefined) {
       return { error: "Bad Request", statusCode: 400 };
     }
-    const joinedAt = roomMemberDB.GSISortKey.split("#").pop() as string;
 
     const roomMember: RoomMember = {
       userName: roomMemberDB.userName,
       userID: roomMemberDB.userID,
       RoomID,
       RoomUserStatus: roomMemberDB.RoomUserStatus,
-      joinedAt,
+      joinedAt: roomMemberDB.joinedAt,
       profileColor: roomMemberDB.profileColor,
     };
 
@@ -559,7 +556,7 @@ class RoomUsersManager extends BaseModels {
       userName: memberName,
       RoomID,
       RoomUserStatus,
-      GSISortKey: `MEMBERS#DATE#${madeDate}`,
+      joinedAt: madeDate,
       profileColor,
     };
 
@@ -737,7 +734,6 @@ class JoinRequestManager extends BaseModels {
     }
 
     const joinRequestDB = joinRequestResponse.Item as JoinRequestDB;
-    const sentJoinRequestAt = joinRequestDB.GSISortKey;
 
     const joinRequest: JoinRequest = {
       RoomID: joinRequestDB.RoomID,
@@ -745,7 +741,7 @@ class JoinRequestManager extends BaseModels {
       fromUserName: joinRequestDB.fromUserName,
       roomName: joinRequestDB.roomName,
       profileColor: joinRequestDB.profileColor,
-      sentJoinRequestAt,
+      sentJoinRequestAt: joinRequestDB.sentJoinRequestAt,
     };
 
     return { message: "Join Request Fetched", joinRequest, statusCode: 200 };
@@ -816,14 +812,12 @@ class JoinRequestManager extends BaseModels {
     const joinRequestsDB =
       joinRequestResponse.Items as unknown as JoinRequestDB[];
     const joinRequests = joinRequestsDB?.map((request) => {
-      const sentJoinRequestAt = request.GSISortKey.split("#").pop() as string;
-
       return {
         RoomID: request.RoomID,
         fromUserID: request.fromUserID,
         fromUserName: request.fromUserName,
         roomName: request.roomName,
-        sentJoinRequestAt,
+        sentJoinRequestAt: request.sentJoinRequestAt,
         profileColor: request.profileColor,
       };
     });
@@ -845,14 +839,14 @@ class JoinRequestManager extends BaseModels {
   ): BaseModelsReturnType {
     const sentJoinRequestAt = new Date().toISOString();
 
-    const joinRequestItem = {
+    const joinRequestItem: JoinRequestDB = {
       PartitionKey: `ROOM#${RoomID}`,
       SortKey: `JOIN_REQUESTS#USERID#${fromUserID}`,
       RoomID,
       fromUserID,
       fromUserName,
       roomName,
-      GSISortKey: `JOIN_REQUESTS#DATE#${sentJoinRequestAt}`,
+      sentJoinRequestAt,
       profileColor,
     };
 

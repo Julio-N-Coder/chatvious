@@ -87,15 +87,12 @@ interface CreateUserInfoSuccess extends BaseModelsSuccess {
 type CreateUserInfoReturn = Promise<BaseModelsError | CreateUserInfoSuccess>;
 type FetchUserInfoReturn = Promise<BaseModelsError | FetchUserInfoSuccess>;
 
-interface BaseRoomMember {
+interface RoomMember {
   userID: string;
   userName: string;
   RoomID: string;
   RoomUserStatus: "MEMBER" | "ADMIN" | "OWNER";
   profileColor: string;
-}
-
-interface RoomMember extends BaseRoomMember {
   joinedAt: string; // ISODate
 }
 
@@ -104,10 +101,7 @@ interface RoomMemberKeys {
   SortKey: `MEMBERS#USERID#${string}`;
 }
 
-type RoomMemberDB = BaseRoomMember &
-  RoomMemberKeys & {
-    GSISortKey: `MEMBERS#DATE#${string}`; // ISODate
-  };
+type RoomMemberDB = RoomMember & RoomMemberKeys;
 
 type FetchRoomMemberSuccess = {
   roomMember: RoomMember;
@@ -152,16 +146,12 @@ interface FetchRoomSuccessReturn extends BaseModelsSuccess {
 }
 
 type FetchRoomReturn = Promise<BaseModelsError | FetchRoomSuccessReturn>;
-
-interface BaseJoinRequest {
+interface JoinRequest {
   RoomID: string;
   fromUserID: string;
   fromUserName: string;
   roomName: string;
   profileColor: string;
-}
-
-interface JoinRequest extends BaseJoinRequest {
   sentJoinRequestAt: string;
 }
 
@@ -170,11 +160,7 @@ interface JoinRequestKeys {
   SortKey: `JOIN_REQUESTS#USERID#${string}`;
 }
 
-type JoinRequestDB = BaseJoinRequest &
-  JoinRequestKeys & {
-    GSISortKey: `JOIN_REQUESTS#DATE#${string}`;
-  };
-[];
+type JoinRequestDB = JoinRequest & JoinRequestKeys;
 
 interface FetchJoinRequestSuccess extends BaseModelsSuccess {
   joinRequest: JoinRequest;
