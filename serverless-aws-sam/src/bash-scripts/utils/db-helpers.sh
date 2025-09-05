@@ -53,21 +53,33 @@ create_db_table() {
 		>/dev/null 2>&1
 }
 
-insert_limits_item() {
+insert_limits_item_custom() {
 	local table_name="$1"
+	local usersLimit="$2"
+	local ownedRooms="$3"
+	local joinedRooms="$4"
+	local JoinRequest="$5"
+	local totalRooms="$6"
+	local messagesPerRoom="$7"
 
 	aws --endpoint-url http://localhost:8000 --no-cli-pager dynamodb put-item \
 		--table-name "$table_name" \
-		--item '{
- 				  "PartitionKey": {"S": "LIMITS"},
- 				  "SortKey": {"S": "LIMITS"},
- 				  "usersLimit": {"N": "0"},
- 				  "ownedRooms": {"N": "0"},
- 				  "joinedRooms": {"N": "0"},
-				  "JoinRequest": {"N": "0"},
-				  "totalRooms": {"N": "0"},
-				  "messagesPerRoom": {"N": "0"}
- 				}'
+		--item "{
+ 				  \"PartitionKey\": {\"S\": \"LIMITS\"},
+ 				  \"SortKey\": {\"S\": \"LIMITS\"},
+ 				  \"usersAmount\": {\"N\": \"${usersLimit}\"},
+ 				  \"ownedRoomsAmount\": {\"N\": \"${ownedRooms}\"},
+ 				  \"joinedRoomsAmount\": {\"N\": \"${joinedRooms}\"},
+				  \"JoinRequestAmount\": {\"N\": \"${JoinRequest}\"},
+				  \"totalRooms\": {\"N\": \"${totalRooms}\"},
+				  \"messagesPerRoom\": {\"N\": \"${messagesPerRoom}\"}
+ 				}"
+}
+
+insert_limits_item() {
+	local table_name="$1"
+
+	insert_limits_item_custom "$table_name" "0" "0" "0" "0" "0" "0"
 }
 
 get_db_item() {

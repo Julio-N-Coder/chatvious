@@ -36,7 +36,7 @@ if [ "$TARGET" = "TokenRefresh" ]; then
 	REFRESH_TOKEN=$("${SERVERLESS_BASE_DIR}/src/utils/jwt/generate_jwt.sh")
 	body="{\"refresh_token\":\"${REFRESH_TOKEN}\"}"
 
-	rest_api_event_custom_common "GET" "/auth/token_refresh" "$body" | local_invoke_stdin "$TARGET"
+	rest_api_event_custom_common "POST" "/auth/token_refresh" "$body" | local_invoke_stdin "$TARGET"
 fi
 
 if [ "$TARGET" = "LambdaAuthorizer" ]; then

@@ -132,10 +132,10 @@ impl DynamoDBClient {
             .table_name(&self.table_name)
             .key("PartitionKey", AttributeValue::S("LIMITS".to_string()))
             .key("SortKey", AttributeValue::S("LIMITS".to_string()))
-            .update_expression("ADD usersLimit :dec")
+            .update_expression("ADD usersAmount :dec")
             .expression_attribute_values(":dec", AttributeValue::N("-1".to_string()))
             // Ensure count doesn't go below 0
-            .condition_expression("usersLimit > :zero")
+            .condition_expression("usersAmount > :zero")
             .expression_attribute_values(":zero", AttributeValue::N("0".to_string()))
             .send()
             .await?;
@@ -261,8 +261,8 @@ impl DynamoDBClient {
             .table_name(&self.table_name)
             .key("PartitionKey", AttributeValue::S("LIMITS".to_string()))
             .key("SortKey", AttributeValue::S("LIMITS".to_string()))
-            .update_expression("ADD usersLimit :inc")
-            .condition_expression("usersLimit < :limit")
+            .update_expression("ADD usersAmount :inc")
+            .condition_expression("usersAmount < :limit")
             .expression_attribute_values(":inc", AttributeValue::N("1".to_string()))
             .expression_attribute_values(":limit", AttributeValue::N(limit.to_string()))
             .send()
