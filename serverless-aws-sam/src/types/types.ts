@@ -158,6 +158,7 @@ interface JoinRequest {
 interface JoinRequestKeys {
   PartitionKey: `ROOM#${string}`; // RoomID
   SortKey: `JOIN_REQUESTS#USERID#${string}`;
+  expires: number;
 }
 
 type JoinRequestDB = JoinRequest & JoinRequestKeys;

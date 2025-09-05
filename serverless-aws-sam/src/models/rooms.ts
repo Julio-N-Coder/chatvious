@@ -837,7 +837,13 @@ class JoinRequestManager extends BaseModels {
     RoomID: string,
     profileColor: string
   ): BaseModelsReturnType {
-    const sentJoinRequestAt = new Date().toISOString();
+    const currentDate = new Date();
+    const sentJoinRequestAt = currentDate.toISOString();
+    const oneDayInMs = 24 * 60 * 60 * 1000;
+    // join request only last one day
+    const oneDayFromNowUnixEpoch = Math.floor(
+      (currentDate.getTime() + oneDayInMs) / 1000
+    );
 
     const joinRequestItem: JoinRequestDB = {
       PartitionKey: `ROOM#${RoomID}`,
@@ -848,6 +854,7 @@ class JoinRequestManager extends BaseModels {
       roomName,
       sentJoinRequestAt,
       profileColor,
+      expires: oneDayFromNowUnixEpoch,
     };
 
     let joinRequestResponse: PutCommandOutput;
