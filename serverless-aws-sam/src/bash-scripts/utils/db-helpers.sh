@@ -38,7 +38,7 @@ check_dynamodb_table_exists() {
 }
 
 create_db_table() {
-	table_name=$1
+	local table_name=$1
 
 	aws dynamodb create-table \
 		--endpoint-url http://localhost:8000 \
@@ -51,6 +51,23 @@ create_db_table() {
 		AttributeName=SortKey,KeyType=RANGE \
 		--provisioned-throughput ReadCapacityUnits=1,WriteCapacityUnits=1 \
 		>/dev/null 2>&1
+}
+
+insert_limits_item() {
+	local table_name="$1"
+
+	aws --endpoint-url http://localhost:8000 --no-cli-pager dynamodb put-item \
+		--table-name "$table_name" \
+		--item '{
+ 				  "PartitionKey": {"S": "LIMITS"},
+ 				  "SortKey": {"S": "LIMITS"},
+ 				  "usersLimit": {"N": "0"},
+ 				  "ownedRooms": {"N": "0"},
+ 				  "joinedRooms": {"N": "0"},
+				  "JoinRequest": {"N": "0"},
+				  "totalRooms": {"N": "0"},
+				  "messagesPerRoom": {"N": "0"}
+ 				}'
 }
 
 get_db_item() {

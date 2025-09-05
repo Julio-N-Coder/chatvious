@@ -20,11 +20,13 @@ start_dynamodb() {
 	if check_for_dynamodb; then
 		if ! check_dynamodb_table_exists "chatvious"; then
 			create_db_table "chatvious"
+			insert_limits_item "chatvious"
 		fi
 	else
 		"${BASH_SCRIPTS_DIR}/dynamodb-start.sh" "$DYNAMODB_CONTAINER_NAME"
 		wait_for_dynamodb
 		create_db_table "chatvious"
+		insert_limits_item "chatvious"
 	fi
 
 	echo "DynamoDB is ready."
