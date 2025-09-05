@@ -141,12 +141,6 @@ fn return_lambda_success(
             token_set.expires_in,
         ),
         auth_lib::cookie(
-            "id_token",
-            &token_set.id_token,
-            &domain,
-            token_set.expires_in,
-        ),
-        auth_lib::cookie(
             "refresh_token",
             &token_set.refresh_token,
             &domain,

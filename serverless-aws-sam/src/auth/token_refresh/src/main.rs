@@ -87,20 +87,12 @@ async fn function_handler(event: LambdaEvent<Value>) -> Result<Response, Error> 
     let domain = std::env::var("DOMAIN").unwrap_or_else(|_| "localhost".to_string());
     let mut multi_value_headers = HashMap::new();
 
-    let cookies = vec![
-        auth_lib::cookie(
-            "access_token",
-            &refreshed_token_set.access_token,
-            &domain,
-            refreshed_token_set.expires_in,
-        ),
-        auth_lib::cookie(
-            "id_token",
-            &refreshed_token_set.id_token,
-            &domain,
-            refreshed_token_set.expires_in,
-        ),
-    ];
+    let cookies = vec![auth_lib::cookie(
+        "access_token",
+        &refreshed_token_set.access_token,
+        &domain,
+        refreshed_token_set.expires_in,
+    )];
     multi_value_headers.insert("Set-Cookie".to_string(), cookies);
 
     let resp = Response {

@@ -9,10 +9,3 @@ check_access_token() {
 		exit 1
 	fi
 }
-
-check_id_token() {
-	if [[ "$id_token" == "null" || -z "$id_token" ]]; then
-		echo "ERROR: id_token is missing or empty" >&2
-		exit 1
-	fi
-}

@@ -218,26 +218,21 @@ SignUpSignIn_function() {
 	body_validation
 
 	access_token=$(get_access_token)
-	id_token=$(get_id_token)
 	refresh_token=$(get_refresh_token)
 	expires_in=$(get_expires_in)
 
 	check_access_token
-	check_id_token
 	check_refresh_token
 	check_expires_in
 
 	cookies=$(echo "$response" | jq -r '.multiValueHeaders["Set-Cookie"][]')
 	access_token=$(get_cookie_value "access_token")
-	id_token=$(get_cookie_value "id_token")
 	refresh_token=$(get_cookie_value "refresh_token")
 
 	check_access_token
-	check_id_token
 	check_refresh_token
 
 	check_common_cookie_attrs "access_token"
-	check_common_cookie_attrs "id_token"
 	check_common_cookie_attrs "refresh_token"
 }
 
@@ -276,22 +271,17 @@ body=$(echo "$response" | jq -r '.body')
 body_validation
 
 access_token=$(get_access_token)
-id_token=$(get_id_token)
 expires_in=$(get_expires_in)
 
 check_access_token
-check_id_token
 check_expires_in
 
 cookies=$(echo "$response" | jq -r '.multiValueHeaders["Set-Cookie"][]')
 access_token=$(get_cookie_value "access_token")
-id_token=$(get_cookie_value "id_token")
 
 check_access_token
-check_id_token
 
 check_common_cookie_attrs "access_token"
-check_common_cookie_attrs "id_token"
 
 echo -e "${GREEN}Rust Tests Passed"
 echo -e "$RESET"
