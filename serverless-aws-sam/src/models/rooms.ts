@@ -80,6 +80,7 @@ class RoomManager extends BaseModels {
         roomName,
         createdAt: madeDate,
         roomMemberCount: 1,
+        messageCount: 0,
       },
       message: "Room Created",
       statusCode: 201,
@@ -101,6 +102,7 @@ class RoomManager extends BaseModels {
       roomName,
       createdAt: madeDate,
       roomMemberCount: 1,
+      messageCount: 0,
     };
 
     let makeRoomResponse: PutCommandOutput;
@@ -298,8 +300,57 @@ class RoomManager extends BaseModels {
       roomName: roomInfoDB.roomName,
       createdAt: roomInfoDB.createdAt,
       roomMemberCount: roomInfoDB.roomMemberCount,
+      messageCount: roomInfoDB.messageCount,
     };
     return { roomInfo, message: "Room Found", statusCode: 200 };
+  }
+
+  /**
+   * Adds an integer to messageCount on room metadata. Can be negative
+   * Only adds within a certain range, 0 and MaxLimit
+   * @returns BaseModelsReturnType - message if add succeeded, error if limit reached
+   */
+  async addMessageCount(RoomID: string, amount: number): BaseModelsReturnType {
+    const inputKeys: RoomInfoKeys = {
+      PartitionKey: `ROOM#${RoomID}`,
+      SortKey: "METADATA",
+    };
+
+    const MAX_MESSAGES = 2000;
+    let addMessageCountResponse: UpdateCommandOutput;
+    let attributeName = "messageCount";
+
+    try {
+      addMessageCountResponse = await this.addToAttributeValue(
+        inputKeys,
+        attributeName,
+        amount,
+        MAX_MESSAGES
+      );
+    } catch (error: any) {
+      if (error.name === "ConditionalCheckFailedException") {
+        if (amount < 0) {
+          return {
+            error: "Cannot reduce message count below zero",
+            statusCode: 400,
+          };
+        } else {
+          return { error: "Message limit reached", statusCode: 429 };
+        }
+      }
+      return { error: "Failed to add message count", statusCode: 500 };
+    }
+
+    const statusCode = addMessageCountResponse.$metadata
+      ?.httpStatusCode as number;
+    if (statusCode !== 200) {
+      return { error: "Failed to add message count", statusCode: 500 };
+    }
+
+    return {
+      message: "Message count updated successfully",
+      statusCode: 200,
+    };
   }
 }
 

@@ -137,6 +137,7 @@ type RoomInfoType = {
   roomName: string;
   createdAt: string;
   roomMemberCount: number;
+  messageCount: number;
 };
 
 interface RoomInfoKeys {
