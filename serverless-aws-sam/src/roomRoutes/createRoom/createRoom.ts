@@ -26,12 +26,12 @@ export async function handler(
   const userInfo = userInfoResponse.userInfo;
   const profileColor = userInfo.profileColor;
 
-  if (userInfo.ownedRooms.length > 6) {
+  if (userInfo.ownedRooms.length >= 5) {
     return {
       headers: { "Content-Type": "application/json" },
       statusCode: 403,
       body: JSON.stringify({
-        error: "You have reached the limit of rooms you can own. (6)",
+        error: "You have reached the limit of rooms you can own. (5)",
       }),
     };
   }

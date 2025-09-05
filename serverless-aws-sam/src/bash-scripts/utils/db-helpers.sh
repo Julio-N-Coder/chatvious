@@ -56,11 +56,8 @@ create_db_table() {
 insert_limits_item_custom() {
 	local table_name="$1"
 	local usersLimit="$2"
-	local ownedRooms="$3"
-	local joinedRooms="$4"
-	local JoinRequest="$5"
-	local totalRooms="$6"
-	local messagesPerRoom="$7"
+	local totalRooms="$3"
+	local messagesPerRoom="$4"
 
 	aws --endpoint-url http://localhost:8000 --no-cli-pager dynamodb put-item \
 		--table-name "$table_name" \
@@ -68,9 +65,6 @@ insert_limits_item_custom() {
  				  \"PartitionKey\": {\"S\": \"LIMITS\"},
  				  \"SortKey\": {\"S\": \"LIMITS\"},
  				  \"usersAmount\": {\"N\": \"${usersLimit}\"},
- 				  \"ownedRoomsAmount\": {\"N\": \"${ownedRooms}\"},
- 				  \"joinedRoomsAmount\": {\"N\": \"${joinedRooms}\"},
-				  \"JoinRequestAmount\": {\"N\": \"${JoinRequest}\"},
 				  \"totalRooms\": {\"N\": \"${totalRooms}\"},
 				  \"messagesPerRoom\": {\"N\": \"${messagesPerRoom}\"}
  				}"
@@ -79,7 +73,7 @@ insert_limits_item_custom() {
 insert_limits_item() {
 	local table_name="$1"
 
-	insert_limits_item_custom "$table_name" "0" "0" "0" "0" "0" "0"
+	insert_limits_item_custom "$table_name" "0" "0" "0"
 }
 
 get_db_item() {
