@@ -5,7 +5,7 @@ use argon2::{
 use aws_config::BehaviorVersion;
 use aws_credential_types::Credentials;
 use aws_sdk_dynamodb::error::SdkError;
-use aws_sdk_dynamodb::operation::put_item::PutItemError;
+use aws_sdk_dynamodb::operation::update_item::UpdateItemError;
 use aws_sdk_dynamodb::types::AttributeValue;
 use aws_sdk_dynamodb::{Client, Error};
 use serde::{Deserialize, Serialize};
@@ -24,6 +24,23 @@ pub struct UserItem {
     pub joined_rooms: Vec<HashMap<String, String>>,
     pub profile_color: String,
 }
+
+#[derive(Debug)]
+pub enum DynamoDBClientError {
+    LimitExceeded(String),
+    DynamoDbError(String),
+}
+
+impl std::fmt::Display for DynamoDBClientError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            DynamoDBClientError::LimitExceeded(msg) => write!(f, "Limit exceeded: {}", msg),
+            DynamoDBClientError::DynamoDbError(msg) => write!(f, "DynamoDB error: {}", msg),
+        }
+    }
+}
+
+impl std::error::Error for DynamoDBClientError {}
 
 pub struct PasswordManager;
 
@@ -109,6 +126,23 @@ impl DynamoDBClient {
         Client::new(&config)
     }
 
+    async fn decrement_user_count(&self) -> Result<(), SdkError<UpdateItemError>> {
+        self.client
+            .update_item()
+            .table_name(&self.table_name)
+            .key("PartitionKey", AttributeValue::S("LIMITS".to_string()))
+            .key("SortKey", AttributeValue::S("LIMITS".to_string()))
+            .update_expression("ADD usersLimit :dec")
+            .expression_attribute_values(":dec", AttributeValue::N("-1".to_string()))
+            // Ensure count doesn't go below 0
+            .condition_expression("usersLimit > :zero")
+            .expression_attribute_values(":zero", AttributeValue::N("0".to_string()))
+            .send()
+            .await?;
+
+        Ok(())
+    }
+
     // look into indexing username or just use username as partionkey rather than an id
     // if I do use username rather than id
     // will have to update other code to fetch with username rather than id
@@ -171,7 +205,7 @@ impl DynamoDBClient {
         Ok(items)
     }
 
-    pub async fn store_new_user(&self, new_user: &UserItem) -> Result<(), SdkError<PutItemError>> {
+    pub async fn store_new_user(&self, new_user: &UserItem) -> Result<(), DynamoDBClientError> {
         let mut user_map = HashMap::new();
         user_map.insert(
             "PartitionKey".to_string(),
@@ -193,7 +227,7 @@ impl DynamoDBClient {
             "hashedPassword".to_string(),
             AttributeValue::S(new_user.hashed_password.clone()),
         );
-        // ownedRooms and joinedRooms will allways be empty for new users
+        // ownedRooms and joinedRooms will always be empty for new users
         user_map.insert("ownedRooms".to_string(), AttributeValue::L(vec![]));
         user_map.insert("joinedRooms".to_string(), AttributeValue::L(vec![]));
         user_map.insert(
@@ -201,15 +235,66 @@ impl DynamoDBClient {
             AttributeValue::S(new_user.profile_color.clone()),
         );
 
-        // maybe try adding exponention backoff
+        // maybe try adding exponential backoff
         self.client
             .put_item()
             .table_name(&self.table_name)
             .set_item(Some(user_map))
             .send()
-            .await?;
+            .await
+            .map_err(|e| {
+                DynamoDBClientError::DynamoDbError(format!("Failed to store user: {}", e))
+            })?;
 
         Ok(())
+    }
+
+    pub async fn check_and_add_user(
+        &self,
+        limit: i32,
+        new_user: &UserItem,
+    ) -> Result<(), DynamoDBClientError> {
+        // Try to increment the counter with a condition
+        let update_result = self
+            .client
+            .update_item()
+            .table_name(&self.table_name)
+            .key("PartitionKey", AttributeValue::S("LIMITS".to_string()))
+            .key("SortKey", AttributeValue::S("LIMITS".to_string()))
+            .update_expression("ADD usersLimit :inc")
+            .condition_expression("usersLimit < :limit")
+            .expression_attribute_values(":inc", AttributeValue::N("1".to_string()))
+            .expression_attribute_values(":limit", AttributeValue::N(limit.to_string()))
+            .send()
+            .await;
+
+        match update_result {
+            Ok(_) => {
+                // Counter successfully incremented, store new_user
+                match self.store_new_user(new_user).await {
+                    Ok(_) => Ok(()),
+                    Err(e) => {
+                        // If storing user fails, rollback the counter
+                        let _ = self.decrement_user_count().await;
+                        Err(e)
+                    }
+                }
+            }
+            Err(e) => {
+                // Check if it's a condition failure (limit exceeded) or other error
+                let error_msg = format!("{:?}", e);
+                if error_msg.contains("ConditionalCheckFailedException") {
+                    Err(DynamoDBClientError::LimitExceeded(format!(
+                        "User limit of {} reached",
+                        limit
+                    )))
+                } else {
+                    Err(DynamoDBClientError::DynamoDbError(format!(
+                        "Failed to update count",
+                    )))
+                }
+            }
+        }
     }
 }
 
