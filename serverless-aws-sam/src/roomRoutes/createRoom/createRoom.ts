@@ -31,7 +31,7 @@ export async function handler(
 
   const userInfoResponse = await userManager.fetchUserInfo(userID);
   if ("error" in userInfoResponse) {
-    decrementRoomsCount();
+    await decrementRoomsCount();
     return {
       headers: { "Content-Type": "application/json" },
       statusCode: userInfoResponse.statusCode,
@@ -43,7 +43,7 @@ export async function handler(
   const profileColor = userInfo.profileColor;
 
   if (userInfo.ownedRooms.length >= 5) {
-    decrementRoomsCount();
+    await decrementRoomsCount();
     return {
       headers: { "Content-Type": "application/json" },
       statusCode: 403,
@@ -60,7 +60,7 @@ export async function handler(
     profileColor
   );
   if ("error" in makeRoomResponse) {
-    decrementRoomsCount();
+    await decrementRoomsCount();
     return {
       headers: { "Content-Type": "application/json" },
       statusCode: makeRoomResponse.statusCode,
