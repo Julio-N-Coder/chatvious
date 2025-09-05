@@ -9,6 +9,8 @@ import {
   DeleteCommandOutput,
   BatchWriteCommand,
   BatchWriteCommandOutput,
+  UpdateCommand,
+  UpdateCommandOutput,
 } from "@aws-sdk/lib-dynamodb";
 import { BaseKeys } from "../types/types.js";
 
@@ -69,6 +71,54 @@ class BaseModels {
     });
 
     return await docClient.send(command);
+  }
+
+  /**
+   * Adds an integer within a range, to an attribute value on an item. Can be negative
+   *
+   * Check for bound/limit error with - error.name === "ConditionalCheckFailedException"
+   */
+  protected async addToAttributeValue(
+    key: BaseKeys,
+    attributeName: string,
+    amount: number,
+    limit: number
+  ): Promise<UpdateCommandOutput> {
+    let conditionExpression: string;
+    let expressionAttributeValues: any;
+
+    if (amount > 0) {
+      conditionExpression = "#attributeName <= :maxAllowed";
+      expressionAttributeValues = {
+        ":amount": amount,
+        ":zero": 0,
+        ":maxAllowed": limit - amount,
+      };
+    } else if (amount < 0) {
+      conditionExpression = "#attributeName >= :minRequired";
+      expressionAttributeValues = {
+        ":amount": amount,
+        ":zero": 0,
+        ":minRequired": Math.abs(amount),
+      };
+    } else {
+      // Amount is 0, no change needed
+      throw new Error("Amount is 0");
+    }
+
+    const addMessageCountCommand = new UpdateCommand({
+      TableName: this.tableName,
+      Key: key,
+      UpdateExpression:
+        "SET messageCount = if_not_exists(messageCount, :zero) + :amount",
+      ConditionExpression: conditionExpression,
+      ExpressionAttributeNames: {
+        "#attributeName": attributeName,
+      },
+      ExpressionAttributeValues: expressionAttributeValues,
+    });
+
+    return await docClient.send(addMessageCountCommand);
   }
 
   protected async batchWrite(
