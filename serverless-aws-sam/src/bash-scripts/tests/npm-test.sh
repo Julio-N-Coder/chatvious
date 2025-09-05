@@ -14,6 +14,7 @@ DYNAMODB_CONTAINER_NAME="chatvious-dynamodb-3821"
 source "${BASH_SCRIPTS_DIR}/utils/db-helpers.sh"
 wait_for_dynamodb
 create_db_table "chatvious-test"
+insert_limits_item "chatvious-test"
 echo "DynamoDB is ready."
 
 cleanup() {
