@@ -1,9 +1,9 @@
-use auth_lib::PasswordManager;
-use auth_lib::Response;
-use auth_lib::models::DynamoDBClient;
-use auth_lib::models::UserItem;
 use auth_lib::tokens;
 use auth_lib::tokens::{TokenSet, UserInfoForTokens};
+use auth_lib::{
+    PasswordManager, Response,
+    models::{DynamoDBClient, DynamoDBClientError, UserItem},
+};
 use lambda_runtime::{Error, LambdaEvent, run, service_fn};
 use serde_json::Value;
 use sign_up_in::ValidateBodyEnum;
@@ -74,10 +74,18 @@ async fn function_handler(event: LambdaEvent<Value>) -> Result<Response, Error> 
             }
         };
 
-        // store the new user
-        if let Err(_) = db_client.store_new_user(&new_user).await {
-            println!("Failed to Store user");
-            return auth_lib::return_error(headers, 500, "Server Error");
+        // check max user limit and store the new user
+        let users_limit = 200;
+
+        if let Err(db_client_error) = db_client.check_and_add_user(users_limit, &new_user).await {
+            return match db_client_error {
+                DynamoDBClientError::LimitExceeded(limit_error_message) => {
+                    auth_lib::return_error(headers, 429, &limit_error_message)
+                }
+                DynamoDBClientError::DynamoDbError(_) => {
+                    auth_lib::return_error(headers, 500, "Internal Server Error")
+                }
+            };
         }
 
         return_lambda_success(headers, token_set)
