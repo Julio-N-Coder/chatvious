@@ -114,14 +114,16 @@ async function clearDynamoDB() {
     [index: string]: any;
   }[];
 
-  const deleteRequests = dbItems.map((item) => ({
-    DeleteRequest: {
-      Key: {
-        PartitionKey: item.PartitionKey,
-        SortKey: item.SortKey,
+  const deleteRequests = dbItems
+    .filter((item) => item.PartitionKey != "LIMITS")
+    .map((item) => ({
+      DeleteRequest: {
+        Key: {
+          PartitionKey: item.PartitionKey,
+          SortKey: item.SortKey,
+        },
       },
-    },
-  }));
+    }));
 
   const batchWriteParams: BatchWriteCommandInput = {
     RequestItems: {
