@@ -6,13 +6,9 @@ import java.util.Map;
 
 public class RefreshTokenClaims {
     private final String sub; // Subject (user ID)
-    private final String iss; // Issuer
-    private final String aud; // Audience
     private final long exp; // Expiration time
     private final long iat; // Issued at
     private final String tokenUse; // "refresh"
-    private final long authTime;
-    private final String clientId;
     private final String username;
     private final String rawToken;
 
@@ -28,13 +24,9 @@ public class RefreshTokenClaims {
             Map<String, Object> claims = JSON.std.mapFrom(payload);
 
             this.sub = getStringClaim(claims, "sub");
-            this.iss = getStringClaim(claims, "iss");
-            this.aud = getStringClaim(claims, "aud");
             this.exp = getLongClaim(claims, "exp");
             this.iat = getLongClaim(claims, "iat");
             this.tokenUse = getStringClaim(claims, "token_use");
-            this.authTime = getLongClaim(claims, "auth_time");
-            this.clientId = getStringClaim(claims, "client_id");
             this.username = getStringClaim(claims, "username");
 
         } catch (Exception e) {
@@ -47,14 +39,6 @@ public class RefreshTokenClaims {
         return sub;
     }
 
-    public String getIss() {
-        return iss;
-    }
-
-    public String getAud() {
-        return aud;
-    }
-
     public long getExp() {
         return exp;
     }
@@ -65,14 +49,6 @@ public class RefreshTokenClaims {
 
     public String getTokenUse() {
         return tokenUse;
-    }
-
-    public long getAuthTime() {
-        return authTime;
-    }
-
-    public String getClientId() {
-        return clientId;
     }
 
     public String getUserName() {
@@ -107,13 +83,9 @@ public class RefreshTokenClaims {
     public String toString() {
         return "RefreshTokenClaims{" +
                 "sub='" + sub + '\'' +
-                ", iss='" + iss + '\'' +
-                ", aud='" + aud + '\'' +
                 ", exp=" + exp +
                 ", iat=" + iat +
                 ", tokenUse='" + tokenUse + '\'' +
-                ", authTime=" + authTime +
-                ", clientId='" + clientId + '\'' +
                 ", username='" + username + '\'' +
                 '}';
     }

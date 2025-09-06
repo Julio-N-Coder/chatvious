@@ -6,15 +6,10 @@ import java.util.Map;
 
 public class AccessTokenClaims {
     private final String sub; // Subject (user ID)
-    private final String iss; // Issuer
-    private final String aud; // Audience
     private final long exp; // Expiration time
     private final long iat; // Issued at
     private final String tokenUse; // "access"
-    private final String scope; // Scopes (space-separated)
-    private final long authTime;
     private final String username;
-    private final String clientId;
     private final String rawToken;
 
     public AccessTokenClaims(String token) {
@@ -29,15 +24,10 @@ public class AccessTokenClaims {
             Map<String, Object> claims = JSON.std.mapFrom(payload);
 
             this.sub = getStringClaim(claims, "sub");
-            this.iss = getStringClaim(claims, "iss");
-            this.aud = getStringClaim(claims, "aud");
             this.exp = getLongClaim(claims, "exp");
             this.iat = getLongClaim(claims, "iat");
             this.tokenUse = getStringClaim(claims, "token_use");
-            this.scope = getStringClaim(claims, "scope");
-            this.authTime = getLongClaim(claims, "auth_time");
             this.username = getStringClaim(claims, "username");
-            this.clientId = getStringClaim(claims, "client_id");
 
         } catch (Exception e) {
             throw new RuntimeException("Failed to parse access token", e);
@@ -47,14 +37,6 @@ public class AccessTokenClaims {
     // Getters
     public String getSub() {
         return sub;
-    }
-
-    public String getIss() {
-        return iss;
-    }
-
-    public String getAud() {
-        return aud;
     }
 
     public long getExp() {
@@ -69,20 +51,8 @@ public class AccessTokenClaims {
         return tokenUse;
     }
 
-    public String getScope() {
-        return scope;
-    }
-
-    public long getAuthTime() {
-        return authTime;
-    }
-
     public String getUsername() {
         return username;
-    }
-
-    public String getClientId() {
-        return clientId;
     }
 
     public String getRawToken() {
@@ -113,15 +83,10 @@ public class AccessTokenClaims {
     public String toString() {
         return "AccessTokenClaims{" +
                 "sub='" + sub + '\'' +
-                ", iss='" + iss + '\'' +
-                ", aud='" + aud + '\'' +
                 ", exp=" + exp +
                 ", iat=" + iat +
                 ", tokenUse='" + tokenUse + '\'' +
-                ", scope='" + scope + '\'' +
-                ", authTime=" + authTime +
                 ", username='" + username + '\'' +
-                ", clientId='" + clientId + '\'' +
                 '}';
     }
 }

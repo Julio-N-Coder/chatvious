@@ -16,7 +16,6 @@ import jakarta.inject.Named;
 @RegisterForReflection
 class BaseTokens {
     public String access_token;
-    public String id_token;
 }
 
 class Tokens extends BaseTokens {
@@ -53,7 +52,7 @@ public class Authorizer implements RequestHandler<APIGatewayTokenAuthorizerEvent
                     return new Policy("Unauthorized", "Deny", methodArn, null);
                 }
 
-                Policy.Context resContext = buildContext(access_jwt, null, null);
+                Policy.Context resContext = buildContext(access_jwt, null);
 
                 return new Policy(access_jwt.getSub(), "Allow", methodArn, resContext);
             } else if (tokens.refresh_token != null) {
@@ -69,31 +68,16 @@ public class Authorizer implements RequestHandler<APIGatewayTokenAuthorizerEvent
                 }
 
                 // generate tokens
-                long authTime = System.currentTimeMillis() / 1000;
                 String subject = jwtService.getSubjectFromToken(tokens.refresh_token);
                 String username = refresh_jwt.getUserName();
 
                 String newAccessToken = jwtService.generateAccessToken(
                         subject,
-                        "openid profile email", // scope
-                        authTime,
                         username,
-                        refresh_jwt.getClientId(),
-                        60 // 60 minutes
-                );
-                String newIdToken = jwtService.generateIdToken(
-                        subject,
-                        authTime,
-                        null, // email
-                        null, // email verified
-                        username,
-                        null, // given name
-                        null, // full name
                         60 // 60 minutes
                 );
 
-                Policy.Context resContext = buildContext(jwtService.parseAccessToken(newAccessToken),
-                        newAccessToken, newIdToken);
+                Policy.Context resContext = buildContext(jwtService.parseAccessToken(newAccessToken), newAccessToken);
 
                 return new Policy(refresh_jwt.getSub(), "Allow", methodArn, resContext);
             }
@@ -104,24 +88,18 @@ public class Authorizer implements RequestHandler<APIGatewayTokenAuthorizerEvent
         return new Policy("Unauthorized", "Deny", methodArn, null);
     }
 
-    private Policy.Context buildContext(AccessTokenClaims jwt, String access_token, String id_token)
+    private Policy.Context buildContext(AccessTokenClaims jwt, String access_token)
             throws NoSuchElementException {
         Policy.Context resContext = new Policy.Context();
 
         resContext.sub = jwt.getSub();
         resContext.username = jwt.getUsername();
-        resContext.iss = jwt.getIss();
-        resContext.aud = jwt.getAud();
-        resContext.client_id = jwt.getClientId();
         resContext.token_use = jwt.getTokenUse();
-        resContext.auth_time = jwt.getAuthTime();
         resContext.exp = jwt.getExp();
         resContext.iat = jwt.getIat();
-        resContext.scope = jwt.getScope();
 
-        if (access_token != null && id_token != null) {
+        if (access_token != null) {
             resContext.access_token = access_token;
-            resContext.id_token = id_token;
         }
 
         return resContext;
@@ -133,7 +111,7 @@ public class Authorizer implements RequestHandler<APIGatewayTokenAuthorizerEvent
             return tokens;
         }
         int found = 0;
-        String[] tokenNames = { "refresh_token", "access_token", "id_token" };
+        String[] tokenNames = { "refresh_token", "access_token" };
         String[] cookies = cookieString.split(";");
 
         for (String cookie : cookies) {
@@ -147,9 +125,6 @@ public class Authorizer implements RequestHandler<APIGatewayTokenAuthorizerEvent
                 found += 1;
             } else if (cookie.startsWith(tokenNames[1], startI)) {
                 tokens.access_token = cookie.substring(tokenNames[1].length() + 1 + startI, cookie.length());
-                found += 1;
-            } else if (cookie.startsWith(tokenNames[2], startI)) {
-                tokens.id_token = cookie.substring(tokenNames[2].length() + 1 + startI, cookie.length());
                 found += 1;
             }
             if (found == tokenNames.length) {

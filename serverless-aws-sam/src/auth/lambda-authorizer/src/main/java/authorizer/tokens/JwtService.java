@@ -2,7 +2,6 @@ package authorizer.tokens;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
-import org.eclipse.microprofile.config.inject.ConfigProperty;
 
 import com.fasterxml.jackson.jr.ob.JSON;
 
@@ -17,63 +16,25 @@ public class JwtService {
     @Inject
     KeyService keyService;
 
-    @ConfigProperty(name = "mp.jwt.verify.issuer")
-    String issuer;
-
     private final JSON json = JSON.std;
 
-    public String generateAccessToken(String subject, String scope, long authTime,
-            String username, String clientId, long expirationMinutes) {
+    public String generateAccessToken(String subject, String username, long expirationMinutes) {
         try {
             long now = Instant.now().getEpochSecond();
             long exp = now + (expirationMinutes * 60);
 
             Map<String, Object> claims = new HashMap<>();
             claims.put("sub", subject);
-            claims.put("iss", issuer);
-            claims.put("aud", "chatvious-app");
-            claims.put("iat", now);
             claims.put("exp", exp);
+            claims.put("iat", now);
             claims.put("token_use", "access");
-            claims.put("scope", scope);
-            claims.put("auth_time", authTime);
             claims.put("username", username);
-            claims.put("client_id", clientId);
 
             SimpleJwtBuilder jwtBuilder = new SimpleJwtBuilder();
             return jwtBuilder.buildJwt(claims, keyService.getPrivateKey());
 
         } catch (Exception e) {
             throw new RuntimeException("Failed to generate JWT", e);
-        }
-    }
-
-    public String generateIdToken(String subject, long authTime, String email, Boolean emailVerified,
-            String username, String givenName, String name, long expirationMinutes) {
-        try {
-            long now = Instant.now().getEpochSecond();
-            long exp = now + (expirationMinutes * 60);
-
-            Map<String, Object> claims = new HashMap<>();
-            claims.put("sub", subject);
-            claims.put("iss", issuer);
-            claims.put("aud", "chatvious-app");
-            claims.put("iat", now);
-            claims.put("exp", exp);
-            claims.put("token_use", "id");
-            claims.put("auth_time", authTime);
-            // null claims
-            claims.put("email", email);
-            claims.put("email_verified", emailVerified);
-            claims.put("username", username);
-            claims.put("given_name", givenName);
-            claims.put("name", name);
-
-            SimpleJwtBuilder jwtBuilder = new SimpleJwtBuilder();
-            return jwtBuilder.buildJwt(claims, keyService.getPrivateKey());
-
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to generate ID token", e);
         }
     }
 

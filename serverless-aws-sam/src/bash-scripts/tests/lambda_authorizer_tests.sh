@@ -33,14 +33,6 @@ check_access_token_is_null() {
 	fi
 }
 
-check_id_token_is_null() {
-	if [[ "$id_token" != "null" ]]; then
-		echo -e "${RED}ERROR: id_token is not null" >&2
-		echo -e "$RESET" >&2
-		exit 1
-	fi
-}
-
 check_effect_allow() {
 	if [[ "$statement_effect" != "Allow" ]]; then
 		echo -e "${RED}Policy Statement Effect is Deny" >&2
@@ -67,7 +59,7 @@ success_run() {
 	if [[ -z "$refresh_only" ]]; then
 		cookie_token_string="refresh_token=${REFRESH_TOKEN}"
 	else
-		cookie_token_string="refresh_token=${REFRESH_TOKEN}; access_token=${access_token}; id_token=${id_token}"
+		cookie_token_string="refresh_token=${REFRESH_TOKEN}; access_token=${access_token}"
 	fi
 
 	response="$(jq --arg cookie_string "$cookie_token_string" \
@@ -82,7 +74,6 @@ success_run() {
 	fi
 
 	access_token=$(echo "$context" | jq -r '.access_token')
-	id_token=$(echo "$context" | jq -r '.id_token')
 	policy_document=$(echo "$response" | jq -c '.policyDocument')
 	statement="$(echo "$policy_document" | jq -c '.Statement[0]')"
 	statement_effect="$(echo $statement | jq -r '.Effect')"
@@ -94,7 +85,6 @@ echo -e "$RESET"
 success_run ""
 
 check_access_token
-check_id_token
 check_effect_allow
 
 echo -e "${GREEN}All Tokens Test"
@@ -103,7 +93,6 @@ echo -e "$RESET"
 success_run "all_tokens"
 
 check_access_token_is_null
-check_id_token_is_null
 check_effect_allow
 
 echo -e "${GREEN}Random Cookie String Test"
