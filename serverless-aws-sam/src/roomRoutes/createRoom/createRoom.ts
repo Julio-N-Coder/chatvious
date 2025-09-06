@@ -1,10 +1,7 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { roomManager } from "../../models/rooms.js";
 import { userManager } from "../../models/users.js";
-import {
-  incrementRoomsCount,
-  decrementRoomsCount,
-} from "../../models/limits.js";
+import limitsManager from "../../models/limits.js";
 
 export async function handler(
   event: APIGatewayProxyEvent
@@ -14,14 +11,13 @@ export async function handler(
     return bodyValidation;
   }
 
-  // check for total max rooms limit
-  const ROOM_LIMIT = 1000;
-  const incrementResponse = await incrementRoomsCount(ROOM_LIMIT);
+  // attempts to increment rooms count, will error if limit is reached
+  const addRoomsCountResponse = await limitsManager.addRoomsCount(1);
 
-  if ("error" in incrementResponse) {
+  if ("error" in addRoomsCountResponse) {
     return {
-      statusCode: incrementResponse.statusCode,
-      body: JSON.stringify({ error: incrementResponse.error }),
+      statusCode: addRoomsCountResponse.statusCode,
+      body: JSON.stringify({ error: addRoomsCountResponse.error }),
     };
   }
 
@@ -31,7 +27,7 @@ export async function handler(
 
   const userInfoResponse = await userManager.fetchUserInfo(userID);
   if ("error" in userInfoResponse) {
-    await decrementRoomsCount();
+    await limitsManager.addRoomsCount(-1);
     return {
       headers: { "Content-Type": "application/json" },
       statusCode: userInfoResponse.statusCode,
@@ -43,7 +39,7 @@ export async function handler(
   const profileColor = userInfo.profileColor;
 
   if (userInfo.ownedRooms.length >= 5) {
-    await decrementRoomsCount();
+    await limitsManager.addRoomsCount(-1);
     return {
       headers: { "Content-Type": "application/json" },
       statusCode: 403,
@@ -60,7 +56,7 @@ export async function handler(
     profileColor
   );
   if ("error" in makeRoomResponse) {
-    await decrementRoomsCount();
+    await limitsManager.addRoomsCount(-1);
     return {
       headers: { "Content-Type": "application/json" },
       statusCode: makeRoomResponse.statusCode,

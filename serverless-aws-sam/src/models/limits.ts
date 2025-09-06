@@ -1,87 +1,52 @@
-import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import {
-  DynamoDBDocumentClient,
-  UpdateCommand,
-  UpdateCommandInput,
-} from "@aws-sdk/lib-dynamodb";
+import { UpdateCommandOutput } from "@aws-sdk/lib-dynamodb";
+import { BaseModelsReturnType } from "../types/types.js";
+import { BaseModels } from "./baseModels.js";
 
-const tableName = process.env.CHATVIOUSTABLE_TABLE_NAME
-  ? process.env.CHATVIOUSTABLE_TABLE_NAME
-  : "chatvious";
-const dynamodbOptionsString = process.env.DYNAMODB_OPTIONS || "{}";
-const dynamodbOptions = JSON.parse(dynamodbOptionsString);
-const client = new DynamoDBClient(dynamodbOptions);
-const docClient = DynamoDBDocumentClient.from(client);
-
-type BasicResponse =
-  | { message: string; statusCode: number }
-  | {
-      statusCode: number;
-      error: string;
+class LimitsManager extends BaseModels {
+  /**
+   * Attempts to add the amount to totalRooms counter with a limit check
+   * @param amount - Amount to add to totalRooms. can be negative
+   * @returns BaseModelsReturnType - message if increment succeeded, error if limit reached
+   */
+  async addRoomsCount(amount: number): BaseModelsReturnType {
+    const ROOM_LIMIT = 1000;
+    let keys = {
+      PartitionKey: "LIMITS",
+      SortKey: "LIMITS",
     };
 
-/**
- * Attempts to increment the totalRooms counter with a limit check
- * @param limit - Maximum number of rooms allowed
- * @returns Promise<BasicResponse> - message if increment succeeded, error if limit reached
- */
-export async function incrementRoomsCount(
-  limit: number
-): Promise<BasicResponse> {
-  const updateParams: UpdateCommandInput = {
-    TableName: tableName,
-    Key: {
-      PartitionKey: "LIMITS",
-      SortKey: "LIMITS",
-    },
-    UpdateExpression: "ADD totalRooms :inc",
-    ConditionExpression: "totalRooms < :limit",
-    ExpressionAttributeValues: {
-      ":inc": 1,
-      ":limit": limit,
-    },
-  };
-
-  try {
-    await docClient.send(new UpdateCommand(updateParams));
-    return { message: "Incremented", statusCode: 200 };
-  } catch (error: any) {
-    if (error.name === "ConditionalCheckFailedException") {
-      console.log("room limit error: ", error);
-      return { error: "Room limit reached", statusCode: 429 };
+    let addRoomsCountResponse: UpdateCommandOutput;
+    try {
+      addRoomsCountResponse = await this.addToAttributeValue(
+        keys,
+        "totalRooms",
+        amount,
+        ROOM_LIMIT
+      );
+    } catch (error: any) {
+      if (error.name === "ConditionalCheckFailedException") {
+        if (amount < 0) {
+          return {
+            error: "Cannot reduce Room Count below zero",
+            statusCode: 400,
+          };
+        } else {
+          return { error: "Room limit reached", statusCode: 429 };
+        }
+      }
+      return { error: "Database error", statusCode: 500 };
     }
 
-    return { error: "Database error", statusCode: 500 };
+    const statusCode = addRoomsCountResponse.$metadata
+      ?.httpStatusCode as number;
+    if (statusCode !== 200) {
+      return { error: "Database error", statusCode: statusCode };
+    }
+
+    return { message: "Room Count Updated Successfully", statusCode: 200 };
   }
 }
 
-/**
- * Decrements the totalRooms counter
- * @returns Promise<BasicResponse> - message if increment succeeded, error if limit reached
- */
-export async function decrementRoomsCount(): Promise<BasicResponse> {
-  const updateParams: UpdateCommandInput = {
-    TableName: tableName,
-    Key: {
-      PartitionKey: "LIMITS",
-      SortKey: "LIMITS",
-    },
-    UpdateExpression: "ADD totalRooms :dec",
-    ConditionExpression: "totalRooms > :zero",
-    ExpressionAttributeValues: {
-      ":dec": -1,
-      ":zero": 0,
-    },
-  };
+const limitsManager = new LimitsManager();
 
-  try {
-    await docClient.send(new UpdateCommand(updateParams));
-    return { message: "Incremented", statusCode: 200 };
-  } catch (error: any) {
-    if (error.name === "ConditionalCheckFailedException") {
-      // Count is already at 0, which is fine for rollback
-      return { message: "Incremented", statusCode: 200 };
-    }
-    return { error: "Database error", statusCode: 500 };
-  }
-}
+export default limitsManager;
