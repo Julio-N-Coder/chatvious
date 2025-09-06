@@ -72,15 +72,10 @@ export const handler = async (
 
     const context: LambdaAuthorizerClaims = {
       sub: payload.sub as string,
-      aud: payload.aud as string,
-      username: payload.username as string,
-      iss: payload.iss as string,
-      client_id: payload.client_id as string,
-      token_use: "access",
-      scope: payload.scope as string,
-      auth_time: payload.auth_time as number,
       exp: payload.exp as number,
       iat: payload.iat as number,
+      token_use: "access",
+      username: payload.username as string,
     };
 
     return buildPolicy(payload.sub as string, "Allow", methodArn, context);

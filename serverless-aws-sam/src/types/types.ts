@@ -1,18 +1,3 @@
-type AuthCodeTokenResponse = {
-  access_token: string;
-  id_token: string;
-  refresh_token: string;
-  token_type: string;
-  expires_in: number;
-};
-
-type TokenRefresh = {
-  access_token: string;
-  id_token: string;
-  token_type: string;
-  expires_in: number;
-};
-
 type BaseModelsError = {
   error: string;
   statusCode: number;
@@ -213,18 +198,16 @@ type FetchNavUserInfoReturn = Promise<
   BaseModelsError | FetchNavUserInfoSuccess
 >;
 
-interface LambdaAuthorizerClaims {
-  [stringKey: string]: string | number;
+interface AccessTokenPayload {
   sub: string;
-  iss: string;
-  aud: string;
   exp: number;
   iat: number;
-  token_use: "access" | "id";
-  scope: string;
-  auth_time: number;
+  token_use: "access";
   username: string;
-  client_id: string;
+}
+
+interface LambdaAuthorizerClaims extends AccessTokenPayload {
+  [stringKey: string]: string | number;
 }
 
 type APIGatewayWebSocketAuthorizerEvent = {
@@ -380,22 +363,7 @@ type FetchAllMessagesReturn = BaseModelsReturnDataKey<
   MessageKeys
 >;
 
-interface AccessTokenPayload {
-  sub: string;
-  iss: string;
-  aud: string;
-  exp: number;
-  iat: number;
-  token_use: string;
-  scope: string;
-  auth_time: number;
-  username: string;
-  client_id: string;
-}
-
 export {
-  AuthCodeTokenResponse,
-  TokenRefresh,
   BaseModelsReturnType,
   BaseModelsReturnTypeData,
   BaseKeys,

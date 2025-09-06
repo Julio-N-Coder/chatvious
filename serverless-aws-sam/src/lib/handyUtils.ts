@@ -68,7 +68,6 @@ function buildPolicy(
   methodArn: string,
   context?: LambdaAuthorizerClaims & {
     access_token?: string;
-    id_token?: string;
   }
 ): APIGatewayAuthorizerResult {
   if (context) {

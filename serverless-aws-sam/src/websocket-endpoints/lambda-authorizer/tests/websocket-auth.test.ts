@@ -55,15 +55,10 @@ describe("Tests for the Websocket Lambda authorizer", () => {
 
   const fakeAccessTokenPayload: LambdaAuthorizerClaims = {
     sub: "1234567890",
-    aud: "chatvious-app",
     exp: Math.floor(Date.now() / 1000) + 3600,
     iat: Math.floor(Date.now() / 1000) - 60,
-    iss: "chatvious",
     username: "testuser",
-    client_id: "my-client-id",
     token_use: "access",
-    auth_time: Math.floor(Date.now() / 1000) - 60,
-    scope: "openid profile email",
   };
 
   const mockPublicKeyPem = `-----BEGIN PUBLIC KEY-----
@@ -91,7 +86,7 @@ MCowBQYDK2VwAyEAGb9ECWmEzf6FQbrBZ9w7lshQhqowtrbLDFw4rXAxZuE=
   test("Should return a policy document allowing the connection", async () => {
     mockJwtVerify.mockResolvedValue({
       payload: fakeAccessTokenPayload,
-      protectedHeader: { alg: "EdDSA" },
+      protectedHeader: { alg: "EdDSA", typ: "JWT" },
       key: mockPublicKey,
     });
 
