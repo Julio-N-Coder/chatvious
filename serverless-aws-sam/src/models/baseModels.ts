@@ -111,11 +111,11 @@ class BaseModels {
       throw new Error("Amount is 0");
     }
 
-    const addMessageCountCommand = new UpdateCommand({
+    const addToAttributeCommand = new UpdateCommand({
       TableName: this.tableName,
       Key: key,
       UpdateExpression:
-        "SET messageCount = if_not_exists(messageCount, :zero) + :amount",
+        "SET #attributeName = if_not_exists(#attributeName, :zero) + :amount",
       ConditionExpression: conditionExpression,
       ExpressionAttributeNames: {
         "#attributeName": attributeName,
@@ -123,7 +123,7 @@ class BaseModels {
       ExpressionAttributeValues: expressionAttributeValues,
     });
 
-    return await this.docClient.send(addMessageCountCommand);
+    return await this.docClient.send(addToAttributeCommand);
   }
 
   protected async batchWrite(
