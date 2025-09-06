@@ -22,14 +22,10 @@ def main():
     now_time = datetime.now(timezone.utc)
     payload = {
         "sub": "USER#123",
-        "iss": "chatvious",
-        "aud": "chatvious-app",
         "exp": int((now_time + timedelta(minutes=15)).timestamp()),
         "iat": int(now_time.timestamp()),
         "token_use": "refresh",
-        "auth_time": int(now_time.timestamp()),
         "username": "test_user",
-        "client_id": "chatvious-app",
     }
 
     token = jwt.encode(payload, private_key, algorithm="EdDSA")

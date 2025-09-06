@@ -5,7 +5,6 @@ use chrono::{Duration, Utc};
 use jsonwebtoken::{Algorithm, DecodingKey, EncodingKey, Header, Validation, decode, encode};
 use serde::{Deserialize, Serialize};
 use std::env;
-use uuid::Uuid;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct AccessTokenClaims {
@@ -187,10 +186,7 @@ where
 {
     let decoding_key = retrieve_public_key().await?;
 
-    let mut validation = Validation::new(Algorithm::EdDSA);
-    validation.set_required_spec_claims(&["exp"]);
-    // will add aud validation later. set it with validation.set_audience()
-    validation.validate_aud = false;
+    let validation = Validation::new(Algorithm::EdDSA);
 
     let token_data = decode::<T>(token, &decoding_key, &validation)
         .map_err(TokenVerificationError::InvalidToken)?;
@@ -213,8 +209,7 @@ async fn generate_token_set_base(
 ) -> Result<TokenSetEnum, Box<dyn std::error::Error + Send + Sync>> {
     let encoding_key = retrieve_private_key().await?;
 
-    let mut header = Header::new(Algorithm::EdDSA);
-    header.kid = Some(Uuid::new_v4().to_string()); // Key ID - might want to use a consistent one
+    let header = Header::new(Algorithm::EdDSA);
 
     let now = Utc::now();
     let iat = now.timestamp();
