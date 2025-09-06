@@ -1,9 +1,6 @@
 use auth_lib::Request;
 use auth_lib::Response;
-use auth_lib::{
-    tokens,
-    tokens::{TokenVerificationError, UserInfoForTokens},
-};
+use auth_lib::tokens::{TokenVerificationError, TokensClient, UserInfoForTokens};
 use lambda_runtime::{Error, LambdaEvent, run, service_fn};
 use serde_json::Value;
 use std::collections::HashMap;
@@ -54,7 +51,12 @@ async fn function_handler(event: LambdaEvent<Value>) -> Result<Response, Error> 
         Err(_) => return auth_lib::return_error(headers, 401, "Unauthorized"),
     };
 
-    let refresh_token_claims = match tokens::verify_refresh_token(&body.refresh_token).await {
+    let tokens_client = TokensClient::new().await;
+
+    let refresh_token_claims = match tokens_client
+        .verify_refresh_token(&body.refresh_token)
+        .await
+    {
         Ok(refresh_token_claims) => refresh_token_claims,
         Err(token_error) => match token_error {
             TokenVerificationError::SsmError(_) => {
@@ -74,7 +76,10 @@ async fn function_handler(event: LambdaEvent<Value>) -> Result<Response, Error> 
         user_name: refresh_token_claims.username,
     };
 
-    let refreshed_token_set = match tokens::generate_refreshed_token_set(&token_user_info).await {
+    let refreshed_token_set = match tokens_client
+        .generate_refreshed_token_set(&token_user_info)
+        .await
+    {
         Ok(token_set) => token_set,
         Err(_) => return auth_lib::return_error(headers, 500, "Internal Server Error"),
     };

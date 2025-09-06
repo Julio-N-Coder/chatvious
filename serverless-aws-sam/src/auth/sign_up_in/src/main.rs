@@ -1,5 +1,4 @@
-use auth_lib::tokens;
-use auth_lib::tokens::{TokenSet, UserInfoForTokens};
+use auth_lib::tokens::{TokenSet, TokensClient, UserInfoForTokens};
 use auth_lib::{
     PasswordManager, Response,
     models::{DynamoDBClient, DynamoDBClientError, UserItem},
@@ -66,7 +65,9 @@ async fn function_handler(event: LambdaEvent<Value>) -> Result<Response, Error> 
             user_name: new_user.user_name.clone(),
         };
 
-        let token_set = match tokens::generate_token_set(&token_user_info).await {
+        let tokens_client = TokensClient::new().await;
+
+        let token_set = match tokens_client.generate_token_set(&token_user_info).await {
             Ok(token_set) => token_set,
             Err(_) => {
                 println!("Token Generation Error");
@@ -114,7 +115,9 @@ async fn function_handler(event: LambdaEvent<Value>) -> Result<Response, Error> 
             user_name: user.user_name,
         };
 
-        let token_set = match tokens::generate_token_set(&token_user_info).await {
+        let tokens_client = TokensClient::new().await;
+
+        let token_set = match tokens_client.generate_token_set(&token_user_info).await {
             Ok(token_set) => token_set,
             Err(_) => {
                 println!("Token Generation Error");
