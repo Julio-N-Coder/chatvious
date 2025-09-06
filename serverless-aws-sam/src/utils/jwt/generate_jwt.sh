@@ -13,4 +13,4 @@ if [ ! -d "$VENV_DIR" ]; then
 fi
 
 # Run the python script inside venv
-"$VENV_DIR/bin/python" "$SCRIPT_DIR/generate_jwt.py"
+"$VENV_DIR/bin/python" "$SCRIPT_DIR/generate_jwt.py" "$@"
