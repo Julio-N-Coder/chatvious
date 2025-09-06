@@ -1,6 +1,4 @@
-import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import {
-  DynamoDBDocumentClient,
   PutCommandOutput,
   GetCommandOutput,
   DeleteCommandOutput,
@@ -20,19 +18,7 @@ import {
   FetchAllRoomConnectionsReturn,
 } from "../types/types.js";
 
-const tableName = process.env.CHATVIOUSTABLE_TABLE_NAME
-  ? process.env.CHATVIOUSTABLE_TABLE_NAME
-  : "chatvious";
-const dynamodbOptionsString = process.env.DYNAMODB_OPTIONS || "{}";
-const dynamodbOptions = JSON.parse(dynamodbOptionsString);
-const client = new DynamoDBClient(dynamodbOptions);
-const docClient = DynamoDBDocumentClient.from(client);
-
 class InitialConectDBWSManager extends BaseModels {
-  constructor(tableName: string, pk: string, sk: string) {
-    super(tableName, pk, sk);
-  }
-
   async storeInitialConnection(
     connectionId: string,
     userID: string,
@@ -150,10 +136,6 @@ class InitialConectDBWSManager extends BaseModels {
 }
 
 class RoomConnectionsWSManager extends BaseModels {
-  constructor(tableName: string, pk: string, sk: string) {
-    super(tableName, pk, sk);
-  }
-
   async storeRoomConnection(
     connectionId: string,
     userID: string,
@@ -248,7 +230,7 @@ class RoomConnectionsWSManager extends BaseModels {
     RoomID: string
   ): BaseModelsReturnType {
     const command = new UpdateCommand({
-      TableName: tableName,
+      TableName: this.tableName,
       Key: {
         PartitionKey: "CONNECTION_INFO",
         SortKey: connectionId,
@@ -262,7 +244,7 @@ class RoomConnectionsWSManager extends BaseModels {
 
     let updateInitialConnectionResponse: UpdateCommandOutput;
     try {
-      updateInitialConnectionResponse = await docClient.send(command);
+      updateInitialConnectionResponse = await this.docClient.send(command);
     } catch (err) {
       return {
         error: "Something Went wrong while updating data",
@@ -283,7 +265,7 @@ class RoomConnectionsWSManager extends BaseModels {
 
   async fetchAllRoomConnections(RoomID: string): FetchAllRoomConnectionsReturn {
     const command = new QueryCommand({
-      TableName: tableName,
+      TableName: this.tableName,
       KeyConditionExpression:
         "PartitionKey = :pk AND begins_with(SortKey, :connectionIdPrefix)",
       ExpressionAttributeValues: {
@@ -295,7 +277,7 @@ class RoomConnectionsWSManager extends BaseModels {
 
     let fetchAllRoomConnectionsResponse: QueryCommandOutput;
     try {
-      fetchAllRoomConnectionsResponse = await docClient.send(command);
+      fetchAllRoomConnectionsResponse = await this.docClient.send(command);
     } catch (err) {
       return {
         error: "Something Went wrong while fetching data",
@@ -366,15 +348,7 @@ function setExpirationTo3Hours() {
   return currentEpochTime + 10800;
 }
 
-const initialConectDBWSManager = new InitialConectDBWSManager(
-  tableName,
-  "PartitionKey",
-  "SortKey"
-);
-const roomConnectionsWSManager = new RoomConnectionsWSManager(
-  tableName,
-  "PartitionKey",
-  "SortKey"
-);
+const initialConectDBWSManager = new InitialConectDBWSManager();
+const roomConnectionsWSManager = new RoomConnectionsWSManager();
 
 export { initialConectDBWSManager, roomConnectionsWSManager };

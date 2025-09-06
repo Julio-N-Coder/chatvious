@@ -14,24 +14,29 @@ import {
 } from "@aws-sdk/lib-dynamodb";
 import { BaseKeys } from "../types/types.js";
 
-const dynamodbOptionsString = process.env.DYNAMODB_OPTIONS || "{}";
-const dynamodbOptions = JSON.parse(dynamodbOptionsString);
-const client = new DynamoDBClient(dynamodbOptions);
-const docClient = DynamoDBDocumentClient.from(client);
-
 interface BaseItemData extends BaseKeys {
   [key: string]: any;
 }
 
 class BaseModels {
+  docClient: DynamoDBDocumentClient;
   protected tableName: string;
   protected pk: string;
   protected sk: string;
 
-  constructor(tableName: string, pk: string, sk: string) {
-    this.tableName = tableName;
-    this.pk = pk;
-    this.sk = sk;
+  constructor() {
+    this.tableName = process.env.CHATVIOUSTABLE_TABLE_NAME
+      ? process.env.CHATVIOUSTABLE_TABLE_NAME
+      : "chatvious";
+
+    this.pk = "PartitionKey";
+    this.sk = "SortKey";
+
+    const dynamodbOptionsString = process.env.DYNAMODB_OPTIONS || "{}";
+    const dynamodbOptions = JSON.parse(dynamodbOptionsString);
+    const client = new DynamoDBClient(dynamodbOptions);
+
+    this.docClient = DynamoDBDocumentClient.from(client);
   }
 
   protected async putItem(item: BaseItemData): Promise<PutCommandOutput> {
@@ -40,7 +45,7 @@ class BaseModels {
       Item: item,
     });
 
-    return await docClient.send(command);
+    return await this.docClient.send(command);
   }
 
   protected async getItem(
@@ -57,7 +62,7 @@ class BaseModels {
       command.input.ProjectionExpression = ProjectionExpression;
     }
 
-    return await docClient.send(command);
+    return await this.docClient.send(command);
   }
 
   protected async deleteItem(
@@ -70,7 +75,7 @@ class BaseModels {
       ReturnValues: returnDeletedValues ? "ALL_OLD" : "NONE",
     });
 
-    return await docClient.send(command);
+    return await this.docClient.send(command);
   }
 
   /**
@@ -118,7 +123,7 @@ class BaseModels {
       ExpressionAttributeValues: expressionAttributeValues,
     });
 
-    return await docClient.send(addMessageCountCommand);
+    return await this.docClient.send(addMessageCountCommand);
   }
 
   protected async batchWrite(
@@ -151,7 +156,7 @@ class BaseModels {
       },
     });
 
-    return await docClient.send(command);
+    return await this.docClient.send(command);
   }
 }
 export { BaseModels };

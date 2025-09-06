@@ -1,7 +1,5 @@
-import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import {
   DeleteCommandOutput,
-  DynamoDBDocumentClient,
   GetCommandOutput,
   PutCommandOutput,
   QueryCommand,
@@ -20,16 +18,7 @@ import {
   BaseModelsReturnTypeData,
 } from "../types/types.js";
 
-const dynamodbOptionsString = process.env.DYNAMODB_OPTIONS || "{}";
-const dynamodbOptions = JSON.parse(dynamodbOptionsString);
-const client = new DynamoDBClient(dynamodbOptions);
-const docClient = DynamoDBDocumentClient.from(client);
-
 class MessagesManagerDB extends BaseModels {
-  constructor(tableName: string, pk: string, sk: string) {
-    super(tableName, pk, sk);
-  }
-
   async storeMessage(
     userID: string,
     userName: string,
@@ -141,7 +130,9 @@ class MessagesManagerDB extends BaseModels {
 
     let limit20MessagesResponse: QueryCommandOutput;
     try {
-      limit20MessagesResponse = await docClient.send(new QueryCommand(params));
+      limit20MessagesResponse = await this.docClient.send(
+        new QueryCommand(params)
+      );
     } catch (error) {
       return {
         error: "Server Error fetching messages",
@@ -218,7 +209,7 @@ class MessagesManagerDB extends BaseModels {
 
     let allMessagesResponse: QueryCommandOutput;
     try {
-      allMessagesResponse = await docClient.send(command);
+      allMessagesResponse = await this.docClient.send(command);
     } catch (error) {
       return {
         error: "Server Error fetching messages",
@@ -303,10 +294,6 @@ const tableName = process.env.CHATVIOUSTABLE_TABLE_NAME
   ? process.env.CHATVIOUSTABLE_TABLE_NAME
   : "chatvious";
 
-const messagesManagerDB = new MessagesManagerDB(
-  tableName,
-  "PartitionKey",
-  "SortKey"
-);
+const messagesManagerDB = new MessagesManagerDB();
 
 export { messagesManagerDB };

@@ -10,9 +10,8 @@ import {
   FetchNavJoinRequestsReturn,
   CreateUserInfoReturn,
 } from "../types/types.js";
-import { DynamoDBClient, QueryCommandOutput } from "@aws-sdk/client-dynamodb";
+import { QueryCommandOutput } from "@aws-sdk/client-dynamodb";
 import {
-  DynamoDBDocumentClient,
   QueryCommand,
   UpdateCommand,
   PutCommandOutput,
@@ -21,19 +20,7 @@ import {
   UpdateCommandOutput,
 } from "@aws-sdk/lib-dynamodb";
 
-const tableName = process.env.CHATVIOUSTABLE_TABLE_NAME
-  ? process.env.CHATVIOUSTABLE_TABLE_NAME
-  : "chatvious";
-const dynamodbOptionsString = process.env.DYNAMODB_OPTIONS || "{}";
-const dynamodbOptions = JSON.parse(dynamodbOptionsString);
-const client = new DynamoDBClient(dynamodbOptions);
-const docClient = DynamoDBDocumentClient.from(client);
-
 class UserManager extends BaseModels {
-  constructor(tableName: string, pk: string, sk: string) {
-    super(tableName, pk, sk);
-  }
-
   async createUser(
     userID?: string,
     userName?: string,
@@ -142,9 +129,6 @@ class UserManager extends BaseModels {
 }
 
 class RoomsOnUserManager extends BaseModels {
-  constructor(tableName: string, pk: string, sk: string) {
-    super(tableName, pk, sk);
-  }
   async fetchRoomsOnUser(
     userID: string,
     fetchOwnedRooms: boolean,
@@ -230,7 +214,7 @@ class RoomsOnUserManager extends BaseModels {
     joinedRoom: { RoomID: string; isAdmin: boolean; roomName: string }
   ): BaseModelsReturnType {
     const updateJoinedRoomsCommand = new UpdateCommand({
-      TableName: tableName,
+      TableName: this.tableName,
       Key: { PartitionKey: `USER#${userID}`, SortKey: "PROFILE" },
       UpdateExpression:
         "SET joinedRooms = list_append(joinedRooms, :joinedRoom)",
@@ -241,7 +225,7 @@ class RoomsOnUserManager extends BaseModels {
 
     let updateJoinedRoomsResponse: UpdateCommandOutput;
     try {
-      updateJoinedRoomsResponse = await docClient.send(
+      updateJoinedRoomsResponse = await this.docClient.send(
         updateJoinedRoomsCommand
       );
     } catch (error) {
@@ -305,14 +289,16 @@ class RoomsOnUserManager extends BaseModels {
     }
 
     const removeRoomOnUserCommand = new UpdateCommand({
-      TableName: tableName,
+      TableName: this.tableName,
       Key: { PartitionKey: `USER#${userID}`, SortKey: "PROFILE" },
       UpdateExpression: `REMOVE ${roomType}[${index}]`,
     });
 
     let removeRoomOnUserResponse: UpdateCommandOutput;
     try {
-      removeRoomOnUserResponse = await docClient.send(removeRoomOnUserCommand);
+      removeRoomOnUserResponse = await this.docClient.send(
+        removeRoomOnUserCommand
+      );
     } catch (error) {
       return { error: "Failed to remove Room on user", statusCode: 500 };
     }
@@ -340,7 +326,7 @@ class RoomsOnUserManager extends BaseModels {
 
     for (let i = 0; i < ownedRooms.length && i < 5; i++) {
       const joinRequestsCommand = new QueryCommand({
-        TableName: tableName,
+        TableName: this.tableName,
         KeyConditionExpression:
           "PartitionKey = :partitionkey AND begins_with(SortKey, :joinRequest)",
         ExpressionAttributeValues: {
@@ -353,7 +339,7 @@ class RoomsOnUserManager extends BaseModels {
 
       let joinRequestsResponse: QueryCommandOutput;
       try {
-        joinRequestsResponse = await docClient.send(joinRequestsCommand);
+        joinRequestsResponse = await this.docClient.send(joinRequestsCommand);
       } catch (error) {
         return { error: "Failed to Get Join Requests", statusCode: 500 };
       }
@@ -391,7 +377,7 @@ class RoomsOnUserManager extends BaseModels {
       }
 
       const joinRequestsCommand = new QueryCommand({
-        TableName: tableName,
+        TableName: this.tableName,
         KeyConditionExpression:
           "PartitionKey = :partitionkey AND begins_with(SortKey, :joinRequest)",
         ExpressionAttributeValues: {
@@ -404,7 +390,7 @@ class RoomsOnUserManager extends BaseModels {
 
       let joinRequestsResponse: QueryCommandOutput;
       try {
-        joinRequestsResponse = await docClient.send(joinRequestsCommand);
+        joinRequestsResponse = await this.docClient.send(joinRequestsCommand);
       } catch (error) {
         return { error: "Failed to Get Join Requests", statusCode: 500 };
       }
@@ -433,11 +419,7 @@ class RoomsOnUserManager extends BaseModels {
   }
 }
 
-const userManager = new UserManager(tableName, "PartitionKey", "SortKey");
-const roomsOnUserManager = new RoomsOnUserManager(
-  tableName,
-  "PartitionKey",
-  "SortKey"
-);
+const userManager = new UserManager();
+const roomsOnUserManager = new RoomsOnUserManager();
 
 export { userManager, roomsOnUserManager };
