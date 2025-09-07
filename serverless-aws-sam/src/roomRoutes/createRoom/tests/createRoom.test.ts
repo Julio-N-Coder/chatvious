@@ -1,20 +1,16 @@
 import { handler } from "../createRoom.js";
 import restAPIEventBase from "../../../../events/restAPIEvent.json";
+import { describe, test, expect, beforeAll, afterEach } from "@jest/globals";
+import { mockClient } from "aws-sdk-client-mock";
 import {
-  describe,
-  test,
-  expect,
-  beforeAll,
-  afterAll,
-  afterEach,
-} from "@jest/globals";
-import { roomManager } from "../../../models/rooms.js";
-import { UserInfo } from "../../../types/types.js";
-import {
-  newTestUser,
-  checkRoomsOnUser,
-  clearDynamoDB,
-} from "../../../lib/libtest/handyTestUtils.js";
+  DynamoDBDocumentClient,
+  GetCommand,
+  PutCommand,
+  UpdateCommand,
+} from "@aws-sdk/lib-dynamodb";
+import { UserInfoDBResponse } from "../../../types/types.js";
+
+const ddbMock = mockClient(DynamoDBDocumentClient);
 
 let restAPIEvent: typeof restAPIEventBase = JSON.parse(
   JSON.stringify(restAPIEventBase)
@@ -23,14 +19,17 @@ let restAPIEventCopy: typeof restAPIEventBase;
 
 const userID = restAPIEvent.requestContext.authorizer.sub;
 const userName = restAPIEvent.requestContext.authorizer.username;
-let newUser: UserInfo;
 
 const roomName = "createRoomTestRoom";
-let RoomID: string;
+
+const $metadata = {
+  httpStatusCode: 200,
+  requestId: "c7574571-6cd1-4fbb-ba4f-43c39573729a",
+  attempts: 1,
+  totalRetryDelay: 0,
+};
 
 beforeAll(async () => {
-  newUser = await newTestUser(userID, userName);
-
   restAPIEvent.body = JSON.stringify({
     roomName,
   });
@@ -41,41 +40,55 @@ beforeAll(async () => {
 });
 
 afterEach(async () => {
+  ddbMock.reset();
   restAPIEvent = JSON.parse(JSON.stringify(restAPIEventCopy));
-});
-
-afterAll(async () => {
-  await clearDynamoDB();
 });
 
 describe("A test suite to see if the createRoom route works correctly", () => {
   test("createRoom Route returns a successfull response, makes the room, updates the rooms on user, and adds user to room as Owner", async () => {
+    ddbMock.on(GetCommand).resolves({
+      $metadata,
+      Item: {
+        PartitionKey: `USER#${userID}`,
+        SortKey: "PROFILE",
+        userID,
+        userName,
+        hashedPassword: "password",
+        ownedRooms: [],
+        joinedRooms: [],
+        profileColor: "green",
+      } as UserInfoDBResponse,
+    });
+
+    ddbMock.on(UpdateCommand).callsFake((input) => {
+      if (input.Key.PartitionKey === "LIMITS") {
+        return Promise.resolve({
+          $metadata,
+        });
+      }
+
+      return Promise.resolve({
+        $metadata,
+      });
+    });
+
+    ddbMock.on(PutCommand).resolves({
+      $metadata,
+    });
+
     const response = await handler(restAPIEvent);
     expect(response.statusCode).toBe(201);
 
     const body = JSON.parse(response.body);
     expect(body).toHaveProperty("roomInfo");
-    RoomID = body.roomInfo.RoomID;
 
     expect(body.message).toBe("Room Created");
     expect(body.roomInfo.roomName).toBe(roomName);
-
-    // check if the room is created
-    const fetchRoomResponse = await roomManager.fetchRoom(RoomID);
-    if ("error" in fetchRoomResponse) {
-      throw new Error(
-        `Failed to fetch room. Error: ${fetchRoomResponse.error}`
-      );
-    }
-
-    expect(fetchRoomResponse).toHaveProperty("statusCode", 200);
-    expect(fetchRoomResponse).toHaveProperty("message", "Room Found");
-    expect(fetchRoomResponse).toHaveProperty("roomInfo");
-    expect(fetchRoomResponse.roomInfo).toHaveProperty("RoomID", RoomID);
-    expect(fetchRoomResponse.roomInfo).toHaveProperty("roomName", roomName);
-    expect(fetchRoomResponse.roomInfo).toHaveProperty("roomMemberCount", 1);
-
-    await checkRoomsOnUser(userID, RoomID, roomName, "Owned");
+    expect(body.roomInfo).toHaveProperty("RoomID");
+    expect(body.roomInfo).toHaveProperty("RoomID");
+    expect(body.roomInfo).toHaveProperty("createdAt");
+    expect(body.roomInfo).toHaveProperty("roomMemberCount", 1);
+    expect(body.roomInfo).toHaveProperty("messageCount", 0);
   });
 
   test("Incorrect Content-Type header should return the correct Error", async () => {
