@@ -42,7 +42,7 @@ type RoomsOnUser =
 type UserInfo = {
   userID: string;
   userName: string;
-  email: string;
+  hashedPassword: string;
   ownedRooms: RoomsOnUser;
   joinedRooms: RoomsOnUser;
   profileColor: string;
@@ -181,7 +181,6 @@ type FetchNavJoinRequestsReturn = Promise<
 interface FetchNavUserInfoSuccess extends BaseModelsSuccess {
   data: {
     userName: string;
-    email: string;
     profileColor: string;
     ownedRooms: RoomsOnUser;
     joinedRooms: RoomsOnUser;

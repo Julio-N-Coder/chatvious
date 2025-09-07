@@ -2,7 +2,7 @@ import { APIGatewayProxyResult, APIGatewayEvent } from "aws-lambda";
 import ejs from "ejs";
 import fetchNavUserInfo from "../../lib/navUserInfo.js";
 import { isProduction, addSetCookieHeaders } from "../../lib/handyUtils.js";
-import { roomManager, roomUsersManager } from "../../models/rooms.js";
+import { roomUsersManager } from "../../models/rooms.js";
 import { messagesManagerDB } from "../../models/messagesDB.js";
 import { MessageKeys } from "../../types/types.js";
 

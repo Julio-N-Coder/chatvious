@@ -21,10 +21,14 @@ import {
 } from "@aws-sdk/lib-dynamodb";
 
 class UserManager extends BaseModels {
+  /**
+   * Creates a new User
+   *
+   * If arguments are not passed, a test user is made
+   */
   async createUser(
     userID?: string,
     userName?: string,
-    email?: string,
     profileColor?: string
   ): CreateUserInfoReturn {
     const colors = [
@@ -45,18 +49,17 @@ class UserManager extends BaseModels {
     const usedUserName = userName
       ? userName
       : `testUser${Math.floor(Math.random() * 100)}`;
-    const usedEmail = email ? email : `${usedUserName}@example.com`;
 
     const newUser = {
       PartitionKey: `USER#${usedUserID}`,
       SortKey: "PROFILE",
       userID: usedUserID,
       userName: usedUserName,
-      email: usedEmail,
+      hashedPassword: "fakePassword",
       profileColor: getRandomColor(),
       ownedRooms: [],
       joinedRooms: [],
-    };
+    } as UserInfoDBResponse;
 
     let createUserResponse: PutCommandOutput;
     try {
@@ -118,7 +121,7 @@ class UserManager extends BaseModels {
     const userInfo: UserInfo = {
       userID,
       userName: userInfoDBResponse.userName,
-      email: userInfoDBResponse.email,
+      hashedPassword: userInfoDBResponse.hashedPassword,
       profileColor: userInfoDBResponse.profileColor,
       ownedRooms: userInfoDBResponse.ownedRooms,
       joinedRooms: userInfoDBResponse.joinedRooms,
