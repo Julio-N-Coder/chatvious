@@ -8,7 +8,11 @@ import {
   PutCommand,
   UpdateCommand,
 } from "@aws-sdk/lib-dynamodb";
-import { UserInfoDBResponse } from "../../../types/types.js";
+import {
+  $metadata,
+  userInfoDB,
+  roomInfoDB,
+} from "../../../lib/libtest/testData.js";
 
 const ddbMock = mockClient(DynamoDBDocumentClient);
 
@@ -17,17 +21,7 @@ let restAPIEvent: typeof restAPIEventBase = JSON.parse(
 );
 let restAPIEventCopy: typeof restAPIEventBase;
 
-const userID = restAPIEvent.requestContext.authorizer.sub;
-const userName = restAPIEvent.requestContext.authorizer.username;
-
-const roomName = "createRoomTestRoom";
-
-const $metadata = {
-  httpStatusCode: 200,
-  requestId: "c7574571-6cd1-4fbb-ba4f-43c39573729a",
-  attempts: 1,
-  totalRetryDelay: 0,
-};
+const roomName = roomInfoDB.roomName;
 
 beforeAll(async () => {
   restAPIEvent.body = JSON.stringify({
@@ -48,16 +42,7 @@ describe("A test suite to see if the createRoom route works correctly", () => {
   test("createRoom Route returns a successfull response, makes the room, updates the rooms on user, and adds user to room as Owner", async () => {
     ddbMock.on(GetCommand).resolves({
       $metadata,
-      Item: {
-        PartitionKey: `USER#${userID}`,
-        SortKey: "PROFILE",
-        userID,
-        userName,
-        hashedPassword: "password",
-        ownedRooms: [],
-        joinedRooms: [],
-        profileColor: "green",
-      } as UserInfoDBResponse,
+      Item: userInfoDB,
     });
 
     ddbMock.on(UpdateCommand).callsFake((input) => {
