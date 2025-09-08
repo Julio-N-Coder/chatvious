@@ -45,7 +45,7 @@ let roomInfoDB: RoomInfoDBType = {
 
 let roomMemberDB: RoomMemberDB = {
   PartitionKey: `ROOM#${RoomID}`,
-  SortKey: `MEMBERS#USERID#${RoomID}`,
+  SortKey: `MEMBERS#USERID#${userID}`,
   userID,
   userName: userInfoDB.userName,
   RoomID,

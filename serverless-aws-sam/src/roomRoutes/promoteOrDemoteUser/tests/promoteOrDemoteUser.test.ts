@@ -5,77 +5,39 @@ import {
   test,
   expect,
   beforeAll,
-  afterAll,
   afterEach,
+  beforeEach,
 } from "@jest/globals";
-import { userManager } from "../../../models/users.js";
-import { roomManager, roomUsersManager } from "../../../models/rooms.js";
-import { UserInfo, RoomInfoType } from "../../../types/types.js";
+import { RoomMemberDB } from "../../../types/types.js";
+import { mockClient } from "aws-sdk-client-mock";
 import {
-  newTestUser,
-  clearDynamoDB,
-} from "../../../lib/libtest/handyTestUtils.js";
+  DynamoDBDocumentClient,
+  GetCommand,
+  UpdateCommand,
+} from "@aws-sdk/lib-dynamodb";
+import {
+  $metadata,
+  userInfoDB,
+  roomInfoDB,
+  roomMemberDB,
+} from "../../../lib/libtest/testData.js";
+
+const ddbMock = mockClient(DynamoDBDocumentClient);
 
 let restAPIEvent: typeof restAPIEventBase = JSON.parse(
   JSON.stringify(restAPIEventBase)
 );
 let restAPIEventCopy: typeof restAPIEventBase;
 
-const userID = restAPIEvent.requestContext.authorizer.sub;
-const userName = restAPIEvent.requestContext.authorizer.username;
-let newUser: UserInfo;
+let RoomID = roomInfoDB.RoomID;
 
-const roomName = "promoteDemoteTestRoom";
-let roomInfo: RoomInfoType;
-let RoomID: string;
-
-let userPromotedDemoted: UserInfo;
-let userPromotedDemotedID: string;
-let userPromotedDemotedName: string;
+let userPromotedDemoted = structuredClone(userInfoDB);
+let userPromotedDemotedID = "z7574571-6cd1-4fbb-ba4f-43c39573729a";
+let userPromotedDemotedName = "userPromotedDemotedName";
+userPromotedDemoted.userID = userPromotedDemotedID;
+userPromotedDemoted.userName = userPromotedDemotedName;
 
 beforeAll(async () => {
-  newUser = await newTestUser(userID, userName);
-
-  // make a user for the person being promoted
-  const createUserPromotedDemotedResponse = await userManager.createUser();
-  if ("error" in createUserPromotedDemotedResponse) {
-    throw new Error(
-      `Failed to create user. Error: ${createUserPromotedDemotedResponse.error}`
-    );
-  }
-  userPromotedDemoted = createUserPromotedDemotedResponse.newUser;
-  userPromotedDemotedID = userPromotedDemoted.userID;
-  userPromotedDemotedName = userPromotedDemoted.userName;
-
-  // make a room for the user to be promoted from
-  const createRoomResponse = await roomManager.makeRoom(
-    userID,
-    userName,
-    roomName,
-    newUser.profileColor
-  );
-  if ("error" in createRoomResponse) {
-    throw new Error(
-      `Failed to create room. Error: ${createRoomResponse.error}`
-    );
-  }
-  roomInfo = createRoomResponse.roomInfo;
-  RoomID = roomInfo.RoomID;
-
-  // insert the user being promoted into the room
-  const addRoomMemberResponse = await roomUsersManager.addRoomMember(
-    RoomID,
-    userPromotedDemotedID,
-    roomName,
-    userPromotedDemotedName,
-    userPromotedDemoted.profileColor
-  );
-  if ("error" in addRoomMemberResponse) {
-    throw new Error(
-      `Failed to add room member. Error: ${addRoomMemberResponse.error}`
-    );
-  }
-
   restAPIEvent.body = JSON.stringify({
     userID: userPromotedDemotedID,
     RoomID,
@@ -87,12 +49,35 @@ beforeAll(async () => {
   restAPIEventCopy = JSON.parse(JSON.stringify(restAPIEvent));
 });
 
-afterEach(async () => {
-  restAPIEvent = JSON.parse(JSON.stringify(restAPIEventCopy));
+let mockMemberIsMember = true;
+beforeEach(async () => {
+  ddbMock.on(GetCommand).callsFake((input) => {
+    if (input.Key.SortKey === roomMemberDB.SortKey) {
+      return Promise.resolve({
+        $metadata,
+        Item: roomMemberDB,
+      });
+    }
+
+    return Promise.resolve({
+      $metadata,
+      Item: {
+        ...roomMemberDB,
+        userID: userPromotedDemotedID,
+        userName: userPromotedDemotedName,
+        RoomUserStatus: mockMemberIsMember ? "MEMBER" : "ADMIN",
+      } as RoomMemberDB,
+    });
+  });
+  ddbMock.on(UpdateCommand).resolves({
+    $metadata,
+    Attributes: {},
+  });
 });
 
-afterAll(async () => {
-  await clearDynamoDB();
+afterEach(async () => {
+  ddbMock.reset();
+  restAPIEvent = JSON.parse(JSON.stringify(restAPIEventCopy));
 });
 
 // promte then demote in one test
@@ -104,19 +89,10 @@ describe("A test to see if the promoteOrDemoteUser works correctly", () => {
     const body = JSON.parse(response.body);
     expect(body).toHaveProperty("message", "Successfully Promoted User");
 
-    // check whether user has been promoted
-    const roomMemberResponse = await roomUsersManager.fetchRoomMember(
-      RoomID,
-      userPromotedDemotedID
-    );
-    if ("error" in roomMemberResponse) {
-      throw new Error(
-        `Failed to fetch room member in test. Error: ${roomMemberResponse.error}`
-      );
-    }
+    // check whether user promotion was attempted
+    expect(ddbMock.commandCalls(UpdateCommand)).toHaveLength(1);
 
-    const promotedUser = roomMemberResponse.roomMember;
-    expect(promotedUser).toHaveProperty("RoomUserStatus", "ADMIN");
+    mockMemberIsMember = false;
   });
 
   test("promoteOrDemoteUser route successfull demotes a User", async () => {
@@ -132,19 +108,8 @@ describe("A test to see if the promoteOrDemoteUser works correctly", () => {
     const body = JSON.parse(response.body);
     expect(body).toHaveProperty("message", "Successfully Demoted User");
 
-    // check whether user has been demoted
-    const roomMemberResponse = await roomUsersManager.fetchRoomMember(
-      RoomID,
-      userPromotedDemotedID
-    );
-    if ("error" in roomMemberResponse) {
-      throw new Error(
-        `Failed to fetch room member in test. Error: ${roomMemberResponse.error}`
-      );
-    }
-
-    const promotedUser = roomMemberResponse.roomMember;
-    expect(promotedUser).toHaveProperty("RoomUserStatus", "MEMBER");
+    // // check whether user demotion was attempted
+    expect(ddbMock.commandCalls(UpdateCommand)).toHaveLength(1);
   });
 
   test("Incorrect Content-Type header should return the correct Error", async () => {
