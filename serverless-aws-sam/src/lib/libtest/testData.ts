@@ -12,7 +12,7 @@ import {
 const userID = restAPIEvent.requestContext.authorizer.sub;
 const userName = restAPIEvent.requestContext.authorizer.username;
 
-const RoomID = "fakeRoomId";
+const RoomID = "a7574571-6cd1-4fbb-ba4f-43c39573729a";
 const roomName = "createRoomTestRoom";
 
 const $metadata = {
@@ -28,7 +28,7 @@ let userInfoDB: UserInfoDBResponse = {
   userID,
   userName,
   hashedPassword: "password",
-  ownedRooms: [],
+  ownedRooms: [{ RoomID, roomName }],
   joinedRooms: [],
   profileColor: "green",
 };
