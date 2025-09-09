@@ -1,91 +1,38 @@
 import { handler } from "../fetchNewMessages.js";
 import restAPIEventBase from "../../../../events/restAPIEvent.json";
+import { describe, test, expect, beforeAll, afterEach } from "@jest/globals";
+import { mockClient } from "aws-sdk-client-mock";
 import {
-  describe,
-  test,
-  expect,
-  beforeAll,
-  afterAll,
-  afterEach,
-} from "@jest/globals";
-import { roomManager } from "../../../models/rooms.js";
-import { messagesManagerDB } from "../../../models/messagesDB.js";
-import { UserInfo, RoomInfoType, MessageKeys } from "../../../types/types.js";
+  DynamoDBDocumentClient,
+  GetCommand,
+  QueryCommand,
+} from "@aws-sdk/lib-dynamodb";
 import {
-  newTestUser,
-  clearDynamoDB,
-} from "../../../lib/libtest/handyTestUtils.js";
+  $metadata,
+  userInfoDB,
+  roomInfoDB,
+  roomMemberDB,
+  messageDB,
+} from "../../../lib/libtest/testData.js";
+
+const ddbMock = mockClient(DynamoDBDocumentClient);
 
 let restAPIEvent: typeof restAPIEventBase = JSON.parse(
   JSON.stringify(restAPIEventBase)
 );
 let restAPIEventCopy: typeof restAPIEventBase;
 
-const userID = restAPIEvent.requestContext.authorizer.sub;
-const userName = restAPIEvent.requestContext.authorizer.username;
-let newUser: UserInfo;
+const userID = userInfoDB.userID;
+const userName = userInfoDB.userName;
 
-const roomName = "promoteDemoteTestRoom";
-let roomInfo: RoomInfoType;
-let RoomID: string;
+let RoomID = roomInfoDB.RoomID;
 
-let LastEvaluatedKey: MessageKeys | false = false;
+let LastEvaluatedKey = {
+  PartitionKey: `ROOM#${RoomID}`,
+  SortKey: "MESSAGES#DATE#${currentTimestamp}#MESSAGEID#${messageId}",
+};
 
 beforeAll(async () => {
-  newUser = await newTestUser(userID, userName);
-
-  // make a room for the user to be promoted from
-  const createRoomResponse = await roomManager.makeRoom(
-    userID,
-    userName,
-    roomName,
-    newUser.profileColor
-  );
-  if ("error" in createRoomResponse) {
-    throw new Error(
-      `Failed to create room. Error: ${createRoomResponse.error}`
-    );
-  }
-  roomInfo = createRoomResponse.roomInfo;
-  RoomID = roomInfo.RoomID;
-
-  // insert messages into the room
-  let messageCount = 10;
-  let errorCount = 0;
-  let maxAllowedErrorCount = 4;
-  for (let i = 0; i < messageCount; i++) {
-    const storeMessageResponse = await messagesManagerDB.storeMessage(
-      userID,
-      userName,
-      RoomID,
-      "OWNER",
-      newUser.profileColor,
-      `This is a Test Message ${i}`
-    );
-    if ("error" in storeMessageResponse) {
-      errorCount++;
-      console.error(
-        `Failed to store message. Error: ${storeMessageResponse.error}`
-      );
-
-      if (errorCount > maxAllowedErrorCount) {
-        throw new Error(
-          `Failed to store enough messages. ${errorCount} messages didn't store`
-        );
-      }
-    } else {
-      const currentTimestamp = storeMessageResponse.data.sentAt;
-      const messageId = storeMessageResponse.data.messageId;
-
-      if (i === maxAllowedErrorCount + 1) {
-        LastEvaluatedKey = {
-          PartitionKey: `ROOM#${RoomID}`,
-          SortKey: `MESSAGES#DATE#${currentTimestamp}#MESSAGEID#${messageId}`,
-        };
-      }
-    }
-  }
-
   restAPIEvent.body = JSON.stringify({
     RoomID,
     LastEvaluatedKey,
@@ -97,15 +44,23 @@ beforeAll(async () => {
 });
 
 afterEach(async () => {
+  ddbMock.reset();
   restAPIEvent = JSON.parse(JSON.stringify(restAPIEventCopy));
-});
-
-afterAll(async () => {
-  await clearDynamoDB();
 });
 
 describe("tests to see if the fetchNewMessages route works correctly", () => {
   test("Route Successfully fetches new messages with the LastEvaluatedKey", async () => {
+    ddbMock.on(GetCommand).resolves({
+      $metadata,
+      Item: roomMemberDB,
+    });
+    ddbMock.on(QueryCommand).resolves({
+      $metadata,
+      Count: 5,
+      Items: [messageDB, messageDB, messageDB, messageDB, messageDB],
+      ScannedCount: 5,
+    });
+
     const response = await handler(restAPIEvent);
     expect(response).toHaveProperty("statusCode", 200);
 
@@ -118,7 +73,10 @@ describe("tests to see if the fetchNewMessages route works correctly", () => {
     expect(body.data[0]).toHaveProperty("userID", userID);
     expect(body.data[0]).toHaveProperty("userName", userName);
     expect(body.data[0]).toHaveProperty("RoomUserStatus", "OWNER");
-    expect(body.data[0]).toHaveProperty("profileColor", newUser.profileColor);
+    expect(body.data[0]).toHaveProperty(
+      "profileColor",
+      userInfoDB.profileColor
+    );
   });
 
   test("Incorrect Content-Type header should return the correct Error", async () => {
