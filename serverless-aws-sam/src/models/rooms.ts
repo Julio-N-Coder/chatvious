@@ -199,9 +199,8 @@ class RoomManager extends BaseModels {
     }
 
     // delete all Messages in the room
+    let LastEvaluatedKey: MessageKeys | undefined;
     while (true) {
-      let LastEvaluatedKey: MessageKeys | undefined;
-
       const fetchMessagesResponse =
         await messagesManagerDB.fetchAllRoomMessages(
           RoomID,
@@ -217,7 +216,7 @@ class RoomManager extends BaseModels {
 
       LastEvaluatedKey = fetchMessagesResponse.LastEvaluatedKey;
 
-      if (fetchMessagesResponse.message === "Messages fetched successfully") {
+      if (fetchMessagesResponse.data.length > 0) {
         const messages = fetchMessagesResponse.data;
         for (const message of messages) {
           const deleteMessageResponse = await messagesManagerDB.deleteMessage(
@@ -232,7 +231,12 @@ class RoomManager extends BaseModels {
             };
           }
         }
-      } else {
+      }
+
+      if (
+        !fetchMessagesResponse.LastEvaluatedKey ||
+        fetchMessagesResponse.data.length <= 0
+      ) {
         break;
       }
     }
