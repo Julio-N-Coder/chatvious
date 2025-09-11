@@ -1,6 +1,8 @@
+import random
 import subprocess
 import time
 import requests
+import uuid
 import boto3
 from botocore.exceptions import ClientError
 
@@ -90,6 +92,47 @@ class DynamoDBHelper:
         """Insert default limits item (0, 0) into the table."""
         self.insert_limits_item_custom(table_name, 0, 0)
 
+    def get_random_color(self):
+        """Get a random profile color."""
+        colors = ["blue", "green", "orange", "yellow", "sky", "purple", "pink"]
+        return random.choice(colors)
+
+    def insert_test_user(
+        self, table_name, user_id=None, user_name=None, profile_color=None
+    ):
+        """Insert a test user into the table."""
+        # Generate or use provided values
+        used_user_id = user_id if user_id else str(uuid.uuid4())
+        used_user_name = user_name if user_name else "test_user"
+        used_profile_color = profile_color if profile_color else self.get_random_color()
+
+        self.test_user_id = used_user_id
+        self.test_user_name = used_user_name
+        self.test_user_color = used_profile_color
+
+        self.dynamodb_client.put_item(
+            TableName=table_name,
+            Item={
+                "PartitionKey": {"S": f"USER#{used_user_id}"},
+                "SortKey": {"S": "PROFILE"},
+                "userID": {"S": used_user_id},
+                "userName": {"S": used_user_name},
+                "hashedPassword": {"S": "fakePassword"},
+                "profileColor": {"S": used_profile_color},
+                "ownedRooms": {"L": []},
+                "joinedRooms": {"L": []},
+            },
+        )
+        print(f"Inserted test user: {used_user_name} (ID: {used_user_id})")
+
+    def get_test_user_data(self):
+        """Get the test user data."""
+        return {
+            "user_id": self.test_user_id,
+            "user_name": self.test_user_name,
+            "profile_color": self.test_user_color,
+        }
+
     def start_dynamodb_container(self):
         """Start DynamoDB container."""
         # Check if container is already running
@@ -145,6 +188,7 @@ class DynamoDBHelper:
             if not self.check_dynamodb_table_exists(table_name):
                 self.create_db_table(table_name)
                 self.insert_limits_item(table_name)
+                self.insert_test_user(table_name)
         else:
             if not self.start_dynamodb_container():
                 return False
@@ -154,6 +198,7 @@ class DynamoDBHelper:
 
             self.create_db_table(table_name)
             self.insert_limits_item(table_name)
+            self.insert_test_user(table_name)
 
         print("DynamoDB is ready.")
         self.is_started = True
