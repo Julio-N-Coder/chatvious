@@ -11,3 +11,4 @@ dependency-reduced-pom.xml
 serverless-aws-sam/src/utils/aws-mock/keys/*
 !serverless-aws-sam/src/utils/aws-mock/keys/.gitkeep
 .venv/
+__pycache__
