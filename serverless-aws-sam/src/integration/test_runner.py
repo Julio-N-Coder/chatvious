@@ -417,6 +417,14 @@ class TestRunner:
             self.second_user["profile_color"],
         )
 
+        # verify room member count increased
+        self.verify_room(
+            self.roomInfo["RoomID"],
+            self.roomInfo["roomName"],
+            room_member_count=2,
+            message_count=0,
+        )
+
         self.room_member = room_member
         print(f"{GREEN}Passed acceptJoinRequest tests", end=f"{RESET}\n\n")
 
@@ -502,6 +510,50 @@ class TestRunner:
 
         print(f"{GREEN}Passed fetchNewMessages tests", end=f"{RESET}\n\n")
 
+    def leave_room_test(self):
+        # leave room via lambda
+        body = json.dumps({"RoomID": self.roomInfo["RoomID"]})
+        response = self.run_lambda_function(
+            "leaveRoom",
+            "POST",
+            "/rooms/leaveRoom",
+            body,
+            self.second_user["user_id"],
+            self.second_user["user_name"],
+        )
+
+        if response["statusCode"] != 200:
+            raise Exception("Incorrect Status Code, Expected 200")
+
+        responseBody = json.loads(response["body"])
+
+        if not responseBody["message"]:
+            raise Exception("No message returned")
+
+        # check second user was removed from room
+        try:
+            self.verify_room_member(
+                self.roomInfo["RoomID"],
+                self.second_user["user_id"],
+                self.second_user["user_name"],
+                "MEMBER",
+                self.second_user["profile_color"],
+            )
+        except Exception as e:
+            if str(e) != "RoomMember item not found in DynamoDB":
+                raise Exception("Failed to remove RoomMember")
+            print("✓ RoomMember successfully removed")
+
+        # check if room member count went down to 1
+        self.verify_room(
+            self.roomInfo["RoomID"],
+            self.roomInfo["roomName"],
+            room_member_count=1,
+            message_count=0,  # did not update count when inserting messages
+        )
+
+        print(f"{GREEN}Passed leaveRoom tests", end=f"{RESET}\n\n")
+
 
 def main():
     SCRIPT_DIR = os.path.abspath(os.path.dirname(__file__))
@@ -524,6 +576,7 @@ def main():
         runner.accept_join_request_test()
         runner.promote_or_demote_user_test()
         runner.fetch_new_messages_test()
+        runner.leave_room_test()
 
     except KeyboardInterrupt:
         print("\nTest interrupted by user")
