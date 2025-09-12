@@ -602,6 +602,41 @@ class TestRunner:
 
         print(f"{GREEN}Passed kickMember tests", end=f"{RESET}\n\n")
 
+    def delete_room_test(self):
+        # delete the room via lambda
+        body = json.dumps({"RoomID": self.roomInfo["RoomID"]})
+        response = self.run_lambda_function(
+            "deleteRoom",
+            "POST",
+            "/rooms/deleteRoom",
+            body,
+            self.test_user_data["user_id"],
+            self.test_user_data["user_name"],
+        )
+
+        if response["statusCode"] != 200:
+            raise Exception("Incorrect Status Code, Expected 200")
+
+        responseBody = json.loads(response["body"])
+
+        if not responseBody["message"]:
+            raise Exception("No message returned")
+
+        # check whether room was deleted
+        try:
+            self.verify_room(
+                self.roomInfo["RoomID"],
+                self.roomInfo["roomName"],
+                room_member_count=1,
+                message_count=0,
+            )
+        except Exception as e:
+            if str(e) != "RoomInfo item not found in DynamoDB":
+                raise Exception("Failed to Delete Room")
+            print("✓ Room successfully Deleted")
+
+        print(f"{GREEN}Passed deleteRoom tests", end=f"{RESET}\n\n")
+
 
 def main():
     SCRIPT_DIR = os.path.abspath(os.path.dirname(__file__))
@@ -626,6 +661,7 @@ def main():
         runner.fetch_new_messages_test()
         runner.leave_room_test()
         runner.kick_member_test()
+        runner.delete_room_test()
 
     except KeyboardInterrupt:
         print("\nTest interrupted by user")
