@@ -157,6 +157,34 @@ class DynamoDBHelper:
             },
         )
 
+    def insert_room_member(
+        self,
+        room_id: str,
+        room_name: str,
+        user_id: str,
+        user_name: str,
+        room_user_status: str,
+        profile_color: str,
+    ):
+        """Insert a RoomMember into a Room."""
+        current_datetime = datetime.now(timezone.utc)
+
+        self.dynamodb_client.put_item(
+            TableName=self.table_name,
+            Item={
+                "PartitionKey": {"S": f"ROOM#{room_id}"},
+                "SortKey": {"S": f"MEMBERS#USERID#{user_id}"},
+                "userID": {"S": user_id},
+                "userName": {"S": user_name},
+                "RoomID": {"S": room_id},
+                "RoomUserStatus": {"S": room_user_status},
+                "joinedAt": {"S": current_datetime.isoformat()},
+                "profileColor": {"S": profile_color},
+            },
+        )
+
+        self.add_joined_room(user_id, room_id, room_name)
+
     def insert_multiple_messages(
         self, table_name: str, room_id: str, messages_data: list[dict]
     ):
