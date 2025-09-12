@@ -316,6 +316,46 @@ class TestRunner:
         self.second_user = second_user
         print(f"{GREEN}Passed joinRoom tests", end=f"{RESET}\n\n")
 
+    def reject_join_request_test(self):
+        body = json.dumps(
+            {
+                "RoomID": f"{self.roomInfo["RoomID"]}",
+                "userID": self.second_user["user_id"],
+            }
+        )
+
+        # reject second users join request
+        response = self.run_lambda_function(
+            "rejectJoinRequest",
+            "POST",
+            "/rooms/rejectJoinRequest",
+            body,
+            self.test_user_data["user_id"],
+            self.test_user_data["user_name"],
+        )
+
+        if response["statusCode"] != 200:
+            raise Exception("Incorrect Status Code, Expected 200")
+
+        responseBody = json.loads(response["body"])
+
+        if not responseBody["message"]:
+            raise Exception("No message returned")
+
+        # verify request doesn't exists in db
+        try:
+            self.verify_join_request(
+                self.roomInfo["RoomID"],
+                self.second_user["user_id"],
+                self.second_user["user_name"],
+                self.second_user["profile_color"],
+                self.roomInfo["roomName"],
+            )
+        except Exception as e:
+            if str(e) != "JoinRequest item not found in DynamoDB":
+                raise Exception("Failed to remove JoinRequest")
+            print("✓ JoinRequest successfully removed")
+
 
 def main():
     SCRIPT_DIR = os.path.abspath(os.path.dirname(__file__))
@@ -334,6 +374,7 @@ def main():
     try:
         runner.create_room_test()
         runner.join_room_test()
+        runner.reject_join_request_test()
 
     except KeyboardInterrupt:
         print("\nTest interrupted by user")
