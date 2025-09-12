@@ -249,6 +249,100 @@ class DynamoDBHelper:
 
         return self.insert_multiple_messages(self.table_name, room_id, messages_data)
 
+    def update_user_rooms(
+        self, table_name, user_id, room_id, room_name, list_type, action="add"
+    ):
+        """
+        Update ownedRooms or joinedRooms list for a user.
+
+        Args:
+            table_name: DynamoDB table name
+            user_id: User ID
+            room_id: Room ID to add/remove
+            room_name: Room name
+            list_type: 'owned' or 'joined' (which list to update)
+            action: 'add' or 'remove' (default: 'add')
+        """
+        # Determine attribute type
+        if list_type == "owned":
+            attribute_name = "ownedRooms"
+        elif list_type == "joined":
+            attribute_name = "joinedRooms"
+        else:
+            raise ValueError("list_type must be 'owned' or 'joined'")
+
+        room_object = {"M": {"RoomID": {"S": room_id}, "roomName": {"S": room_name}}}
+
+        if action == "add":
+            try:
+                self.dynamodb_client.update_item(
+                    TableName=table_name,
+                    Key={
+                        "PartitionKey": {"S": f"USER#{user_id}"},
+                        "SortKey": {"S": "PROFILE"},
+                    },
+                    UpdateExpression=f"SET {attribute_name} = list_append(if_not_exists({attribute_name}, :empty_list), :room_list)",
+                    ExpressionAttributeValues={
+                        ":empty_list": {"L": []},
+                        ":room_list": {"L": [room_object]},
+                    },
+                )
+                print(f"Added room {room_name} to user's {attribute_name}")
+
+            except ClientError as e:
+                print(f"Error updating {attribute_name}: {e}")
+                raise
+
+        elif action == "remove":
+            # Get the current item to find the index to remove
+            try:
+                response = self.dynamodb_client.get_item(
+                    TableName=table_name,
+                    Key={
+                        "PartitionKey": {"S": f"USER#{user_id}"},
+                        "SortKey": {"S": "PROFILE"},
+                    },
+                )
+
+                if "Item" not in response:
+                    raise Exception(f"User {user_id} not found")
+
+                # Find the index of the room to remove
+                current_rooms = response["Item"].get(attribute_name, {"L": []})["L"]
+                room_index = None
+
+                for i, room in enumerate(current_rooms):
+                    if room["M"]["RoomID"]["S"] == room_id:
+                        room_index = i
+                        break
+
+                if room_index is None:
+                    print(f"Room {room_id} not found in user's {attribute_name}")
+                    return
+
+                # Remove the room at the found index
+                self.dynamodb_client.update_item(
+                    TableName=table_name,
+                    Key={
+                        "PartitionKey": {"S": f"USER#{user_id}"},
+                        "SortKey": {"S": "PROFILE"},
+                    },
+                    UpdateExpression=f"REMOVE {attribute_name}[{room_index}]",
+                )
+                print(f"Removed room {room_name} from user's {attribute_name}")
+
+            except ClientError as e:
+                print(f"Error removing from {attribute_name}: {e}")
+                raise
+        else:
+            raise ValueError("action must be 'add' or 'remove'")
+
+    def add_joined_room(self, user_id: str, room_id: str, room_name: str):
+        """Convenience method to add a room to joinedRooms."""
+        self.update_user_rooms(
+            self.table_name, user_id, room_id, room_name, "joined", "add"
+        )
+
     def get_test_user_data(self):
         """Get the test user data."""
         return {
