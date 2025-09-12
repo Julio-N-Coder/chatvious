@@ -8,7 +8,10 @@ from botocore.exceptions import ClientError
 
 
 class DynamoDBHelper:
-    def __init__(self, container_name="dynamodb-local", port=8000):
+    def __init__(
+        self, container_name="dynamodb-local", port=8000, table_name="chatvious"
+    ):
+        self.table_name = table_name
         self.container_name = container_name
         self.port = port
         self.endpoint_url = f"http://localhost:{port}"
@@ -133,6 +136,60 @@ class DynamoDBHelper:
             "profile_color": self.test_user_color,
         }
 
+    def get_item(self, partition_key: str, sort_key: str):
+        """Get an item from DynamoDB by partition key and sort key."""
+        try:
+            response = self.dynamodb_client.get_item(
+                TableName=self.table_name,
+                Key={"PartitionKey": {"S": partition_key}, "SortKey": {"S": sort_key}},
+            )
+
+            if "Item" in response:
+                # Convert DynamoDB format to regular dict
+                return self._convert_dynamodb_item(response["Item"])
+            else:
+                return None
+
+        except ClientError as e:
+            print(f"Error getting item: {e}")
+            return None
+
+    def _convert_dynamodb_item(self, item):
+        """Convert DynamoDB item format to regular Python dict."""
+        converted = {}
+        for key, value in item.items():
+            if "S" in value:  # String
+                converted[key] = value["S"]
+            elif "N" in value:  # Number
+                converted[key] = (
+                    int(value["N"]) if "." not in value["N"] else float(value["N"])
+                )
+            elif "L" in value:  # List
+                converted[key] = [self._convert_dynamodb_value(v) for v in value["L"]]
+            elif "M" in value:  # Map
+                converted[key] = self._convert_dynamodb_item(value["M"])
+            elif "BOOL" in value:
+                converted[key] = value["BOOL"]
+            elif "NULL" in value:
+                converted[key] = None
+        return converted
+
+    def _convert_dynamodb_value(self, value):
+        """Convert a single DynamoDB value to Python value."""
+        if "S" in value:
+            return value["S"]
+        elif "N" in value:
+            return int(value["N"]) if "." not in value["N"] else float(value["N"])
+        elif "L" in value:
+            return [self._convert_dynamodb_value(v) for v in value["L"]]
+        elif "M" in value:
+            return self._convert_dynamodb_item(value["M"])
+        elif "BOOL" in value:
+            return value["BOOL"]
+        elif "NULL" in value:
+            return None
+        return value
+
     def start_dynamodb_container(self):
         """Start DynamoDB container."""
         # Check if container is already running
@@ -182,13 +239,13 @@ class DynamoDBHelper:
             print(f"Failed to start DynamoDB container: {e}")
             return False
 
-    def start_dynamodb(self, table_name="chatvious"):
+    def start_dynamodb(self):
         """Start DynamoDB and set up the table."""
         if self.check_for_dynamodb():
-            if not self.check_dynamodb_table_exists(table_name):
-                self.create_db_table(table_name)
-                self.insert_limits_item(table_name)
-                self.insert_test_user(table_name)
+            if not self.check_dynamodb_table_exists(self.table_name):
+                self.create_db_table(self.table_name)
+                self.insert_limits_item(self.table_name)
+                self.insert_test_user(self.table_name)
         else:
             if not self.start_dynamodb_container():
                 return False
@@ -196,9 +253,9 @@ class DynamoDBHelper:
             if not self.wait_for_dynamodb():
                 return False
 
-            self.create_db_table(table_name)
-            self.insert_limits_item(table_name)
-            self.insert_test_user(table_name)
+            self.create_db_table(self.table_name)
+            self.insert_limits_item(self.table_name)
+            self.insert_test_user(self.table_name)
 
         print("DynamoDB is ready.")
         self.is_started = True
