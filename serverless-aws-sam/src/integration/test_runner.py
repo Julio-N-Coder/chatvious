@@ -4,6 +4,7 @@ import json
 import sys
 import atexit
 import os
+import uuid
 from dynamodb_helper import DynamoDBHelper
 from sam_helper import SAMHelper
 
@@ -149,6 +150,60 @@ class TestRunner:
 
         return {"room_info": room_info, "room_member": room_member}
 
+    def verify_join_request(
+        self,
+        room_id: str,
+        from_user_id: str,
+        expected_from_user_name: str,
+        expected_profile_color: str,
+        expected_room_name: str,
+    ):
+        join_request = self.dynamodb_helper.get_item(
+            f"ROOM#{room_id}", f"JOIN_REQUESTS#USERID#{from_user_id}"
+        )
+
+        if not join_request:
+            raise Exception("JoinRequest item not found in DynamoDB")
+
+        if join_request.get("RoomID") != room_id:
+            raise Exception(
+                f"JoinRequest RoomID mismatch. Expected: {room_id}, Got: {join_request.get('userID')}"
+            )
+
+        if join_request.get("fromUserID") != from_user_id:
+            raise Exception(
+                f"JoinRequest userID mismatch. Expected: {from_user_id}, Got: {join_request.get('fromUserID')}"
+            )
+
+        if join_request.get("fromUserName") != expected_from_user_name:
+            raise Exception(
+                f" JoinRequest fromUserName mismatch. Expected: {expected_from_user_name}, Got: {join_request.get('fromUserName')}"
+            )
+
+        if join_request.get("RoomID") != room_id:
+            raise Exception(
+                f"JoinRequest RoomID mismatch. Expected: {room_id}, Got: {join_request.get('userID')}"
+            )
+
+        if join_request.get("roomName") != expected_room_name:
+            raise Exception(
+                f"JoinRequest roomName mismatch. Expected: {expected_room_name}, Got: {join_request.get('roomName')}"
+            )
+
+        if not join_request.get("sentJoinRequestAt"):
+            raise Exception("JoinRequest sentJoinRequestAt is missing")
+
+        if join_request.get("profileColor") != expected_profile_color:
+            raise Exception(
+                f"JoinRequest profileColor mismatch. Expected: {expected_profile_color}, Got: {join_request.get('profileColor')}"
+            )
+
+        expires = join_request.get("expires")
+        if not expires or type(expires) != int:
+            raise Exception("JoinRequest invalid expires")
+
+        print("✓ JoinRequest verification passed")
+
     def run_lambda_function(
         self,
         function_name: str,
@@ -194,6 +249,9 @@ class TestRunner:
 
         responseBody = json.loads(response["body"])
 
+        if not responseBody["message"]:
+            raise Exception("No message returned")
+
         if responseBody["roomInfo"]["roomName"] != roomName:
             raise Exception("Incorrect Room Name")
 
@@ -212,6 +270,52 @@ class TestRunner:
         self.roomOwner: dict[str, str] = db_items["room_member"]
         print(f"{GREEN}Passed createRoom tests", end=f"{RESET}\n\n")
 
+    def join_room_test(self):
+        # insert a new user
+        second_user = {
+            "user_id": f"{uuid.uuid4()}",
+            "user_name": "second_username",
+            "profile_color": "yellow",
+        }
+        self.dynamodb_helper.insert_test_user(
+            self.dynamodb_helper.table_name,
+            second_user["user_id"],
+            second_user["user_name"],
+            second_user["profile_color"],
+        )
+
+        # invoke join request with new user info
+        body = json.dumps({"RoomID": f"{self.roomInfo["RoomID"]}"})
+
+        response = self.run_lambda_function(
+            "joinRoom",
+            "POST",
+            "/rooms/joinRoom",
+            body,
+            second_user["user_id"],
+            second_user["user_name"],
+        )
+
+        if response["statusCode"] != 200:
+            raise Exception("Incorrect Status Code, Expected 200")
+
+        responseBody = json.loads(response["body"])
+
+        if not responseBody["message"]:
+            raise Exception("No message returned")
+
+        # check database for join request
+        self.verify_join_request(
+            self.roomInfo["RoomID"],
+            second_user["user_id"],
+            second_user["user_name"],
+            second_user["profile_color"],
+            self.roomInfo["roomName"],
+        )
+
+        self.second_user = second_user
+        print(f"{GREEN}Passed joinRoom tests", end=f"{RESET}\n\n")
+
 
 def main():
     SCRIPT_DIR = os.path.abspath(os.path.dirname(__file__))
@@ -229,6 +333,7 @@ def main():
 
     try:
         runner.create_room_test()
+        runner.join_room_test()
 
     except KeyboardInterrupt:
         print("\nTest interrupted by user")
