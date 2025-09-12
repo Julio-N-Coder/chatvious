@@ -554,6 +554,54 @@ class TestRunner:
 
         print(f"{GREEN}Passed leaveRoom tests", end=f"{RESET}\n\n")
 
+    def kick_member_test(self):
+        # re-insert second user back into the room
+        self.dynamodb_helper.insert_room_member(
+            self.roomInfo["RoomID"],
+            self.roomInfo["roomName"],
+            self.second_user["user_id"],
+            self.second_user["user_name"],
+            "Member",
+            self.second_user["profile_color"],
+        )
+
+        # kick second user
+        body = json.dumps(
+            {"userID": self.second_user["user_id"], "RoomID": self.roomInfo["RoomID"]}
+        )
+        response = self.run_lambda_function(
+            "kickMember",
+            "POST",
+            "/rooms/kickMember",
+            body,
+            self.test_user_data["user_id"],
+            self.test_user_data["user_name"],
+        )
+
+        if response["statusCode"] != 200:
+            raise Exception("Incorrect Status Code, Expected 200")
+
+        responseBody = json.loads(response["body"])
+
+        if not responseBody["message"]:
+            raise Exception("No message returned")
+
+        # check whether the user was kicked
+        try:
+            self.verify_room_member(
+                self.roomInfo["RoomID"],
+                self.second_user["user_id"],
+                self.second_user["user_name"],
+                "MEMBER",
+                self.second_user["profile_color"],
+            )
+        except Exception as e:
+            if str(e) != "RoomMember item not found in DynamoDB":
+                raise Exception("Failed to kick RoomMember")
+            print("✓ RoomMember successfully kicked")
+
+        print(f"{GREEN}Passed kickMember tests", end=f"{RESET}\n\n")
+
 
 def main():
     SCRIPT_DIR = os.path.abspath(os.path.dirname(__file__))
@@ -577,6 +625,7 @@ def main():
         runner.promote_or_demote_user_test()
         runner.fetch_new_messages_test()
         runner.leave_room_test()
+        runner.kick_member_test()
 
     except KeyboardInterrupt:
         print("\nTest interrupted by user")
