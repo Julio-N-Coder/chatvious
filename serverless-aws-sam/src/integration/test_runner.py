@@ -109,7 +109,7 @@ class TestRunner:
 
         if room_member.get("RoomUserStatus") != room_user_status:
             raise Exception(
-                f"RoomMember should be OWNER. Got: {room_member.get('RoomUserStatus')}"
+                f"RoomMember should be {room_user_status}. Got: {room_member.get('RoomUserStatus')}"
             )
 
         if room_member.get("profileColor") != expected_profile_color:
@@ -212,12 +212,14 @@ class TestRunner:
         body: str,
         userSub: str = None,
         userName: str = None,
+        starting_message=True,
     ) -> dict:
         """Run a test against a Lambda function."""
-        print(
-            f"{GREEN}Testing {function_name} with {http_method} {path}",
-            end=f"{RESET}\n\n",
-        )
+        if starting_message:
+            print(
+                f"{GREEN}Testing {function_name} with {http_method} {path}",
+                end=f"{RESET}\n\n",
+            )
 
         response = self.sam_helper.invoke_with_api_event(
             function_name,
@@ -418,6 +420,46 @@ class TestRunner:
         self.room_member = room_member
         print(f"{GREEN}Passed acceptJoinRequest tests", end=f"{RESET}\n\n")
 
+    def promote_or_demote_user_test(self):
+        def promote_demote_and_verify_member_status(promote_or_demote: str):
+            body = json.dumps(
+                {
+                    "RoomID": f"{self.roomInfo["RoomID"]}",
+                    "userID": self.second_user["user_id"],
+                    "action": promote_or_demote,
+                }
+            )
+            response = self.run_lambda_function(
+                "promoteOrDemoteUser",
+                "POST",
+                "/rooms/promoteOrDemoteUser",
+                body,
+                self.test_user_data["user_id"],
+                self.test_user_data["user_name"],
+                True if promote_or_demote == "PROMOTE" else False,
+            )
+            # verify response
+            if response["statusCode"] != 200:
+                raise Exception("Incorrect Status Code, Expected 200")
+
+            responseBody = json.loads(response["body"])
+
+            if not responseBody["message"]:
+                raise Exception("No message returned")
+
+            # verify room member with specified status
+            self.verify_room_member(
+                self.roomInfo["RoomID"],
+                self.second_user["user_id"],
+                self.second_user["user_name"],
+                "ADMIN" if promote_or_demote == "PROMOTE" else "MEMBER",
+                self.second_user["profile_color"],
+            )
+
+        promote_demote_and_verify_member_status("PROMOTE")
+        promote_demote_and_verify_member_status("DEMOTE")
+        print(f"{GREEN}Passed acceptJoinRequest tests", end=f"{RESET}\n\n")
+
 
 def main():
     SCRIPT_DIR = os.path.abspath(os.path.dirname(__file__))
@@ -438,6 +480,7 @@ def main():
         runner.join_room_test()
         runner.reject_join_request_test()
         runner.accept_join_request_test()
+        runner.promote_or_demote_user_test()
 
     except KeyboardInterrupt:
         print("\nTest interrupted by user")
