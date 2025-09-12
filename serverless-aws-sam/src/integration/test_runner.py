@@ -637,6 +637,37 @@ class TestRunner:
 
         print(f"{GREEN}Passed deleteRoom tests", end=f"{RESET}\n\n")
 
+    def delete_account_test(self):
+        # delete account (does not need body)
+        response = self.run_lambda_function(
+            "deleteAccount",
+            "POST",
+            "/user/deleteAccount",
+            "",
+            self.test_user_data["user_id"],
+            self.test_user_data["user_name"],
+        )
+
+        if response["statusCode"] != 200:
+            raise Exception("Incorrect Status Code, Expected 200")
+
+        if not response["multiValueHeaders"]["Set-Cookie"]:
+            raise Exception("No Set-Cookie values in multiValueHeaders")
+
+        responseBody = json.loads(response["body"])
+        if not responseBody["message"]:
+            raise Exception("No message returned")
+
+        # verify user is not in db anymore
+        user_check = self.dynamodb_helper.get_item(
+            f"USER#{self.test_user_data["user_id"]}", "PROFILE"
+        )
+        if user_check:
+            raise Exception("User Still Exists in DynamoDB")
+        print("✓ User successfully Deleted")
+
+        print(f"{GREEN}Passed deleteAccount tests", end=f"{RESET}\n\n")
+
 
 def main():
     SCRIPT_DIR = os.path.abspath(os.path.dirname(__file__))
@@ -662,6 +693,7 @@ def main():
         runner.leave_room_test()
         runner.kick_member_test()
         runner.delete_room_test()
+        runner.delete_account_test()
 
     except KeyboardInterrupt:
         print("\nTest interrupted by user")
