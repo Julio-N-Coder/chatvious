@@ -62,12 +62,12 @@ class TestRunner:
 
         if room_info.get("roomMemberCount") != room_member_count:
             raise Exception(
-                f"RoomInfo roomMemberCount should be 1. Got: {room_info.get('roomMemberCount')}"
+                f"RoomInfo roomMemberCount should be {room_member_count}. Got: {room_info.get('roomMemberCount')}"
             )
 
         if room_info.get("messageCount") != message_count:
             raise Exception(
-                f"RoomInfo messageCount should be 0. Got: {room_info.get('messageCount')}"
+                f"RoomInfo messageCount should be {message_count}. Got: {room_info.get('messageCount')}"
             )
 
         if not room_info.get("createdAt"):
@@ -438,7 +438,7 @@ class TestRunner:
                 self.test_user_data["user_name"],
                 True if promote_or_demote == "PROMOTE" else False,
             )
-            # verify response
+
             if response["statusCode"] != 200:
                 raise Exception("Incorrect Status Code, Expected 200")
 
@@ -459,6 +459,48 @@ class TestRunner:
         promote_demote_and_verify_member_status("PROMOTE")
         promote_demote_and_verify_member_status("DEMOTE")
         print(f"{GREEN}Passed acceptJoinRequest tests", end=f"{RESET}\n\n")
+
+    def fetch_new_messages_test(self):
+        # insert message into the room
+        self.dynamodb_helper.insert_test_messages(
+            self.test_user_data["user_id"],
+            self.test_user_data["user_name"],
+            self.roomInfo["RoomID"],
+            self.roomOwner["RoomUserStatus"],
+            self.test_user_data["profile_color"],
+        )
+
+        # fetch messages via lambda
+        body = json.dumps(
+            {
+                "RoomID": f"{self.roomInfo["RoomID"]}",
+                "LastEvaluatedKey": False,
+            }
+        )
+        response = self.run_lambda_function(
+            "fetchNewMessages",
+            "GET",
+            "/rooms/fetchNewMessages",
+            body,
+            self.test_user_data["user_id"],
+            self.test_user_data["user_name"],
+        )
+
+        if response["statusCode"] != 200:
+            raise Exception("Incorrect Status Code, Expected 200")
+
+        responseBody = json.loads(response["body"])
+
+        if not responseBody["message"]:
+            raise Exception("No message returned")
+
+        if responseBody["LastEvaluatedKey"]:
+            raise Exception("LastEvaluatedKey Needs to be false")
+
+        if not responseBody["data"] or not responseBody["data"][1]:
+            raise Exception("No messages returned")
+
+        print(f"{GREEN}Passed fetchNewMessages tests", end=f"{RESET}\n\n")
 
 
 def main():
@@ -481,6 +523,7 @@ def main():
         runner.reject_join_request_test()
         runner.accept_join_request_test()
         runner.promote_or_demote_user_test()
+        runner.fetch_new_messages_test()
 
     except KeyboardInterrupt:
         print("\nTest interrupted by user")
