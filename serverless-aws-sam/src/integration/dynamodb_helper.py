@@ -3,6 +3,7 @@ import subprocess
 import time
 import requests
 import uuid
+from datetime import datetime, timedelta, timezone
 import boto3
 from botocore.exceptions import ClientError
 
@@ -127,6 +128,34 @@ class DynamoDBHelper:
             },
         )
         print(f"Inserted test user: {used_user_name} (ID: {used_user_id})")
+
+    def insert_join_request(
+        self,
+        room_id: str,
+        from_user_id: str,
+        from_user_name: str,
+        room_name: str,
+        profile_color: str,
+    ):
+        """Insert a JoinRequest into the table."""
+        current_datetime = datetime.now(timezone.utc)
+
+        self.dynamodb_client.put_item(
+            TableName=self.table_name,
+            Item={
+                "PartitionKey": {"S": f"ROOM#{room_id}"},
+                "SortKey": {"S": f"JOIN_REQUESTS#USERID#{from_user_id}"},
+                "RoomID": {"S": room_id},
+                "fromUserID": {"S": from_user_id},
+                "fromUserName": {"S": from_user_name},
+                "roomName": {"S": room_name},
+                "sentJoinRequestAt": {"S": current_datetime.isoformat()},
+                "profileColor": {"S": profile_color},
+                "expires": {
+                    "N": str(int((current_datetime + timedelta(days=1)).timestamp()))
+                },
+            },
+        )
 
     def get_test_user_data(self):
         """Get the test user data."""
