@@ -157,6 +157,98 @@ class DynamoDBHelper:
             },
         )
 
+    def insert_multiple_messages(
+        self, table_name: str, room_id: str, messages_data: list[dict]
+    ):
+        """
+        Insert multiple messages into the table.
+
+        messages_data should be a list of dicts with keys:
+        - message: the message text
+        - user_id: user ID
+        - user_name: username
+        - room_user_status: MEMBER/ADMIN/OWNER
+        - profile_color: color
+        - message_id: (optional) will generate if not provided
+        - sent_at: (optional) will generate if not provided
+        """
+        # Process messages in batches of 25 (DynamoDB limit)
+        batch_size = 25
+        inserted_messages = []
+
+        for i in range(0, len(messages_data), batch_size):
+            batch = messages_data[i : i + batch_size]
+            write_requests = []
+
+            for msg_data in batch:
+                # Generate values if not provided
+                used_message_id = msg_data.get("message_id", str(uuid.uuid4()))
+                used_sent_at = msg_data.get(
+                    "sent_at", datetime.now(timezone.utc).isoformat() + "Z"
+                )
+                sort_key = f"MESSAGES#DATE#{used_sent_at}#MESSAGEID#{used_message_id}"
+
+                write_requests.append(
+                    {
+                        "PutRequest": {
+                            "Item": {
+                                "PartitionKey": {"S": f"ROOM#{room_id}"},
+                                "SortKey": {"S": sort_key},
+                                "message": {"S": msg_data["message"]},
+                                "messageId": {"S": used_message_id},
+                                "userID": {"S": msg_data["user_id"]},
+                                "userName": {"S": msg_data["user_name"]},
+                                "RoomUserStatus": {"S": msg_data["room_user_status"]},
+                                "profileColor": {"S": msg_data["profile_color"]},
+                                "RoomID": {"S": room_id},
+                                "sentAt": {"S": used_sent_at},
+                            }
+                        }
+                    }
+                )
+
+                inserted_messages.append(
+                    {
+                        "message_id": used_message_id,
+                        "sent_at": used_sent_at,
+                        "sort_key": sort_key,
+                    }
+                )
+
+            self.dynamodb_client.batch_write_item(
+                RequestItems={table_name: write_requests}
+            )
+
+            print(f"Inserted batch of {len(write_requests)} messages")
+
+        return inserted_messages
+
+    def insert_test_messages(
+        self,
+        user_id: str,
+        user_name: str,
+        room_id: str,
+        room_user_status: str,
+        profile_color: str,
+        count=5,
+    ):
+        """
+        Convenience method to insert test messages using the test user data.
+        """
+        messages_data = []
+        for i in range(count):
+            messages_data.append(
+                {
+                    "message": f"Test message {i + 1}",
+                    "user_id": user_id,
+                    "user_name": user_name,
+                    "room_user_status": room_user_status,
+                    "profile_color": profile_color,
+                }
+            )
+
+        return self.insert_multiple_messages(self.table_name, room_id, messages_data)
+
     def get_test_user_data(self):
         """Get the test user data."""
         return {
