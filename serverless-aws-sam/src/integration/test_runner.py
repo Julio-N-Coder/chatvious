@@ -356,6 +356,68 @@ class TestRunner:
                 raise Exception("Failed to remove JoinRequest")
             print("✓ JoinRequest successfully removed")
 
+        print(f"{GREEN}Passed rejectJoinRequest tests", end=f"{RESET}\n\n")
+
+    def accept_join_request_test(self):
+        # re-insert second user join request
+        self.dynamodb_helper.insert_join_request(
+            self.roomInfo["RoomID"],
+            self.second_user["user_id"],
+            self.second_user["user_name"],
+            self.roomInfo["roomName"],
+            self.second_user["profile_color"],
+        )
+
+        # accept join request
+        body = json.dumps(
+            {
+                "RoomID": f"{self.roomInfo["RoomID"]}",
+                "userID": self.second_user["user_id"],
+            }
+        )
+        response = self.run_lambda_function(
+            "acceptJoinRequest",
+            "POST",
+            "/rooms/acceptJoinRequest",
+            body,
+            self.test_user_data["user_id"],
+            self.test_user_data["user_name"],
+        )
+
+        if response["statusCode"] != 200:
+            raise Exception("Incorrect Status Code, Expected 200")
+
+        responseBody = json.loads(response["body"])
+
+        if not responseBody["message"]:
+            raise Exception("No message returned")
+
+        # verify join request is removed
+        try:
+            self.verify_join_request(
+                self.roomInfo["RoomID"],
+                self.second_user["user_id"],
+                self.second_user["user_name"],
+                self.second_user["profile_color"],
+                self.roomInfo["roomName"],
+            )
+        except Exception as e:
+            if str(e) != "JoinRequest item not found in DynamoDB":
+                raise Exception("Failed to remove JoinRequest")
+            print("✓ JoinRequest successfully removed")
+
+        # verify second user is a new room member
+        room_member = self.verify_room_member(
+            self.roomInfo["RoomID"],
+            self.second_user["user_id"],
+            self.second_user["user_name"],
+            "MEMBER",
+            self.second_user["profile_color"],
+        )
+
+        self.room_member = room_member
+        print(f"{GREEN}Passed acceptJoinRequest tests", end=f"{RESET}\n\n")
+
 
 def main():
     SCRIPT_DIR = os.path.abspath(os.path.dirname(__file__))
@@ -375,6 +437,7 @@ def main():
         runner.create_room_test()
         runner.join_room_test()
         runner.reject_join_request_test()
+        runner.accept_join_request_test()
 
     except KeyboardInterrupt:
         print("\nTest interrupted by user")
