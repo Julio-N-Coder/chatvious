@@ -7,6 +7,10 @@ import os
 from dynamodb_helper import DynamoDBHelper
 from sam_helper import SAMHelper
 
+GREEN = "\033[1;32m"
+RED = "\033[1;31m"
+RESET = "\033[0m"
+
 
 class TestRunner:
     def __init__(self, serverless_base_dir: str, event_template_path: str):
@@ -33,6 +37,118 @@ class TestRunner:
 
         return True
 
+    def verify_room(
+        self,
+        room_id: str,
+        expected_room_name: str,
+        room_member_count: int,
+        message_count: int,
+    ):
+        room_info = self.dynamodb_helper.get_item(f"ROOM#{room_id}", "METADATA")
+        if not room_info:
+            raise Exception("RoomInfo item not found in DynamoDB")
+
+        # Verify RoomInfo fields
+        if room_info.get("RoomID") != room_id:
+            raise Exception(
+                f"RoomInfo RoomID mismatch. Expected: {room_id}, Got: {room_info.get('RoomID')}"
+            )
+
+        if room_info.get("roomName") != expected_room_name:
+            raise Exception(
+                f"RoomInfo roomName mismatch. Expected: {expected_room_name}, Got: {room_info.get('roomName')}"
+            )
+
+        if room_info.get("roomMemberCount") != room_member_count:
+            raise Exception(
+                f"RoomInfo roomMemberCount should be 1. Got: {room_info.get('roomMemberCount')}"
+            )
+
+        if room_info.get("messageCount") != message_count:
+            raise Exception(
+                f"RoomInfo messageCount should be 0. Got: {room_info.get('messageCount')}"
+            )
+
+        if not room_info.get("createdAt"):
+            raise Exception("RoomInfo createdAt is missing")
+
+        print("✓ RoomInfo verification passed")
+
+        return room_info
+
+    def verify_room_member(
+        self,
+        room_id: str,
+        user_id: str,
+        expected_user_name: str,
+        room_user_status: str,
+        expected_profile_color: str,
+    ):
+        room_member = self.dynamodb_helper.get_item(
+            f"ROOM#{room_id}", f"MEMBERS#USERID#{user_id}"
+        )
+        if not room_member:
+            raise Exception("RoomMember item not found in DynamoDB")
+
+        # Verify RoomMember fields
+        if room_member.get("userID") != user_id:
+            raise Exception(
+                f"RoomMember userID mismatch. Expected: {user_id}, Got: {room_member.get('userID')}"
+            )
+
+        if room_member.get("userName") != expected_user_name:
+            raise Exception(
+                f"RoomMember userName mismatch. Expected: {expected_user_name}, Got: {room_member.get('userName')}"
+            )
+
+        if room_member.get("RoomID") != room_id:
+            raise Exception(
+                f"RoomMember RoomID mismatch. Expected: {room_id}, Got: {room_member.get('RoomID')}"
+            )
+
+        if room_member.get("RoomUserStatus") != room_user_status:
+            raise Exception(
+                f"RoomMember should be OWNER. Got: {room_member.get('RoomUserStatus')}"
+            )
+
+        if room_member.get("profileColor") != expected_profile_color:
+            raise Exception(
+                f"RoomMember profileColor mismatch. Expected: {expected_profile_color}, Got: {room_member.get('profileColor')}"
+            )
+
+        if not room_member.get("joinedAt"):
+            raise Exception("RoomMember joinedAt is missing")
+
+        print("✓ RoomMember verification passed")
+
+        return room_member
+
+    def verify_room_creation(
+        self,
+        room_id: str,
+        user_id: str,
+        expected_room_name: str,
+        expected_user_name: str,
+        expected_profile_color: str,
+    ):
+        """
+        Verify that a room was properly created in DynamoDB.
+        Checks both RoomInfo and RoomMember items.
+        """
+        print(f"Verifying room creation for room {room_id}...")
+
+        room_info = self.verify_room(room_id, expected_room_name, 1, 0)
+
+        room_member = self.verify_room_member(
+            room_id,
+            user_id,
+            expected_user_name,
+            "OWNER",
+            expected_profile_color,
+        )
+
+        return {"room_info": room_info, "room_member": room_member}
+
     def run_lambda_function(
         self,
         function_name: str,
@@ -43,7 +159,10 @@ class TestRunner:
         userName: str = None,
     ) -> dict:
         """Run a test against a Lambda function."""
-        print(f"Testing {function_name} with {http_method} {path}")
+        print(
+            f"{GREEN}Testing {function_name} with {http_method} {path}",
+            end=f"{RESET}\n\n",
+        )
 
         response = self.sam_helper.invoke_with_api_event(
             function_name,
@@ -58,7 +177,8 @@ class TestRunner:
         return response
 
     def create_room_test(self):
-        body = json.dumps({"roomName": "testRoom"})
+        roomName = "testRoom"
+        body = json.dumps({"roomName": f"{roomName}"})
 
         response = self.run_lambda_function(
             "createRoom",
@@ -69,9 +189,28 @@ class TestRunner:
             self.test_user_data["user_name"],
         )
 
-        # test the response here
+        if response["statusCode"] != 201:
+            raise Exception("Incorrect Status Code, Expected 201")
 
-        return response
+        responseBody = json.loads(response["body"])
+
+        if responseBody["roomInfo"]["roomName"] != roomName:
+            raise Exception("Incorrect Room Name")
+
+        # Check whether room was created in dynamodb
+        room_id = responseBody["roomInfo"]["RoomID"]
+
+        db_items = self.verify_room_creation(
+            room_id=room_id,
+            user_id=self.test_user_data["user_id"],
+            expected_room_name=roomName,
+            expected_user_name=self.test_user_data["user_name"],
+            expected_profile_color=self.test_user_data["profile_color"],
+        )
+
+        self.roomInfo: dict[str, str] = db_items["room_info"]
+        self.roomOwner: dict[str, str] = db_items["room_member"]
+        print(f"{GREEN}Passed createRoom tests", end=f"{RESET}\n\n")
 
 
 def main():
@@ -89,14 +228,12 @@ def main():
         sys.exit(1)
 
     try:
-        response = runner.create_room_test()
-
-        print(f"Response: {json.dumps(response, indent=2)}")
+        runner.create_room_test()
 
     except KeyboardInterrupt:
         print("\nTest interrupted by user")
     except Exception as e:
-        print(f"Test failed with error: {e}")
+        print(f"{RED}Test failed with error: {e}", end=f"{RESET}\n\n")
         sys.exit(1)
 
 
