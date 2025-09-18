@@ -1,16 +1,15 @@
 name: CI/CD Pipeline
-
 on:
   push:
-    branches: [ master ]
+    branches: [master]
     paths:
-      - 'serverless-aws-sam/**'
-      - '.github/workflows/pipeline.yaml'
+      - "serverless-aws-sam/**"
+      - ".github/workflows/pipeline.yaml"
   pull_request:
-    branches: [ master ]
+    branches: [master]
     paths:
-      - 'serverless-aws-sam/**'
-      - '.github/workflows/pipeline.yaml'
+      - "serverless-aws-sam/**"
+      - ".github/workflows/pipeline.yaml"
 
 jobs:
   tests:
@@ -26,10 +25,27 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-      - name: Install dependencies
+      - name: Setup Java 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: "adopt-openj9"
+          java-version: 21
+      - name: Install Rust toolchain with Cargo Lambda
+        uses: moonrepo/setup-rust@v1
+        with:
+          bins: cargo-lambda
+      - name: Install Node.js dependencies
         run: cd serverless-aws-sam/src && npm install
-      - name: Run tests
+      - name: Build
+        run: ./serverless-aws-sam/build.sh --all
+      - name: Run JavaScript unit tests
         run: cd serverless-aws-sam/src && npm run test
+      - name: Run Rust lambda tests
+        run: bash serverless-aws-sam/src/bash-scripts/tests/rust_lambda_tests.sh
+      - name: Run lambda authorizer tests
+        run: bash serverless-aws-sam/src/bash-scripts/tests/lambda_authorizer_tests.sh
+      - name: Run JavaScript integration tests
+        run: python serverless-aws-sam/src/integration/integration.py
 
   deploy:
     if: github.event_name == 'push'
@@ -49,8 +65,12 @@ jobs:
       - name: Setup Java 21
         uses: actions/setup-java@v4
         with:
-          distribution: 'adopt-openj9'
+          distribution: "adopt-openj9"
           java-version: 21
+      - name: Install Rust toolchain with Cargo Lambda
+        uses: moonrepo/setup-rust@v1
+        with:
+          bins: cargo-lambda
       - name: Setup Aws Sam
         uses: aws-actions/setup-sam@v2
         with:
@@ -68,9 +88,10 @@ jobs:
       - name: Install dependencies
         run: cd serverless-aws-sam/src && npm install && cd ..
       - name: Build
-        run: ./serverless-aws-sam/build.sh
+        run: ./serverless-aws-sam/build.sh --all
       - name: Deploy
         run: |
           cd serverless-aws-sam/ && \
           sam deploy --no-confirm-changeset --no-fail-on-empty-changeset \
-            --role-arn ${CLOUDFORMATION_EXECUTION_ROLE}
+            --role-arn ${CLOUDFORMATION_EXECUTION_ROLE} \
+            --parameter-overrides JwtPrivateKey="${{ secrets.PRIVATE_KEY }}" JwtPublicKey="${{ secrets.PUBLIC_KEY }}"
