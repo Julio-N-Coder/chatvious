@@ -95,3 +95,5 @@ jobs:
           sam deploy --no-confirm-changeset --no-fail-on-empty-changeset \
             --role-arn ${CLOUDFORMATION_EXECUTION_ROLE} \
             --parameter-overrides JwtPrivateKey="${{ secrets.PRIVATE_KEY }}" JwtPublicKey="${{ secrets.PUBLIC_KEY }}"
+      - name: Check LIMITS item
+        run: bash serverless-aws-sam/src/bash-scripts/utils/check_limits_item.sh --aws
