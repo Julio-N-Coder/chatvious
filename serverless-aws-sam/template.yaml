@@ -687,7 +687,9 @@ Resources:
             - Effect: Allow
               Action:
                 - ssm:GetParameter
-              Resource: !Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter${JwtPrivateKeyParameter}
+              Resource:
+                - !Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter${JwtPrivateKeyParameter}
+                - !Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter${JwtPublicKeyParameter}
       Environment:
         Variables:
           SSM_ENDPOINT_URL: ""
@@ -729,7 +731,9 @@ Resources:
             - Effect: Allow
               Action:
                 - ssm:GetParameter
-              Resource: !Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter${JwtPrivateKeyParameter}
+              Resource:
+                - !Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter${JwtPrivateKeyParameter}
+                - !Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter${JwtPublicKeyParameter}
       Environment:
         Variables:
           SSM_ENDPOINT_URL: ""
