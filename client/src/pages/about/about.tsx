@@ -2,25 +2,30 @@ import React from "react";
 
 export default function About() {
   return (
-    <div className="bg-base-300 text-base-content text-lg px-2 my-2 container mx-auto rounded-md">
+    <div className="bg-base-300 text-base-content text-lg px-2 my-2 relative container mx-auto rounded-md">
       <div className=" flex flex-col gap-4">
         <h1 className="font-bold text-center text-2xl xsm:text-3xl">
           Welcome to My Real-Time Chat App!
         </h1>
         <h3 className="text-center text-xl xsm:text-2xl">
-          Thank you for visiting my real-time chat application. This project is
-          a project I created to learn more about web development and serverless
+          Thank you for visiting my chat application. This project is a project
+          I created to learn more about web development and serverless
           technologies.
         </h3>
+        <div className="text-center text-xl text-warning">
+          Before attempting to use this website, do note that this website is
+          limited on what you can do. I mainly made this website to showcase as
+          a project so I limited the amount of resources this site can use to be
+          within the free limits that aws offers.
+        </div>
         <div className="flex flex-col gap-1">
           <h2 className="font-bold text-xl xsm:text-2xl">
-            What You’ll Find Here
+            What You&#39;ll Find Here
           </h2>
           <p>
-            This site is a real-time chat application built using React. In this
-            app, you can create rooms and invite friends to join you in rooms,
-            send join request to rooms and chat with people within chatrooms in
-            real-time.
+            This site is a chat application built using React. In this app, you
+            can create rooms and invite friends to join you in rooms, send join
+            request to rooms and chat with people within chatrooms.
           </p>
         </div>
         <div className="flex flex-col gap-2">
@@ -28,12 +33,12 @@ export default function About() {
             Technology Behind the Scenes
           </h2>
           <p>
-            <span className="font-bold">Front-End:</span> The site’s front page
-            and about page are built with React.
+            <span className="font-bold">Front-End:</span> The site&#39;s front
+            page, about page and auth pages are built with React.
           </p>
           <p>
             <span className="font-bold">Dynamic Content:</span> Once signed in,
-            you’ll access additional pages rendered with EJS inside Lambda
+            you&#39;ll access additional pages rendered with EJS inside Lambda
             functions, ensuring secure and efficient content delivery.
           </p>
           <p>
@@ -56,13 +61,8 @@ export default function About() {
               The backend compute which is mainly invoked and ran by Api Gateway
             </li>
             <li>
-              <span className="font-bold">DynamoDB (storage): </span> I use
-              DynamoDB as the Database to this website.
-            </li>
-            <li>
-              <span className="font-bold">User Authentication: </span>Amazon
-              Cognito User Pools manage user sign-up, sign-in, and
-              authentication processes.
+              <span className="font-bold">DynamoDB (storage): </span>
+              DynamoDB is used as the Database for this website.
             </li>
             <li>
               <span className="font-bold">Content Delivery: </span>The static
@@ -73,15 +73,11 @@ export default function About() {
           <p>
             <span className="font-bold">CI/CD Pipeline: </span>Continuous
             integration and deployment are handled by GitHub Actions, that
-            automatically test and deploys my code.
+            automatically tests and deploys my code.
           </p>
         </div>
-        <div className="font-bold">
-          I will go into more technical detail about this website on my
-          portfolio website
-        </div>
       </div>
-      <div id="socials" className="flex">
+      <div id="socials" className="flex xl:absolute xl:bottom-0 xl:right-0">
         <a href="https://github.com/Julio-N-Coder/chatvious">
           <svg
             className="w-[48px] h-[48px] text-base-content"
