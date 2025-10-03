@@ -1,6 +1,7 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { roomManager } from "../../models/rooms.js";
 import { userManager } from "../../models/users.js";
+import limitsManager from "../../models/limits.js";
 
 export async function handler(
   event: APIGatewayProxyEvent
@@ -10,12 +11,23 @@ export async function handler(
     return bodyValidation;
   }
 
+  // attempts to increment rooms count, will error if limit is reached
+  const addRoomsCountResponse = await limitsManager.addRoomsCount(1);
+
+  if ("error" in addRoomsCountResponse) {
+    return {
+      statusCode: addRoomsCountResponse.statusCode,
+      body: JSON.stringify({ error: addRoomsCountResponse.error }),
+    };
+  }
+
   const roomName = bodyValidation.body.roomName;
   const userID = event.requestContext.authorizer?.sub as string;
   const userName = event.requestContext.authorizer?.username as string;
 
   const userInfoResponse = await userManager.fetchUserInfo(userID);
   if ("error" in userInfoResponse) {
+    await limitsManager.addRoomsCount(-1);
     return {
       headers: { "Content-Type": "application/json" },
       statusCode: userInfoResponse.statusCode,
@@ -26,12 +38,13 @@ export async function handler(
   const userInfo = userInfoResponse.userInfo;
   const profileColor = userInfo.profileColor;
 
-  if (userInfo.ownedRooms.length > 6) {
+  if (userInfo.ownedRooms.length >= 5) {
+    await limitsManager.addRoomsCount(-1);
     return {
       headers: { "Content-Type": "application/json" },
       statusCode: 403,
       body: JSON.stringify({
-        error: "You have reached the limit of rooms you can own. (6)",
+        error: "You have reached the limit of rooms you can own. (5)",
       }),
     };
   }
@@ -43,6 +56,7 @@ export async function handler(
     profileColor
   );
   if ("error" in makeRoomResponse) {
+    await limitsManager.addRoomsCount(-1);
     return {
       headers: { "Content-Type": "application/json" },
       statusCode: makeRoomResponse.statusCode,

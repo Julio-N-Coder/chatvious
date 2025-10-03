@@ -1,13 +1,6 @@
-import {
-  CognitoIdentityProviderClient,
-  AdminDeleteUserCommand,
-  AdminDeleteUserCommandOutput,
-} from "@aws-sdk/client-cognito-identity-provider";
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { userManager, roomsOnUserManager } from "../../models/users.js";
 import { roomManager, roomUsersManager } from "../../models/rooms.js";
-
-const client = new CognitoIdentityProviderClient({});
 
 export const handler = async (
   event: APIGatewayProxyEvent
@@ -89,38 +82,6 @@ export const handler = async (
         "Content-Type": "application/json",
       },
       body: JSON.stringify({ error: deleteUserResponse.error }),
-    };
-  }
-
-  const command = new AdminDeleteUserCommand({
-    Username: userName,
-    UserPoolId: process.env.USER_POOL_ID,
-  });
-
-  let adminDeleteUserResponse: AdminDeleteUserCommandOutput;
-
-  try {
-    adminDeleteUserResponse = await client.send(command);
-  } catch (error: any) {
-    console.error("sending delete command error: ", error);
-    return {
-      statusCode: 500,
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ error: "Failed to delete user" }),
-    };
-  }
-
-  const statusCode = adminDeleteUserResponse.$metadata.httpStatusCode as number;
-  if (statusCode !== 200) {
-    console.log("Error deleting user:", adminDeleteUserResponse);
-    return {
-      statusCode,
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ error: "Failed to delete user" }),
     };
   }
 

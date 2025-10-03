@@ -98,7 +98,21 @@ export async function handler(
       body: JSON.stringify({ error: userInfoResponse.error }),
     };
   }
-  const { profileColor } = userInfoResponse.userInfo;
+
+  const userInfo = userInfoResponse.userInfo;
+
+  // user can't have more than 10 joined rooms
+  if (userInfo.joinedRooms.length >= 10) {
+    return {
+      headers: { "Content-Type": "application/json" },
+      statusCode: 403,
+      body: JSON.stringify({
+        error: "You have reached the limit of rooms you can join. (10)",
+      }),
+    };
+  }
+
+  const { profileColor } = userInfo;
 
   // send a join request to the room.
   const joinRequest = await joinRequestManager.sendJoinRequest(

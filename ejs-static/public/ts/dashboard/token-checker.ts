@@ -1,39 +1,15 @@
-import { setCookie, getCookie } from "../utilities/cookies";
-import { TokenRefresh } from "../types";
+import { getCookie } from "../utilities/cookies";
+// import { TokenRefresh } from "../types";
 
-const client_id = process.env.USER_POOL_CLIENT_ID;
-const cognito_domain_url = process.env.COGNITO_DOMAIN_URL;
-
-// handle sign out error to show ui a problem.
 async function signOut() {
-  const refresh_token = getCookie("refresh_token");
+  document.cookie =
+    "access_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+  document.cookie = "id_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+  document.cookie =
+    "refresh_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
 
-  try {
-    const response = await fetch(`${cognito_domain_url}/oauth2/revoke`, {
-      method: "POST",
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/x-www-form-urlencoded",
-      },
-      body: `token=${refresh_token}&client_id=${client_id}`,
-    });
-
-    if (response.ok === true) {
-      document.cookie =
-        "access_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-      document.cookie =
-        "id_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-      document.cookie =
-        "refresh_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-
-      const redirect_uri = process.env.SUB_DOMAIN_URL as string;
-
-      window.location.href = redirect_uri;
-    }
-  } catch (error) {
-    // handle error and display it to ui
-    console.log(error);
-  }
+  const redirect_uri = process.env.SUB_DOMAIN_URL as string;
+  window.location.href = redirect_uri;
 }
 
 // once in a while, check if tokens are expired and refresh it
@@ -54,17 +30,24 @@ setInterval(async () => {
     const refresh_token = getCookie("refresh_token");
 
     try {
-      const tokenResponse = await fetch(`${cognito_domain_url}/oauth2/token`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/x-www-form-urlencoded",
-        },
-        body: `grant_type=refresh_token&client_id=${client_id}&refresh_token=${refresh_token}`,
-      });
-      const tokenData: TokenRefresh = await tokenResponse.json();
+      // tokens are automatically set as cookies by server
+      const tokenResponse = await fetch(
+        `${process.env.DOMAIN_URL}/auth/token_refresh`,
+        {
+          method: "POST",
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ refresh_token }),
+        }
+      );
 
-      setCookie("access_token", tokenData.access_token, tokenData.expires_in);
-      setCookie("id_token", tokenData.id_token, tokenData.expires_in);
+      if (!tokenResponse.ok) {
+        console.error("Failed to refresh tokens");
+        return;
+      }
+      // const tokenData: TokenRefresh = await tokenResponse.json();
     } catch (error) {
       console.log(error);
     }

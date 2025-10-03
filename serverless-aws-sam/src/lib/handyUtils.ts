@@ -3,8 +3,6 @@ import {
   APIGatewayEvent,
   APIGatewayProxyResult,
 } from "aws-lambda";
-import { decomposeUnverifiedJwt } from "aws-jwt-verify/jwt";
-import { JwtPayload } from "aws-jwt-verify/jwt-model";
 import cookie from "cookie";
 import { LambdaAuthorizerClaims, AccessTokenPayload } from "../types/types.js";
 
@@ -32,19 +30,8 @@ async function addSetCookieHeaders(
     return returnSuccessObject;
   }
 
-  let payload: JwtPayload;
-  try {
-    payload = decomposeUnverifiedJwt(access_token).payload;
-  } catch (err) {
-    return returnSuccessObject;
-  }
-
-  if (!payload.exp) {
-    return returnSuccessObject;
-  }
-
-  // // token is already verified in lambda authorizer
-  // const payload = decodeAcessTokenWithoutValidation(access_token);
+  // token is already verified in lambda authorizer
+  const payload = decodeAcessTokenWithoutValidation(access_token);
 
   const secure = process.env.IS_DEV_SERVER === "false";
   const expires_in = new Date(payload.exp * 1000);
@@ -81,7 +68,6 @@ function buildPolicy(
   methodArn: string,
   context?: LambdaAuthorizerClaims & {
     access_token?: string;
-    id_token?: string;
   }
 ): APIGatewayAuthorizerResult {
   if (context) {

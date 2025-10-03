@@ -82,8 +82,10 @@ export async function handler(
       }),
     };
   }
-  const requestUserName = requestUserInfoResponse.userInfo.userName;
-  const requestUserProfileColor = requestUserInfoResponse.userInfo.profileColor;
+
+  const requestUserInfo = requestUserInfoResponse.userInfo;
+  const requestUserName = requestUserInfo.userName;
+  const requestUserProfileColor = requestUserInfo.profileColor;
 
   const removeJoinRequestResponse = await joinRequestManager.removeJoinRequest(
     RoomID,
@@ -94,6 +96,18 @@ export async function handler(
       headers: { "Content-Type": "application/json" },
       statusCode: removeJoinRequestResponse.statusCode,
       body: JSON.stringify({ error: removeJoinRequestResponse.error }),
+    };
+  }
+
+  // requestUser can't have more than 10 joined rooms
+  if (requestUserInfo.joinedRooms.length >= 10) {
+    return {
+      headers: { "Content-Type": "application/json" },
+      statusCode: 403,
+      body: JSON.stringify({
+        error:
+          "Request User has reached the limit of rooms they can join. (10)",
+      }),
     };
   }
 

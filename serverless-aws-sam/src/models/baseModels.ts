@@ -9,27 +9,34 @@ import {
   DeleteCommandOutput,
   BatchWriteCommand,
   BatchWriteCommandOutput,
+  UpdateCommand,
+  UpdateCommandOutput,
 } from "@aws-sdk/lib-dynamodb";
 import { BaseKeys } from "../types/types.js";
-
-const dynamodbOptionsString = process.env.DYNAMODB_OPTIONS || "{}";
-const dynamodbOptions = JSON.parse(dynamodbOptionsString);
-const client = new DynamoDBClient(dynamodbOptions);
-const docClient = DynamoDBDocumentClient.from(client);
 
 interface BaseItemData extends BaseKeys {
   [key: string]: any;
 }
 
 class BaseModels {
+  docClient: DynamoDBDocumentClient;
   protected tableName: string;
   protected pk: string;
   protected sk: string;
 
-  constructor(tableName: string, pk: string, sk: string) {
-    this.tableName = tableName;
-    this.pk = pk;
-    this.sk = sk;
+  constructor() {
+    this.tableName = process.env.CHATVIOUSTABLE_TABLE_NAME
+      ? process.env.CHATVIOUSTABLE_TABLE_NAME
+      : "chatvious";
+
+    this.pk = "PartitionKey";
+    this.sk = "SortKey";
+
+    const dynamodbOptionsString = process.env.DYNAMODB_OPTIONS || "{}";
+    const dynamodbOptions = JSON.parse(dynamodbOptionsString);
+    const client = new DynamoDBClient(dynamodbOptions);
+
+    this.docClient = DynamoDBDocumentClient.from(client);
   }
 
   protected async putItem(item: BaseItemData): Promise<PutCommandOutput> {
@@ -38,7 +45,7 @@ class BaseModels {
       Item: item,
     });
 
-    return await docClient.send(command);
+    return await this.docClient.send(command);
   }
 
   protected async getItem(
@@ -55,7 +62,7 @@ class BaseModels {
       command.input.ProjectionExpression = ProjectionExpression;
     }
 
-    return await docClient.send(command);
+    return await this.docClient.send(command);
   }
 
   protected async deleteItem(
@@ -68,7 +75,55 @@ class BaseModels {
       ReturnValues: returnDeletedValues ? "ALL_OLD" : "NONE",
     });
 
-    return await docClient.send(command);
+    return await this.docClient.send(command);
+  }
+
+  /**
+   * Adds an integer within a range, to an attribute value on an item. Can be negative
+   *
+   * Check for bound/limit error with - error.name === "ConditionalCheckFailedException"
+   */
+  protected async addToAttributeValue(
+    key: BaseKeys,
+    attributeName: string,
+    amount: number,
+    limit: number
+  ): Promise<UpdateCommandOutput> {
+    let conditionExpression: string;
+    let expressionAttributeValues: any;
+
+    if (amount > 0) {
+      conditionExpression = "#attributeName <= :maxAllowed";
+      expressionAttributeValues = {
+        ":amount": amount,
+        ":zero": 0,
+        ":maxAllowed": limit - amount,
+      };
+    } else if (amount < 0) {
+      conditionExpression = "#attributeName >= :minRequired";
+      expressionAttributeValues = {
+        ":amount": amount,
+        ":zero": 0,
+        ":minRequired": Math.abs(amount),
+      };
+    } else {
+      // Amount is 0, no change needed
+      throw new Error("Amount is 0");
+    }
+
+    const addToAttributeCommand = new UpdateCommand({
+      TableName: this.tableName,
+      Key: key,
+      UpdateExpression:
+        "SET #attributeName = if_not_exists(#attributeName, :zero) + :amount",
+      ConditionExpression: conditionExpression,
+      ExpressionAttributeNames: {
+        "#attributeName": attributeName,
+      },
+      ExpressionAttributeValues: expressionAttributeValues,
+    });
+
+    return await this.docClient.send(addToAttributeCommand);
   }
 
   protected async batchWrite(
@@ -101,7 +156,7 @@ class BaseModels {
       },
     });
 
-    return await docClient.send(command);
+    return await this.docClient.send(command);
   }
 }
 export { BaseModels };

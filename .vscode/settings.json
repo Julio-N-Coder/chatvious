@@ -1,0 +1,7 @@
+{
+  "rust-analyzer.linkedProjects": [
+    "serverless-aws-sam/src/auth/sign_up_in/Cargo.toml",
+    "serverless-aws-sam/src/auth/token_refresh/Cargo.toml",
+    "serverless-aws-sam/src/auth/auth_lib/Cargo.toml"
+  ]
+}

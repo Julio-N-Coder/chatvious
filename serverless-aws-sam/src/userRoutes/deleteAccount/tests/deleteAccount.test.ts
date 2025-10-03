@@ -1,104 +1,43 @@
 import { handler } from "../deleteAccount.js";
 import restAPIEventBase from "../../../../events/restAPIEvent.json";
-import { userManager, roomsOnUserManager } from "../../../models/users.js";
-import { roomManager, roomUsersManager } from "../../../models/rooms.js";
 import {
-  jest,
   describe,
   test,
   expect,
   beforeAll,
-  afterAll,
   afterEach,
+  beforeEach,
 } from "@jest/globals";
 import { APIGatewayProxyEvent } from "aws-lambda";
-import { UserInfo, RoomInfoType } from "../../../types/types.js";
+import { mockClient } from "aws-sdk-client-mock";
 import {
-  newTestUser,
-  clearDynamoDB,
-} from "../../../lib/libtest/handyTestUtils.js";
-import { CognitoIdentityProviderClient } from "@aws-sdk/client-cognito-identity-provider";
+  DynamoDBDocumentClient,
+  GetCommand,
+  DeleteCommand,
+  QueryCommand,
+  UpdateCommand,
+} from "@aws-sdk/lib-dynamodb";
+import {
+  $metadata,
+  userInfoDB,
+  roomInfoDB,
+  roomMemberDB,
+} from "../../../lib/libtest/testData.js";
+
+const ddbMock = mockClient(DynamoDBDocumentClient);
 
 let restAPIEvent: APIGatewayProxyEvent = JSON.parse(
   JSON.stringify(restAPIEventBase)
 );
 let restAPIEventCopy: APIGatewayProxyEvent;
-const homePage =
-  process.env.SUB_DOMAIN_URL || "https://main.chatvious.coding-wielder.com";
 
-const userID = restAPIEvent.requestContext.authorizer?.sub as string;
-const userName = restAPIEvent.requestContext.authorizer?.username as string;
-
-let userInfo: UserInfo;
-
-const roomName = "deleteAcountOwnedRoom";
-let roomInfo: RoomInfoType;
-let RoomID: string;
-
-let joinRoomOwnerUser: UserInfo;
-let joinRoomOwnerID: string;
-let joinRoomOwnerName: string;
-
-const joinRoomName = "deleteAcountJoinedRoom";
-let joinRoomInfo: RoomInfoType;
-let joinRoomID: string;
+let joinRoomInfoDB = structuredClone(roomInfoDB);
+let joinRoomName = "deleteAcountJoinedRoom";
+let joinRoomID = "z7574571-6cd1-4fbb-ba4f-43c39573729a";
+joinRoomInfoDB.roomName = joinRoomName;
+joinRoomInfoDB.RoomID = joinRoomID;
 
 beforeAll(async () => {
-  userInfo = await newTestUser(userID, userName);
-
-  // make my own room
-  const createRoomResponse = await roomManager.makeRoom(
-    userID,
-    userName,
-    roomName,
-    userInfo.profileColor
-  );
-  if ("error" in createRoomResponse) {
-    throw new Error(
-      `Failed to create room. Error: ${createRoomResponse.error}`
-    );
-  }
-  roomInfo = createRoomResponse.roomInfo;
-  RoomID = roomInfo.RoomID;
-
-  // make a user for the person owned the joined room
-  const createJoinRoomUserResponse = await userManager.createUser();
-  if ("error" in createJoinRoomUserResponse) {
-    throw new Error(
-      `Failed to create Joined Room owner user. Error: ${createJoinRoomUserResponse.error}`
-    );
-  }
-  joinRoomOwnerUser = createJoinRoomUserResponse.newUser;
-  joinRoomOwnerID = joinRoomOwnerUser.userID;
-  joinRoomOwnerName = joinRoomOwnerUser.userName;
-
-  // make a room for the user to join
-  const createJoinedRoomResponse = await roomManager.makeRoom(
-    joinRoomOwnerID,
-    joinRoomOwnerName,
-    joinRoomName,
-    joinRoomOwnerUser.profileColor
-  );
-  if ("error" in createJoinedRoomResponse) {
-    throw new Error(
-      `Failed to create Joined Room. Error: ${createJoinedRoomResponse.error}`
-    );
-  }
-  joinRoomInfo = createJoinedRoomResponse.roomInfo;
-  joinRoomID = joinRoomInfo.RoomID;
-
-  // enter user into joined room
-  const joinRoomResponse = await roomUsersManager.addRoomMember(
-    joinRoomID,
-    userID,
-    joinRoomName,
-    userName,
-    userInfo.profileColor
-  );
-  if ("error" in joinRoomResponse) {
-    throw new Error(`Failed to join room. Error: ${joinRoomResponse.error}`);
-  }
-
   restAPIEvent.body = JSON.stringify({});
   restAPIEvent.path = "/deleteAccount";
   restAPIEvent.resource = "/deleteAccount";
@@ -106,20 +45,55 @@ beforeAll(async () => {
   restAPIEventCopy = JSON.parse(JSON.stringify(restAPIEvent));
 });
 
-afterEach(async () => {
-  jest.clearAllMocks();
-  restAPIEvent = JSON.parse(JSON.stringify(restAPIEventCopy));
+beforeEach(async () => {
+  ddbMock.on(DeleteCommand).resolves({
+    $metadata,
+    Attributes: {},
+  });
+  ddbMock.on(UpdateCommand).resolves({
+    $metadata,
+    Attributes: {},
+  });
 });
 
-afterAll(async () => {
-  await clearDynamoDB();
+afterEach(async () => {
+  ddbMock.reset();
+  restAPIEvent = JSON.parse(JSON.stringify(restAPIEventCopy));
 });
 
 describe("Tests for the deleteAccount route", () => {
   test("should Delete the users account with associated resouces", async () => {
-    // @ts-ignore
-    CognitoIdentityProviderClient.prototype.send = jest.fn().mockResolvedValue({
-      $metadata: { httpStatusCode: 200 },
+    ddbMock.on(GetCommand).resolves({
+      $metadata,
+      Item: {
+        joinedRooms: [{ RoomID: joinRoomID, roomName: joinRoomName }],
+        ownedRooms: userInfoDB.ownedRooms,
+      },
+    });
+    ddbMock.on(QueryCommand).callsFake((input) => {
+      if (input.ExpressionAttributeValues[":sortDate"] === "JOIN_REQUESTS#") {
+        return Promise.resolve({
+          $metadata,
+          Count: 0,
+          Items: [],
+          ScannedCount: 0,
+        });
+      } else if (
+        input.ExpressionAttributeValues[":RoomMembersPrefix"] === "MEMBERS#"
+      ) {
+        return Promise.resolve({
+          $metadata,
+          Count: 1,
+          Items: [roomMemberDB],
+          ScannedCount: 1,
+        });
+      }
+      return Promise.resolve({
+        $metadata,
+        Count: 0,
+        Items: [],
+        ScannedCount: 0,
+      });
     });
 
     const response = await handler(restAPIEvent);
@@ -129,8 +103,5 @@ describe("Tests for the deleteAccount route", () => {
 
     const body = JSON.parse(response.body);
     expect(body).toHaveProperty("message", "successfully Deleted Account");
-    expect(CognitoIdentityProviderClient.prototype.send).toHaveBeenCalledTimes(
-      1
-    );
   });
 });

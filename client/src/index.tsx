@@ -1,29 +1,47 @@
 import "./styles.css";
-// import "./fonts/Roboto-Regular.ttf";
 import { createRoot } from "react-dom/client";
 import React, { lazy, Suspense } from "react";
 import App from "./app";
-const About = lazy(() => import("./about/about"));
+const About = lazy(() => import("./pages/about/about"));
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
-import Navbar from "../components/navbar/navbar";
+import Container from "./Container";
+import LoginPage from "./pages/auth-pages/LoginPage";
+import SignUpPage from "./pages/auth-pages/SignUpPage";
 
 const router = createBrowserRouter([
   {
     path: "/",
-    element: <App />,
+    Component: Container,
+    children: [
+      {
+        path: "about",
+        element: (
+          <>
+            <Suspense
+              fallback={<div className="container mx-auto">Loading...</div>}
+            >
+              <About />
+            </Suspense>
+          </>
+        ),
+      },
+    ],
   },
+  // flex container below is to center elements with navbar on screen
   {
-    path: "/about",
-    element: (
-      <>
-        <Navbar />
-        <Suspense
-          fallback={<div className="container mx-auto">Loading...</div>}
-        >
-          <About />
-        </Suspense>
-      </>
-    ),
+    path: "/",
+    element: <Container className="min-h-screen flex flex-col" />,
+    children: [
+      { index: true, Component: App },
+      {
+        path: "login",
+        Component: LoginPage,
+      },
+      {
+        path: "signup",
+        Component: SignUpPage,
+      },
+    ],
   },
 ]);
 

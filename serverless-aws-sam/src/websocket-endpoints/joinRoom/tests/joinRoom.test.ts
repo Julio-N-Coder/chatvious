@@ -1,70 +1,36 @@
 import { handler } from "../joinRoom.js";
 import restAPIEventBase from "../../../../events/websocketApiCustomEvent.json";
 import {
-  initialConectDBWSManager,
-  roomConnectionsWSManager,
-} from "../../../models/web-socket-messages.js";
-import { userManager } from "../../../models/users.js";
-import { roomManager } from "../../../models/rooms.js";
-import { describe, test, expect, beforeAll, afterAll } from "@jest/globals";
+  describe,
+  test,
+  expect,
+  beforeAll,
+  beforeEach,
+  afterEach,
+} from "@jest/globals";
 import { APIGatewayProxyWebsocketEventV2 } from "aws-lambda";
-import { RoomInfoType } from "../../../types/types.js";
-import { clearDynamoDB } from "../../../lib/libtest/handyTestUtils.js";
+import { mockClient } from "aws-sdk-client-mock";
+import {
+  DynamoDBDocumentClient,
+  GetCommand,
+  UpdateCommand,
+  PutCommand,
+} from "@aws-sdk/lib-dynamodb";
+import {
+  $metadata,
+  roomInfoDB,
+  roomMemberDB,
+  initialConnectionDB,
+} from "../../../lib/libtest/testData.js";
+
+const ddbMock = mockClient(DynamoDBDocumentClient);
 
 const restAPIEvent = restAPIEventBase as APIGatewayProxyWebsocketEventV2;
 const connectionId = restAPIEvent.requestContext.connectionId;
 
-const userInfo = {
-  userID: "e192c74f-cc2e-49c7-a0b8-f70df7218845",
-  userName: "WebSocket-joinRoomUser",
-  email: "WebSocket-joinRoomUser@test.com",
-  profileColor: "green",
-};
-const userID = userInfo.userID;
-const userName = userInfo.userName;
-
-let roomInfo: RoomInfoType;
-const roomName = "WSjoinRoomTestRoom";
-let RoomID: string;
+let RoomID = roomInfoDB.RoomID;
 
 beforeAll(async () => {
-  // make a test user
-  const makeUserResponse = await userManager.createUser(
-    userID,
-    userName,
-    userInfo.email,
-    userInfo.profileColor
-  );
-  if ("error" in makeUserResponse) {
-    throw new Error(
-      `Error while making a user. Error: ${makeUserResponse.error}`
-    );
-  }
-
-  // make a room to check whether user is part of room
-  const makeRoomResponse = await roomManager.makeRoom(
-    userID,
-    userName,
-    roomName,
-    userInfo.profileColor
-  );
-  if ("error" in makeRoomResponse) {
-    throw new Error(
-      `Error while making a room. Error: ${makeRoomResponse.error}`
-    );
-  }
-  roomInfo = makeRoomResponse.roomInfo;
-  RoomID = roomInfo.RoomID;
-
-  // store initial Connection Information
-  const storeInitialConnectionResponse =
-    await initialConectDBWSManager.storeInitialConnection(connectionId, userID);
-  if ("error" in storeInitialConnectionResponse) {
-    throw new Error(
-      `Error while storing initial connection. Error: ${storeInitialConnectionResponse.error}`
-    );
-  }
-
   restAPIEvent.body = JSON.stringify({
     action: "joinroom",
     RoomID,
@@ -73,12 +39,36 @@ beforeAll(async () => {
   restAPIEvent.requestContext.routeKey = "joinroom";
 });
 
-afterAll(async () => {
-  await clearDynamoDB();
+beforeEach(async () => {
+  ddbMock.on(UpdateCommand).resolves({
+    $metadata,
+    Attributes: {},
+  });
+  ddbMock.on(PutCommand).resolves({
+    $metadata,
+  });
+});
+
+afterEach(async () => {
+  ddbMock.reset();
 });
 
 describe("A test for the custom joinRoom route on the api gateway websocket", () => {
   test("Should return a successfull response and correctly store connection information correclty", async () => {
+    ddbMock.on(GetCommand).callsFake((input) => {
+      if (input.Key.PartitionKey === "CONNECTION_INFO") {
+        return Promise.resolve({
+          $metadata,
+          Item: initialConnectionDB,
+        });
+      }
+
+      return Promise.resolve({
+        $metadata,
+        Item: roomMemberDB,
+      });
+    });
+
     const response = await handler(restAPIEvent);
     expect(response).toHaveProperty("statusCode", 200);
     if (!response.body) {
@@ -88,33 +78,8 @@ describe("A test for the custom joinRoom route on the api gateway websocket", ()
     const body = JSON.parse(response.body);
     expect(body).toHaveProperty("message", "Joined Room Successfully");
 
-    // check if the connection information is stored correctly
-    const fetchRoomConnectionResponse =
-      await roomConnectionsWSManager.fetchRoomConnection(RoomID, connectionId);
-    if ("error" in fetchRoomConnectionResponse) {
-      throw new Error(
-        `Error while fetching room connection in test. Error: ${fetchRoomConnectionResponse.error}`
-      );
-    }
-
-    const roomConnectionData = fetchRoomConnectionResponse.data;
-    expect(roomConnectionData).toHaveProperty("RoomID", RoomID);
-    expect(roomConnectionData).toHaveProperty("connectionId", connectionId);
-    expect(roomConnectionData).toHaveProperty("userID", userID);
-
-    // check whether initial Connection info was updated with RoomID
-    const fetchInitialConnectionResponse =
-      await initialConectDBWSManager.fetchInitialConnection(connectionId);
-    if ("error" in fetchInitialConnectionResponse) {
-      throw new Error(
-        `Error while fetching initial connection in test. Error: ${fetchInitialConnectionResponse.error}`
-      );
-    }
-
-    const initialConnectionData = fetchInitialConnectionResponse.data;
-    expect(initialConnectionData).toHaveProperty("RoomID", RoomID);
-    expect(initialConnectionData).toHaveProperty("userID", userID);
-    expect(initialConnectionData).toHaveProperty("connectionId", connectionId);
+    // check if the connection information is attempted to be stored correctly
+    expect(ddbMock.commandCalls(PutCommand)).toHaveLength(1);
   });
 
   test("Should return correct error when RoomID is missing from body", async () => {

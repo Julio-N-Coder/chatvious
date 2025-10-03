@@ -1,18 +1,3 @@
-type AuthCodeTokenResponse = {
-  access_token: string;
-  id_token: string;
-  refresh_token: string;
-  token_type: string;
-  expires_in: number;
-};
-
-type TokenRefresh = {
-  access_token: string;
-  id_token: string;
-  token_type: string;
-  expires_in: number;
-};
-
 type BaseModelsError = {
   error: string;
   statusCode: number;
@@ -57,7 +42,7 @@ type RoomsOnUser =
 type UserInfo = {
   userID: string;
   userName: string;
-  email: string;
+  hashedPassword: string;
   ownedRooms: RoomsOnUser;
   joinedRooms: RoomsOnUser;
   profileColor: string;
@@ -87,15 +72,12 @@ interface CreateUserInfoSuccess extends BaseModelsSuccess {
 type CreateUserInfoReturn = Promise<BaseModelsError | CreateUserInfoSuccess>;
 type FetchUserInfoReturn = Promise<BaseModelsError | FetchUserInfoSuccess>;
 
-interface BaseRoomMember {
+interface RoomMember {
   userID: string;
   userName: string;
   RoomID: string;
   RoomUserStatus: "MEMBER" | "ADMIN" | "OWNER";
   profileColor: string;
-}
-
-interface RoomMember extends BaseRoomMember {
   joinedAt: string; // ISODate
 }
 
@@ -104,10 +86,7 @@ interface RoomMemberKeys {
   SortKey: `MEMBERS#USERID#${string}`;
 }
 
-type RoomMemberDB = BaseRoomMember &
-  RoomMemberKeys & {
-    GSISortKey: `MEMBERS#DATE#${string}`; // ISODate
-  };
+type RoomMemberDB = RoomMember & RoomMemberKeys;
 
 type FetchRoomMemberSuccess = {
   roomMember: RoomMember;
@@ -137,6 +116,7 @@ type RoomInfoType = {
   roomName: string;
   createdAt: string;
   roomMemberCount: number;
+  messageCount: number;
 };
 
 interface RoomInfoKeys {
@@ -151,29 +131,22 @@ interface FetchRoomSuccessReturn extends BaseModelsSuccess {
 }
 
 type FetchRoomReturn = Promise<BaseModelsError | FetchRoomSuccessReturn>;
-
-interface BaseJoinRequest {
+interface JoinRequest {
   RoomID: string;
   fromUserID: string;
   fromUserName: string;
   roomName: string;
   profileColor: string;
-}
-
-interface JoinRequest extends BaseJoinRequest {
   sentJoinRequestAt: string;
 }
 
 interface JoinRequestKeys {
   PartitionKey: `ROOM#${string}`; // RoomID
   SortKey: `JOIN_REQUESTS#USERID#${string}`;
+  expires: number;
 }
 
-type JoinRequestDB = BaseJoinRequest &
-  JoinRequestKeys & {
-    GSISortKey: `JOIN_REQUESTS#DATE#${string}`;
-  };
-[];
+type JoinRequestDB = JoinRequest & JoinRequestKeys;
 
 interface FetchJoinRequestSuccess extends BaseModelsSuccess {
   joinRequest: JoinRequest;
@@ -208,7 +181,6 @@ type FetchNavJoinRequestsReturn = Promise<
 interface FetchNavUserInfoSuccess extends BaseModelsSuccess {
   data: {
     userName: string;
-    email: string;
     profileColor: string;
     ownedRooms: RoomsOnUser;
     joinedRooms: RoomsOnUser;
@@ -225,55 +197,17 @@ type FetchNavUserInfoReturn = Promise<
   BaseModelsError | FetchNavUserInfoSuccess
 >;
 
-interface LambdaAuthorizerClaims {
-  [stringKey: string]: string | number;
+interface AccessTokenPayload {
   sub: string;
-  username: string;
-  email: string;
-  iss: string;
-  client_id: string;
-  origin_jti: string;
-  event_id: string;
-  token_use: "access" | "id";
-  auth_time: number;
   exp: number;
   iat: number;
-  jti: string;
+  token_use: "access";
+  username: string;
 }
 
-type PostConfirmationEvent = {
-  version: string;
-  triggerSource: string;
-  region: string;
-  userPoolId: string;
-  userName: string;
-  callerContext: {
-    awsSdkVersion: string;
-    clientId: string;
-  };
-  request: {
-    userAttributes: {
-      // [key: string]: string;
-      sub: string;
-      email: string;
-      email_verified: string;
-      phone_number_verified: string;
-      phone_number: string;
-    };
-    confirmationCode?: string;
-    clientMetadata?: {
-      [key: string]: string;
-    };
-  };
-  response: {
-    autoConfirmUser?: boolean;
-    autoVerifyEmail?: boolean;
-    autoVerifyPhone?: boolean;
-    smsMessage?: string;
-    emailMessage?: string;
-    emailSubject?: string;
-  };
-};
+interface LambdaAuthorizerClaims extends AccessTokenPayload {
+  [stringKey: string]: string | number;
+}
 
 type APIGatewayWebSocketAuthorizerEvent = {
   type: "REQUEST";
@@ -428,27 +362,7 @@ type FetchAllMessagesReturn = BaseModelsReturnDataKey<
   MessageKeys
 >;
 
-interface AccessTokenPayload {
-  sub: string;
-  device_key: string;
-  "cognito:groups": string[];
-  iss: string;
-  version: number;
-  client_id: string;
-  origin_jti: string;
-  event_id: string;
-  token_use: string;
-  scope: string;
-  auth_time: number;
-  exp: number;
-  iat: number;
-  jti: string;
-  username: string;
-}
-
 export {
-  AuthCodeTokenResponse,
-  TokenRefresh,
   BaseModelsReturnType,
   BaseModelsReturnTypeData,
   BaseKeys,
@@ -475,7 +389,6 @@ export {
   FetchJoinRequestsReturn,
   FetchNavJoinRequestsReturn,
   FetchNavUserInfoReturn,
-  PostConfirmationEvent,
   LambdaAuthorizerClaims,
   APIGatewayWebSocketAuthorizerEvent,
   APIGatewayWebSocketConnectEvent,

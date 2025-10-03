@@ -1,6 +1,5 @@
-import { DynamoDBClient, QueryCommandOutput } from "@aws-sdk/client-dynamodb";
+import { QueryCommandOutput } from "@aws-sdk/client-dynamodb";
 import {
-  DynamoDBDocumentClient,
   UpdateCommand,
   QueryCommand,
   GetCommandOutput,
@@ -30,14 +29,6 @@ import {
   FetchJoinRequestsReturn,
   MessageKeys,
 } from "../types/types.js";
-
-const tableName = process.env.CHATVIOUSTABLE_TABLE_NAME
-  ? process.env.CHATVIOUSTABLE_TABLE_NAME
-  : "chatvious";
-const dynamodbOptionsString = process.env.DYNAMODB_OPTIONS || "{}";
-const dynamodbOptions = JSON.parse(dynamodbOptionsString);
-const client = new DynamoDBClient(dynamodbOptions);
-const docClient = DynamoDBDocumentClient.from(client);
 
 class RoomManager extends BaseModels {
   async makeRoom(
@@ -80,6 +71,7 @@ class RoomManager extends BaseModels {
         roomName,
         createdAt: madeDate,
         roomMemberCount: 1,
+        messageCount: 0,
       },
       message: "Room Created",
       statusCode: 201,
@@ -101,6 +93,7 @@ class RoomManager extends BaseModels {
       roomName,
       createdAt: madeDate,
       roomMemberCount: 1,
+      messageCount: 0,
     };
 
     let makeRoomResponse: PutCommandOutput;
@@ -206,9 +199,8 @@ class RoomManager extends BaseModels {
     }
 
     // delete all Messages in the room
+    let LastEvaluatedKey: MessageKeys | undefined;
     while (true) {
-      let LastEvaluatedKey: MessageKeys | undefined;
-
       const fetchMessagesResponse =
         await messagesManagerDB.fetchAllRoomMessages(
           RoomID,
@@ -224,7 +216,7 @@ class RoomManager extends BaseModels {
 
       LastEvaluatedKey = fetchMessagesResponse.LastEvaluatedKey;
 
-      if (fetchMessagesResponse.message === "Messages fetched successfully") {
+      if (fetchMessagesResponse.data.length > 0) {
         const messages = fetchMessagesResponse.data;
         for (const message of messages) {
           const deleteMessageResponse = await messagesManagerDB.deleteMessage(
@@ -239,7 +231,12 @@ class RoomManager extends BaseModels {
             };
           }
         }
-      } else {
+      }
+
+      if (
+        !fetchMessagesResponse.LastEvaluatedKey ||
+        fetchMessagesResponse.data.length <= 0
+      ) {
         break;
       }
     }
@@ -298,16 +295,61 @@ class RoomManager extends BaseModels {
       roomName: roomInfoDB.roomName,
       createdAt: roomInfoDB.createdAt,
       roomMemberCount: roomInfoDB.roomMemberCount,
+      messageCount: roomInfoDB.messageCount,
     };
     return { roomInfo, message: "Room Found", statusCode: 200 };
+  }
+
+  /**
+   * Adds an integer to messageCount on room metadata. Can be negative
+   * Only adds within a certain range, 0 and MaxLimit
+   * @returns BaseModelsReturnType - message if add succeeded, error if limit reached
+   */
+  async addMessageCount(RoomID: string, amount: number): BaseModelsReturnType {
+    const inputKeys: RoomInfoKeys = {
+      PartitionKey: `ROOM#${RoomID}`,
+      SortKey: "METADATA",
+    };
+
+    const MAX_MESSAGES = 2000;
+    let addMessageCountResponse: UpdateCommandOutput;
+    let attributeName = "messageCount";
+
+    try {
+      addMessageCountResponse = await this.addToAttributeValue(
+        inputKeys,
+        attributeName,
+        amount,
+        MAX_MESSAGES
+      );
+    } catch (error: any) {
+      if (error.name === "ConditionalCheckFailedException") {
+        if (amount < 0) {
+          return {
+            error: "Cannot reduce message count below zero",
+            statusCode: 400,
+          };
+        } else {
+          return { error: "Message limit reached", statusCode: 429 };
+        }
+      }
+      return { error: "Failed to add message count", statusCode: 500 };
+    }
+
+    const statusCode = addMessageCountResponse.$metadata
+      ?.httpStatusCode as number;
+    if (statusCode !== 200) {
+      return { error: "Failed to add message count", statusCode: 500 };
+    }
+
+    return {
+      message: "Message count updated successfully",
+      statusCode: 200,
+    };
   }
 }
 
 class RoomUsersManager extends BaseModels {
-  constructor(tableName: string, pk: string, sk: string) {
-    super(tableName, pk, sk);
-  }
-
   async fetchRoomMembers(
     RoomID: string,
     ConsistentRead?: boolean,
@@ -315,7 +357,7 @@ class RoomUsersManager extends BaseModels {
     returnJustKeys?: boolean
   ): FetchRoomMembersReturn {
     const roomMembersCommand = new QueryCommand({
-      TableName: tableName,
+      TableName: this.tableName,
       KeyConditionExpression:
         "PartitionKey = :partitionKey AND begins_with(SortKey, :RoomMembersPrefix)",
       ExpressionAttributeValues: {
@@ -331,7 +373,7 @@ class RoomUsersManager extends BaseModels {
       roomMembersCommand.input.ExclusiveStartKey = ExclusiveStartKey;
     }
 
-    const roomMembersResponse = await docClient.send(roomMembersCommand);
+    const roomMembersResponse = await this.docClient.send(roomMembersCommand);
     const memberCount = roomMembersResponse.Count as number;
     if (roomMembersResponse.$metadata.httpStatusCode !== 200) {
       return { error: "Failed to Get Room Members", statusCode: 500 };
@@ -355,14 +397,12 @@ class RoomUsersManager extends BaseModels {
     const roomMembersDB = roomMembersResponse.Items as RoomMemberDB[];
 
     const roomMembers: RoomMember[] = roomMembersDB.map((member) => {
-      const joinedAt = member.GSISortKey.split("#")[2] as string;
-
       return {
         userName: member.userName,
         userID: member.userID,
         RoomID,
         RoomUserStatus: member.RoomUserStatus,
-        joinedAt,
+        joinedAt: member.joinedAt,
         profileColor: member.profileColor,
       };
     });
@@ -407,14 +447,13 @@ class RoomUsersManager extends BaseModels {
     if (roomMemberDB == undefined) {
       return { error: "Bad Request", statusCode: 400 };
     }
-    const joinedAt = roomMemberDB.GSISortKey.split("#").pop() as string;
 
     const roomMember: RoomMember = {
       userName: roomMemberDB.userName,
       userID: roomMemberDB.userID,
       RoomID,
       RoomUserStatus: roomMemberDB.RoomUserStatus,
-      joinedAt,
+      joinedAt: roomMemberDB.joinedAt,
       profileColor: roomMemberDB.profileColor,
     };
 
@@ -448,7 +487,7 @@ class RoomUsersManager extends BaseModels {
 
     // update rooms on user
     const updateUserRoomCommand = new UpdateCommand({
-      TableName: tableName,
+      TableName: this.tableName,
       Key: { PartitionKey: `USER#${memberID}`, SortKey: "PROFILE" },
       UpdateExpression: `SET ${roomType} = list_append(${roomType}, :newRoom)`,
       ExpressionAttributeValues: {
@@ -463,7 +502,7 @@ class RoomUsersManager extends BaseModels {
 
     let updateUsersResponse: UpdateCommandOutput;
     try {
-      updateUsersResponse = await docClient.send(updateUserRoomCommand);
+      updateUsersResponse = await this.docClient.send(updateUserRoomCommand);
     } catch (error) {
       return {
         error: "Failed to update user",
@@ -508,7 +547,7 @@ class RoomUsersManager extends BaseModels {
       userName: memberName,
       RoomID,
       RoomUserStatus,
-      GSISortKey: `MEMBERS#DATE#${madeDate}`,
+      joinedAt: madeDate,
       profileColor,
     };
 
@@ -591,7 +630,7 @@ class RoomUsersManager extends BaseModels {
     };
 
     const ddSubMemberCountCommand = new UpdateCommand({
-      TableName: tableName,
+      TableName: this.tableName,
       Key: inputKeys,
       UpdateExpression: "ADD roomMemberCount :amount",
       ExpressionAttributeValues: { ":amount": amount },
@@ -600,7 +639,9 @@ class RoomUsersManager extends BaseModels {
 
     let ddSubMemberCountResponse: UpdateCommandOutput;
     try {
-      ddSubMemberCountResponse = await docClient.send(ddSubMemberCountCommand);
+      ddSubMemberCountResponse = await this.docClient.send(
+        ddSubMemberCountCommand
+      );
     } catch (error) {
       return { error: "Failed to add Member Count", statusCode: 500 };
     }
@@ -625,7 +666,7 @@ class RoomUsersManager extends BaseModels {
     newRoomUserStatus: "MEMBER" | "ADMIN" | "OWNER"
   ): BaseModelsReturnType {
     const updateMemberCommand = new UpdateCommand({
-      TableName: tableName,
+      TableName: this.tableName,
       Key: {
         PartitionKey: `ROOM#${RoomID}`,
         SortKey: `MEMBERS#USERID#${memberID}`,
@@ -637,7 +678,7 @@ class RoomUsersManager extends BaseModels {
 
     let updateMemberResponse: UpdateCommandOutput;
     try {
-      updateMemberResponse = await docClient.send(updateMemberCommand);
+      updateMemberResponse = await this.docClient.send(updateMemberCommand);
     } catch (error) {
       return { error: "Failed to update Member", statusCode: 500 };
     }
@@ -654,10 +695,6 @@ class RoomUsersManager extends BaseModels {
 }
 
 class JoinRequestManager extends BaseModels {
-  constructor(tableName: string, pk: string, sk: string) {
-    super(tableName, pk, sk);
-  }
-
   async fetchJoinRequest(
     RoomID: string,
     userID: string
@@ -686,7 +723,6 @@ class JoinRequestManager extends BaseModels {
     }
 
     const joinRequestDB = joinRequestResponse.Item as JoinRequestDB;
-    const sentJoinRequestAt = joinRequestDB.GSISortKey;
 
     const joinRequest: JoinRequest = {
       RoomID: joinRequestDB.RoomID,
@@ -694,7 +730,7 @@ class JoinRequestManager extends BaseModels {
       fromUserName: joinRequestDB.fromUserName,
       roomName: joinRequestDB.roomName,
       profileColor: joinRequestDB.profileColor,
-      sentJoinRequestAt,
+      sentJoinRequestAt: joinRequestDB.sentJoinRequestAt,
     };
 
     return { message: "Join Request Fetched", joinRequest, statusCode: 200 };
@@ -706,7 +742,7 @@ class JoinRequestManager extends BaseModels {
     returnJustKeys?: boolean
   ): FetchJoinRequestsReturn {
     const joinRequestsCommand = new QueryCommand({
-      TableName: tableName,
+      TableName: this.tableName,
       KeyConditionExpression:
         "PartitionKey = :roomsID AND begins_with(SortKey, :sortDate)",
       ExpressionAttributeValues: {
@@ -723,7 +759,7 @@ class JoinRequestManager extends BaseModels {
 
     let joinRequestResponse: QueryCommandOutput;
     try {
-      joinRequestResponse = await docClient.send(joinRequestsCommand);
+      joinRequestResponse = await this.docClient.send(joinRequestsCommand);
     } catch (error) {
       return { error: "Failed to Get Join Requests", statusCode: 500 };
     }
@@ -765,14 +801,12 @@ class JoinRequestManager extends BaseModels {
     const joinRequestsDB =
       joinRequestResponse.Items as unknown as JoinRequestDB[];
     const joinRequests = joinRequestsDB?.map((request) => {
-      const sentJoinRequestAt = request.GSISortKey.split("#").pop() as string;
-
       return {
         RoomID: request.RoomID,
         fromUserID: request.fromUserID,
         fromUserName: request.fromUserName,
         roomName: request.roomName,
-        sentJoinRequestAt,
+        sentJoinRequestAt: request.sentJoinRequestAt,
         profileColor: request.profileColor,
       };
     });
@@ -792,17 +826,24 @@ class JoinRequestManager extends BaseModels {
     RoomID: string,
     profileColor: string
   ): BaseModelsReturnType {
-    const sentJoinRequestAt = new Date().toISOString();
+    const currentDate = new Date();
+    const sentJoinRequestAt = currentDate.toISOString();
+    const oneDayInMs = 24 * 60 * 60 * 1000;
+    // join request only last one day
+    const oneDayFromNowUnixEpoch = Math.floor(
+      (currentDate.getTime() + oneDayInMs) / 1000
+    );
 
-    const joinRequestItem = {
+    const joinRequestItem: JoinRequestDB = {
       PartitionKey: `ROOM#${RoomID}`,
       SortKey: `JOIN_REQUESTS#USERID#${fromUserID}`,
       RoomID,
       fromUserID,
       fromUserName,
       roomName,
-      GSISortKey: `JOIN_REQUESTS#DATE#${sentJoinRequestAt}`,
+      sentJoinRequestAt,
       profileColor,
+      expires: oneDayFromNowUnixEpoch,
     };
 
     let joinRequestResponse: PutCommandOutput;
@@ -853,16 +894,8 @@ class JoinRequestManager extends BaseModels {
   }
 }
 
-const roomManager = new RoomManager(tableName, "PartitionKey", "SortKey");
-const roomUsersManager = new RoomUsersManager(
-  tableName,
-  "PartitionKey",
-  "SortKey"
-);
-const joinRequestManager = new JoinRequestManager(
-  tableName,
-  "PartitionKey",
-  "SortKey"
-);
+const roomManager = new RoomManager();
+const roomUsersManager = new RoomUsersManager();
+const joinRequestManager = new JoinRequestManager();
 
 export { roomManager, roomUsersManager, joinRequestManager };

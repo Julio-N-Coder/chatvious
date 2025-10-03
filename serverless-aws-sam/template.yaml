@@ -1,4 +1,4 @@
-AWSTemplateFormatVersion: '2010-09-09'
+AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
 Description: AWS Sam Template for chatvious
 
@@ -12,7 +12,7 @@ Globals:
         SUB_DOMAIN: main.chatvious.coding-wielder.com
         SUB_DOMAIN_URL: https://main.chatvious.coding-wielder.com
         REGION: us-west-1
-        DYNAMODB_OPTIONS: '{}'
+        DYNAMODB_OPTIONS: "{}"
         IS_DEV_SERVER: false
     LoggingConfig:
       LogFormat: JSON
@@ -33,6 +33,17 @@ Parameters:
     Type: String
     Default: Z0830272VPDW4QLTGOLN
     Description: The Hosted Zone ID for the chatvious domain
+  JwtPrivateKey:
+    Type: String
+    Description: The private key to be stored in SSM Parameter Store for signing JWTs.
+    NoEcho: true
+  JwtPublicKey:
+    Type: String
+    Description: The public key to be stored in SSM Parameter Store for verifying JWTs.
+    NoEcho: true
+  AllowedOrigin:
+    Type: String
+    Default: "http://localhost:8040"
 
 Resources:
   ChatviousTable:
@@ -145,9 +156,6 @@ Resources:
         Variables:
           CHATVIOUSTABLE_TABLE_NAME: !Ref ChatviousTable
           CHATVIOUSTABLE_TABLE_ARN: !GetAtt ChatviousTable.Arn
-          USER_POOL_ID: !Ref UserPool
-          USER_POOL_CLIENT_ID: !Ref UserPoolClient
-          USER_POOL_ARN: !GetAtt UserPool.Arn
     Metadata:
       BuildMethod: makefile
 
@@ -177,9 +185,6 @@ Resources:
         Variables:
           CHATVIOUSTABLE_TABLE_NAME: !Ref ChatviousTable
           CHATVIOUSTABLE_TABLE_ARN: !GetAtt ChatviousTable.Arn
-          USER_POOL_ID: !Ref UserPool
-          USER_POOL_CLIENT_ID: !Ref UserPoolClient
-          USER_POOL_ARN: !GetAtt UserPool.Arn
     Metadata:
       BuildMethod: makefile
 
@@ -209,9 +214,6 @@ Resources:
         Variables:
           CHATVIOUSTABLE_TABLE_NAME: !Ref ChatviousTable
           CHATVIOUSTABLE_TABLE_ARN: !GetAtt ChatviousTable.Arn
-          USER_POOL_ID: !Ref UserPool
-          USER_POOL_CLIENT_ID: !Ref UserPoolClient
-          USER_POOL_ARN: !GetAtt UserPool.Arn
     Metadata:
       BuildMethod: makefile
 
@@ -231,9 +233,6 @@ Resources:
         Variables:
           CHATVIOUSTABLE_TABLE_NAME: !Ref ChatviousTable
           CHATVIOUSTABLE_TABLE_ARN: !GetAtt ChatviousTable.Arn
-          USER_POOL_ID: !Ref UserPool
-          USER_POOL_CLIENT_ID: !Ref UserPoolClient
-          USER_POOL_ARN: !GetAtt UserPool.Arn
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref ChatviousTable
@@ -279,7 +278,7 @@ Resources:
       BuildMethod: esbuild
       BuildProperties:
         External:
-          - '@aws-sdk'
+          - "@aws-sdk"
         Minify: true
         Bundle: true
         Target: es2020
@@ -317,7 +316,7 @@ Resources:
       BuildMethod: esbuild
       BuildProperties:
         External:
-          - '@aws-sdk'
+          - "@aws-sdk"
         Minify: true
         Bundle: true
         Target: es2020
@@ -355,7 +354,7 @@ Resources:
       BuildMethod: esbuild
       BuildProperties:
         External:
-          - '@aws-sdk'
+          - "@aws-sdk"
         Minify: true
         Bundle: true
         Target: es2020
@@ -393,7 +392,7 @@ Resources:
       BuildMethod: esbuild
       BuildProperties:
         External:
-          - '@aws-sdk'
+          - "@aws-sdk"
         Minify: true
         Bundle: true
         Target: es2020
@@ -431,7 +430,7 @@ Resources:
       BuildMethod: esbuild
       BuildProperties:
         External:
-          - '@aws-sdk'
+          - "@aws-sdk"
         Minify: true
         Bundle: true
         Target: es2020
@@ -469,7 +468,7 @@ Resources:
       BuildMethod: esbuild
       BuildProperties:
         External:
-          - '@aws-sdk'
+          - "@aws-sdk"
         Minify: true
         Bundle: true
         Target: es2020
@@ -507,7 +506,7 @@ Resources:
       BuildMethod: esbuild
       BuildProperties:
         External:
-          - '@aws-sdk'
+          - "@aws-sdk"
         Minify: true
         Bundle: true
         Target: es2020
@@ -545,7 +544,7 @@ Resources:
       BuildMethod: esbuild
       BuildProperties:
         External:
-          - '@aws-sdk'
+          - "@aws-sdk"
         Minify: true
         Bundle: true
         Target: es2020
@@ -582,7 +581,7 @@ Resources:
       BuildMethod: esbuild
       BuildProperties:
         External:
-          - '@aws-sdk'
+          - "@aws-sdk"
         Minify: true
         Bundle: true
         Target: es2020
@@ -605,12 +604,6 @@ Resources:
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref ChatviousTable
-        - Version: '2012-10-17'
-          Statement:
-            - Effect: Allow
-              Action:
-                - cognito-idp:AdminDeleteUser
-              Resource: !GetAtt UserPool.Arn
       Events:
         ChatviousRestApiPOSTuserdeleteAccount:
           Type: Api
@@ -622,66 +615,103 @@ Resources:
         Variables:
           CHATVIOUSTABLE_TABLE_NAME: !Ref ChatviousTable
           CHATVIOUSTABLE_TABLE_ARN: !GetAtt ChatviousTable.Arn
-          USER_POOL_ID: !Ref UserPool
-          USER_POOL_CLIENT_ID: !Ref UserPoolClient
-          USER_POOL_ARN: !GetAtt UserPool.Arn
     Metadata:
       BuildMethod: esbuild
       BuildProperties:
         External:
-          - '@aws-sdk'
+          - "@aws-sdk"
         Minify: true
         Bundle: true
         Target: es2020
         Sourcemap: false
 
-  callback:
+  SignUpSignIn:
     Type: AWS::Serverless::Function
     Properties:
-      Description: Callback route to exchange cognito auth codes for tokens
-      FunctionName: Chatvious_callback
+      FunctionName: chatvious_SignUpSignIn
+      Description: Authenticates users, stores user info, returns jwt's
+      CodeUri: ./src/auth/sign_up_in
+      Handler: bootstrap
+      Runtime: provided.al2023
+      MemorySize: 256
+      Timeout: 6
       Architectures:
         - x86_64
-      MemorySize: 128
-      Timeout: 10
-      CodeUri: ./src
-      Handler: cognito/callback/callback.handler
-      Runtime: provided.al2023
-      Layers:
-        - !Ref LlrtLayer
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref ChatviousTable
+        - Version: "2012-10-17"
+          Statement:
+            - Effect: Allow
+              Action:
+                - ssm:GetParameter
+              Resource: !Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter${JwtPrivateKeyParameter}
       Environment:
         Variables:
-          COGNITO_DOMAIN: !Sub https://${UserPoolDomain}.auth.${AWS::Region}.amazoncognito.com
-          USER_POOL_ID: !Ref UserPool
-          USER_POOL_CLIENT_ID: !Ref UserPoolClient
-          USER_POOL_ARN: !GetAtt UserPool.Arn
-          CALLBACK_URL: https://chatvious.coding-wielder.com/callback
+          SSM_ENDPOINT_URL: ""
       Events:
-        ChatviousRestApiGETcallback:
+        ChatviousRestApiGETSignUpSignIn:
           Type: Api
           Properties:
-            Path: /callback
-            Method: GET
+            Path: /auth/signupin
+            Method: POST
             RestApiId: !Ref ChatviousRestApi
             Auth:
               Authorizer: NONE
-        ChatviousRestApiOPTIONSCallback:
+        ChatviousRestApiOPTIONSSignUpSignIn:
           Type: Api
           Properties:
-            Path: /callback
+            Path: /auth/signupin
             Method: OPTIONS
             RestApiId: !Ref ChatviousRestApi
             Auth:
               Authorizer: NONE
     Metadata:
-      BuildMethod: esbuild
-      BuildProperties:
-        External:
-          - '@aws-sdk'
-        Minify: true
-        Bundle: true
-        Target: es2020
-        Sourcemap: false
+      BuildMethod: rust-cargolambda
+
+  TokenRefresh:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: Chatvious_TokenRefresh
+      Description: TokenRefresh route to refresh tokens
+      CodeUri: ./src/auth/token_refresh
+      Handler: bootstrap
+      Runtime: provided.al2023
+      MemorySize: 128
+      Timeout: 6
+      Architectures:
+        - x86_64
+      Policies:
+        - Version: "2012-10-17"
+          Statement:
+            - Effect: Allow
+              Action:
+                - ssm:GetParameter
+              Resource:
+                - !Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter${JwtPrivateKeyParameter}
+                - !Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter${JwtPublicKeyParameter}
+      Environment:
+        Variables:
+          SSM_ENDPOINT_URL: ""
+      Events:
+        ChatviousRestApiGETTokenRefresh:
+          Type: Api
+          Properties:
+            Path: /auth/token_refresh
+            Method: POST
+            RestApiId: !Ref ChatviousRestApi
+            Auth:
+              Authorizer: NONE
+        ChatviousRestApiOPTIONSTokenRefresh:
+          Type: Api
+          Properties:
+            Path: /auth/token_refresh
+            Method: OPTIONS
+            RestApiId: !Ref ChatviousRestApi
+            Auth:
+              Authorizer: NONE
+    Metadata:
+      BuildMethod: rust-cargolambda
 
   LambdaAuthorizer:
     Type: AWS::Serverless::Function
@@ -690,17 +720,40 @@ Resources:
       Description: The Lambda Authorizer for chatvious
       MemorySize: 128
       Timeout: 10
-      CodeUri: ./src/cognito/lambda-authorizer/target/function.zip
+      CodeUri: ./src/auth/lambda-authorizer/target/function.zip
       Handler: not.used.in.provided.runtime
       Runtime: provided.al2023
       Architectures:
         - x86_64
+      Policies:
+        - Version: "2012-10-17"
+          Statement:
+            - Effect: Allow
+              Action:
+                - ssm:GetParameter
+              Resource:
+                - !Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter${JwtPrivateKeyParameter}
+                - !Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter${JwtPublicKeyParameter}
       Environment:
         Variables:
-          COGNITO_DOMAIN: !Sub https://${UserPoolDomain}.auth.${AWS::Region}.amazoncognito.com
-          USER_POOL_ID: !Ref UserPool
-          USER_POOL_CLIENT_ID: !Ref UserPoolClient
-          USER_POOL_ARN: !GetAtt UserPool.Arn
+          SSM_ENDPOINT_URL: ""
+
+  JwtPrivateKeyParameter:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: /chatvious/private_key
+      # SecureString not supported by cloudformation
+      Type: String
+      Description: Private key for signing JWTs.
+      Value: !Ref JwtPrivateKey
+
+  JwtPublicKeyParameter:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: /chatvious/public_key
+      Type: String
+      Description: Public key for verifing JWTs.
+      Value: !Ref JwtPublicKey
 
   ChatviousRestApi:
     Type: AWS::Serverless::Api
@@ -717,7 +770,7 @@ Resources:
               ReauthorizeEvery: 0
         DefaultAuthorizer: LambdaAuthorizer
       MethodSettings:
-        - HttpMethod: '*'
+        - HttpMethod: "*"
           ResourcePath: /*
           ThrottlingRateLimit: 10
           ThrottlingBurstLimit: 15
@@ -730,9 +783,10 @@ Resources:
         Route53:
           HostedZoneId: !Ref ChatviousDomainHostedZoneId
       Cors:
-        AllowMethods: '''OPTIONS, POST, GET'''
-        AllowHeaders: '''Content-Type,Cookie'''
-        AllowOrigin: '''*'''
+        AllowMethods: "'OPTIONS, POST, GET'"
+        AllowHeaders: "'Content-Type,Cookie'"
+        AllowOrigin: !Sub "'${AllowedOrigin}'"
+        AllowCredentials: true
         MaxAge: 5
 
   WebSocketManageConnectionsPolicy:
@@ -740,7 +794,7 @@ Resources:
     Properties:
       ManagedPolicyName: !Sub Chatvious_WebSocketManageConnectionsPolicy_${AWS::Region}
       PolicyDocument:
-        Version: '2012-10-17'
+        Version: "2012-10-17"
         Statement:
           - Effect: Allow
             Action:
@@ -762,10 +816,7 @@ Resources:
         - x86_64
       Environment:
         Variables:
-          COGNITO_DOMAIN: !Sub https://${UserPoolDomain}.auth.${AWS::Region}.amazoncognito.com
-          USER_POOL_ID: !Ref UserPool
-          USER_POOL_CLIENT_ID: !Ref UserPoolClient
-          USER_POOL_ARN: !GetAtt UserPool.Arn
+          SSM_ENDPOINT_URL: ""
     Metadata:
       BuildMethod: esbuild
       BuildProperties:
@@ -1044,138 +1095,6 @@ Resources:
         ThrottlingBurstLimit: 10
         ThrottlingRateLimit: 15
 
-  saveUserDataFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      CodeUri: ./src
-      Handler: cognito/post-signUp-trigger/saveUserData.handler
-      Runtime: provided.al2023
-      Layers:
-        - !Ref LlrtLayer
-      MemorySize: 128
-      Timeout: 4
-      Architectures:
-        - x86_64
-      Policies:
-        - DynamoDBCrudPolicy:
-            TableName: !Ref ChatviousTable
-      Environment:
-        Variables:
-          CHATVIOUSTABLE_TABLE_NAME: !Ref ChatviousTable
-          CHATVIOUSTABLE_TABLE_ARN: !GetAtt ChatviousTable.Arn
-      Events:
-        CognitoUserPoolPostConfirmationTrigger:
-          Type: Cognito
-          Properties:
-            UserPool: !Ref UserPool
-            Trigger: PostConfirmation
-    Metadata:
-      BuildMethod: esbuild
-      BuildProperties:
-        External:
-          - '@aws-sdk'
-        Minify: true
-        Target: es2020
-        Sourcemap: false
-
-  CognitoPreSignUp:
-    Type: AWS::Serverless::Function
-    Properties:
-      Description: A Cognito PreSignUp trigger for custom user input validation
-      CodeUri: ./src
-      Handler: cognito/pre-signUp-trigger/index.handler
-      Runtime: provided.al2023
-      Layers:
-        - !Ref LlrtLayer
-      MemorySize: 128
-      Timeout: 6
-      Architectures:
-        - x86_64
-      Events:
-        CognitoUserPoolPreSignup:
-          Type: Cognito
-          Properties:
-            UserPool: !Ref UserPool
-            Trigger: PreSignUp
-    Metadata:
-      BuildMethod: esbuild
-      BuildProperties:
-        External:
-          - '@aws-sdk'
-        Minify: true
-        Bundle: true
-        Target: es2020
-        Sourcemap: false
-
-  UserPool:
-    Type: AWS::Cognito::UserPool
-    Properties:
-      UserPoolName: !Sub ${AWS::StackName}-UserPool
-      AdminCreateUserConfig:
-        AllowAdminCreateUserOnly: false
-      AutoVerifiedAttributes:
-        - email
-      AliasAttributes:
-        - email
-      UsernameConfiguration:
-        CaseSensitive: false
-      Schema:
-        - AttributeDataType: String
-          Name: email
-          Required: true
-          Mutable: true
-      EmailConfiguration:
-        # Change to DEVELOPER once I setup ses and specify arn here by SourceArn parameter
-        EmailSendingAccount: COGNITO_DEFAULT
-  UserPoolPermission:
-    Type: AWS::Lambda::Permission
-    Properties:
-      Action: lambda:InvokeFunction
-      FunctionName: !Ref saveUserDataFunction
-      Principal: cognito-idp.amazonaws.com
-      SourceArn: !GetAtt UserPool.Arn
-  PreSignUpUserPoolPermission:
-    Type: AWS::Lambda::Permission
-    Properties:
-      Action: lambda:InvokeFunction
-      FunctionName: !Ref CognitoPreSignUp
-      Principal: cognito-idp.amazonaws.com
-      SourceArn: !GetAtt UserPool.Arn
-
-  UserPoolClient:
-    Type: AWS::Cognito::UserPoolClient
-    Properties:
-      ClientName: !Sub ${AWS::StackName}-UserPoolClient
-      GenerateSecret: false
-      UserPoolId: !Ref UserPool
-      ExplicitAuthFlows:
-        - ALLOW_USER_SRP_AUTH
-        - ALLOW_REFRESH_TOKEN_AUTH
-      PreventUserExistenceErrors: ENABLED
-      RefreshTokenValidity: 365
-      TokenValidityUnits:
-        RefreshToken: days
-      SupportedIdentityProviders:
-        - COGNITO
-      AllowedOAuthFlowsUserPoolClient: true
-      CallbackURLs:
-        - https://chatvious.coding-wielder.com/callback
-        - http://localhost:3000/callback
-      LogoutURLs:
-        - https://main.chatvious.coding-wielder.com
-        - http://localhost:8040
-      AllowedOAuthFlows:
-        - code
-      AllowedOAuthScopes:
-        - email
-        - openid
-
-  UserPoolDomain:
-    Type: AWS::Cognito::UserPoolDomain
-    Properties:
-      Domain: chatvious
-      UserPoolId: !Ref UserPool
-
   StaticWebBucket:
     Type: AWS::S3::Bucket
     Properties:
@@ -1265,7 +1184,8 @@ Metadata:
         - promoteOrDemoteUser
         - fetchNewMessages
         - deleteAccount
-        - callback
+        - SignUpSignIn
+        - TokenRefresh
     Group2:
       Label: EJS Page Renderers
       Members:
@@ -1294,11 +1214,6 @@ Metadata:
       Members:
         - CloudFrontDistribution
         - WebAppOriginAccessControl
-    Group6:
-      Label: UserPoolTriggers
-      Members:
-        - saveUserDataFunction
-        - CognitoPreSignUp
 
 Outputs:
   DynamoDBTableName:
@@ -1308,25 +1223,6 @@ Outputs:
   WebSocketURI:
     Description: The WSS Protocol URI to connect to
     Value: !Sub wss://${WebsocketApiDomain}
-
-  UserPoolId:
-    Description: Cognito User Pool ID
-    Value: !Ref UserPool
-  UserPoolClientId:
-    Description: Cognito User Pool Application Client ID
-    Value: !Ref UserPoolClient
-  UserPoolDomain:
-    Description: Cognito User Pool Domain
-    Value: !Ref UserPoolDomain
-  UserPoolDomainURL:
-    Description: Cognito User Pool Application Client Hosted Domain URL
-    Value: !Sub https://${UserPoolDomain}.auth.${AWS::Region}.amazoncognito.com
-  CognitoLoginURL:
-    Description: Cognito User Pool Application Client Hosted Login UI URL
-    Value: !Sub https://${UserPoolDomain}.auth.${AWS::Region}.amazoncognito.com/login?client_id=${UserPoolClient}&response_type=code&redirect_uri=https://chatvious.coding-wielder.com/callback
-  CognitoSignUpURL:
-    Description: Cognito User Pool Application Client Hosted Sign Up UI URL
-    Value: !Sub https://${UserPoolDomain}.auth.${AWS::Region}.amazoncognito.com/signup?client_id=${UserPoolClient}&response_type=code&redirect_uri=https://chatvious.coding-wielder.com/callback
 
   StaticWebAppDomain:
     Value: !GetAtt CloudFrontDistribution.DomainName

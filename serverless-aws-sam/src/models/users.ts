@@ -10,9 +10,8 @@ import {
   FetchNavJoinRequestsReturn,
   CreateUserInfoReturn,
 } from "../types/types.js";
-import { DynamoDBClient, QueryCommandOutput } from "@aws-sdk/client-dynamodb";
+import { QueryCommandOutput } from "@aws-sdk/client-dynamodb";
 import {
-  DynamoDBDocumentClient,
   QueryCommand,
   UpdateCommand,
   PutCommandOutput,
@@ -21,23 +20,15 @@ import {
   UpdateCommandOutput,
 } from "@aws-sdk/lib-dynamodb";
 
-const tableName = process.env.CHATVIOUSTABLE_TABLE_NAME
-  ? process.env.CHATVIOUSTABLE_TABLE_NAME
-  : "chatvious";
-const dynamodbOptionsString = process.env.DYNAMODB_OPTIONS || "{}";
-const dynamodbOptions = JSON.parse(dynamodbOptionsString);
-const client = new DynamoDBClient(dynamodbOptions);
-const docClient = DynamoDBDocumentClient.from(client);
-
 class UserManager extends BaseModels {
-  constructor(tableName: string, pk: string, sk: string) {
-    super(tableName, pk, sk);
-  }
-
+  /**
+   * Creates a new User
+   *
+   * If arguments are not passed, a test user is made
+   */
   async createUser(
     userID?: string,
     userName?: string,
-    email?: string,
     profileColor?: string
   ): CreateUserInfoReturn {
     const colors = [
@@ -58,18 +49,17 @@ class UserManager extends BaseModels {
     const usedUserName = userName
       ? userName
       : `testUser${Math.floor(Math.random() * 100)}`;
-    const usedEmail = email ? email : `${usedUserName}@example.com`;
 
     const newUser = {
       PartitionKey: `USER#${usedUserID}`,
       SortKey: "PROFILE",
       userID: usedUserID,
       userName: usedUserName,
-      email: usedEmail,
+      hashedPassword: "fakePassword",
       profileColor: getRandomColor(),
       ownedRooms: [],
       joinedRooms: [],
-    };
+    } as UserInfoDBResponse;
 
     let createUserResponse: PutCommandOutput;
     try {
@@ -131,7 +121,7 @@ class UserManager extends BaseModels {
     const userInfo: UserInfo = {
       userID,
       userName: userInfoDBResponse.userName,
-      email: userInfoDBResponse.email,
+      hashedPassword: userInfoDBResponse.hashedPassword,
       profileColor: userInfoDBResponse.profileColor,
       ownedRooms: userInfoDBResponse.ownedRooms,
       joinedRooms: userInfoDBResponse.joinedRooms,
@@ -142,9 +132,6 @@ class UserManager extends BaseModels {
 }
 
 class RoomsOnUserManager extends BaseModels {
-  constructor(tableName: string, pk: string, sk: string) {
-    super(tableName, pk, sk);
-  }
   async fetchRoomsOnUser(
     userID: string,
     fetchOwnedRooms: boolean,
@@ -230,7 +217,7 @@ class RoomsOnUserManager extends BaseModels {
     joinedRoom: { RoomID: string; isAdmin: boolean; roomName: string }
   ): BaseModelsReturnType {
     const updateJoinedRoomsCommand = new UpdateCommand({
-      TableName: tableName,
+      TableName: this.tableName,
       Key: { PartitionKey: `USER#${userID}`, SortKey: "PROFILE" },
       UpdateExpression:
         "SET joinedRooms = list_append(joinedRooms, :joinedRoom)",
@@ -241,7 +228,7 @@ class RoomsOnUserManager extends BaseModels {
 
     let updateJoinedRoomsResponse: UpdateCommandOutput;
     try {
-      updateJoinedRoomsResponse = await docClient.send(
+      updateJoinedRoomsResponse = await this.docClient.send(
         updateJoinedRoomsCommand
       );
     } catch (error) {
@@ -305,14 +292,16 @@ class RoomsOnUserManager extends BaseModels {
     }
 
     const removeRoomOnUserCommand = new UpdateCommand({
-      TableName: tableName,
+      TableName: this.tableName,
       Key: { PartitionKey: `USER#${userID}`, SortKey: "PROFILE" },
       UpdateExpression: `REMOVE ${roomType}[${index}]`,
     });
 
     let removeRoomOnUserResponse: UpdateCommandOutput;
     try {
-      removeRoomOnUserResponse = await docClient.send(removeRoomOnUserCommand);
+      removeRoomOnUserResponse = await this.docClient.send(
+        removeRoomOnUserCommand
+      );
     } catch (error) {
       return { error: "Failed to remove Room on user", statusCode: 500 };
     }
@@ -340,7 +329,7 @@ class RoomsOnUserManager extends BaseModels {
 
     for (let i = 0; i < ownedRooms.length && i < 5; i++) {
       const joinRequestsCommand = new QueryCommand({
-        TableName: tableName,
+        TableName: this.tableName,
         KeyConditionExpression:
           "PartitionKey = :partitionkey AND begins_with(SortKey, :joinRequest)",
         ExpressionAttributeValues: {
@@ -353,7 +342,7 @@ class RoomsOnUserManager extends BaseModels {
 
       let joinRequestsResponse: QueryCommandOutput;
       try {
-        joinRequestsResponse = await docClient.send(joinRequestsCommand);
+        joinRequestsResponse = await this.docClient.send(joinRequestsCommand);
       } catch (error) {
         return { error: "Failed to Get Join Requests", statusCode: 500 };
       }
@@ -391,7 +380,7 @@ class RoomsOnUserManager extends BaseModels {
       }
 
       const joinRequestsCommand = new QueryCommand({
-        TableName: tableName,
+        TableName: this.tableName,
         KeyConditionExpression:
           "PartitionKey = :partitionkey AND begins_with(SortKey, :joinRequest)",
         ExpressionAttributeValues: {
@@ -404,7 +393,7 @@ class RoomsOnUserManager extends BaseModels {
 
       let joinRequestsResponse: QueryCommandOutput;
       try {
-        joinRequestsResponse = await docClient.send(joinRequestsCommand);
+        joinRequestsResponse = await this.docClient.send(joinRequestsCommand);
       } catch (error) {
         return { error: "Failed to Get Join Requests", statusCode: 500 };
       }
@@ -433,11 +422,7 @@ class RoomsOnUserManager extends BaseModels {
   }
 }
 
-const userManager = new UserManager(tableName, "PartitionKey", "SortKey");
-const roomsOnUserManager = new RoomsOnUserManager(
-  tableName,
-  "PartitionKey",
-  "SortKey"
-);
+const userManager = new UserManager();
+const roomsOnUserManager = new RoomsOnUserManager();
 
 export { userManager, roomsOnUserManager };

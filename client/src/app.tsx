@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
-import Navbar from "../components/navbar/navbar";
-import { SignUp, LogIn } from "../components/sign-up-log-in";
-import { signOut, checkAuthStatus } from "../lib/auth";
+import { signOut, checkAuthStatus } from "./lib/auth";
+import { NavLink } from "react-router-dom";
 
 export default function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -103,8 +102,7 @@ export default function App() {
   }, []);
 
   return (
-    <div ref={containerRef} className="flex flex-col h-screen antialiased">
-      <Navbar />
+    <div ref={containerRef} className="flex flex-grow">
       {/* Main */}
       <div
         onMouseMove={(e) => {
@@ -136,8 +134,12 @@ export default function App() {
             </button>
           ) : (
             <>
-              <SignUp className="btn btn-accent" />
-              <LogIn className="btn btn-accent" />
+              <NavLink to="/signup" className="btn btn-accent">
+                Sign up
+              </NavLink>
+              <NavLink to="/login" className="btn btn-accent">
+                Log in
+              </NavLink>
             </>
           )}
         </div>

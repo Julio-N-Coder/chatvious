@@ -24,7 +24,6 @@ export const handler = async (
     process.env.DOMAIN_URL || "https://chatvious.coding-wielder.com";
   const profilePageHTML = await ejs.renderFile("./views/profilePage.ejs", {
     username: userInfo.userName,
-    email: userInfo.email,
     profileColor: userInfo.profileColor,
     navJoinRequest: userInfo.navJoinRequests,
     isProduction: isProduction(),

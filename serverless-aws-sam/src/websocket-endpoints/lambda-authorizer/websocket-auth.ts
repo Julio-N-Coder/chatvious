@@ -3,8 +3,52 @@ import {
   APIGatewayWebSocketAuthorizerEvent,
   LambdaAuthorizerClaims,
 } from "../../types/types.js";
-import { CognitoJwtVerifier } from "aws-jwt-verify";
+import { SSMClient, GetParameterCommand } from "@aws-sdk/client-ssm";
+import { jwtVerify, importSPKI } from "jose";
 import { buildPolicy } from "../../lib/handyUtils.js";
+
+// Cache the public key to avoid repeated SSM calls
+let cachedPublicKey: CryptoKey | null = null;
+
+const ssmClientConfig: any = {
+  region: process.env.REGION || "us-west-1",
+};
+
+// Use local endpoint if specified for development
+if (process.env.SSM_ENDPOINT_URL) {
+  ssmClientConfig.endpoint = process.env.SSM_ENDPOINT_URL;
+  ssmClientConfig.credentials = {
+    accessKeyId: "dummy",
+    secretAccessKey: "dummy",
+  };
+}
+
+const ssmClient = new SSMClient(ssmClientConfig);
+
+async function getPublicKey(): Promise<CryptoKey> {
+  if (cachedPublicKey) {
+    return cachedPublicKey;
+  }
+
+  try {
+    const command = new GetParameterCommand({
+      Name: "/chatvious/public_key",
+    });
+
+    const response = await ssmClient.send(command);
+
+    if (!response.Parameter?.Value) {
+      throw new Error("Public key not found in SSM");
+    }
+
+    // Import the ed25519 public key
+    cachedPublicKey = await importSPKI(response.Parameter.Value, "EdDSA");
+    return cachedPublicKey;
+  } catch (error) {
+    console.error("Error retrieving public key from SSM:", error);
+    throw new Error("Failed to retrieve public key");
+  }
+}
 
 export const handler = async (
   event: APIGatewayWebSocketAuthorizerEvent
@@ -19,37 +63,22 @@ export const handler = async (
 
   const access_token = event.queryStringParameters.access_token;
 
-  const cognitoData = {
-    USER_POOL_ID: process.env.USER_POOL_ID as string,
-    CLIENT_ID: process.env.USER_POOL_CLIENT_ID as string,
-    COGNITO_DOMAIN: process.env.COGNITO_DOMAIN as string,
-  };
-
-  const verifier = CognitoJwtVerifier.create({
-    userPoolId: cognitoData.USER_POOL_ID as string,
-    tokenUse: "access",
-    clientId: cognitoData.CLIENT_ID as string,
-  });
-
   try {
-    const payload = await verifier.verify(access_token);
+    const publicKey = await getPublicKey();
+
+    const { payload } = await jwtVerify(access_token, publicKey, {
+      algorithms: ["EdDSA"], // ed25519
+    });
 
     const context: LambdaAuthorizerClaims = {
-      sub: payload.sub,
-      username: payload.username,
-      email: payload.email as string,
-      iss: payload.iss,
-      client_id: payload.client_id,
-      origin_jti: payload.origin_jti,
-      event_id: payload.event_id as string,
-      token_use: payload.token_use,
-      auth_time: payload.auth_time,
-      exp: payload.exp,
-      iat: payload.iat,
-      jti: payload.jti,
+      sub: payload.sub as string,
+      exp: payload.exp as number,
+      iat: payload.iat as number,
+      token_use: "access",
+      username: payload.username as string,
     };
 
-    return buildPolicy(payload.sub, "Allow", methodArn, context);
+    return buildPolicy(payload.sub as string, "Allow", methodArn, context);
   } catch (err) {
     return buildPolicy("Unauthorized", "Deny", methodArn);
   }

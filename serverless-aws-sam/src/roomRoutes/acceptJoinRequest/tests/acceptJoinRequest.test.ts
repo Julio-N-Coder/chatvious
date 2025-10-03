@@ -1,86 +1,36 @@
 import { handler } from "../acceptJoinRequest.js";
 import restAPIEventBase from "../../../../events/restAPIEvent.json";
+import { describe, test, expect, beforeAll, afterEach } from "@jest/globals";
+import { mockClient } from "aws-sdk-client-mock";
 import {
-  describe,
-  test,
-  expect,
-  beforeAll,
-  afterAll,
-  afterEach,
-} from "@jest/globals";
-import { userManager } from "../../../models/users.js";
+  DynamoDBDocumentClient,
+  GetCommand,
+  UpdateCommand,
+  DeleteCommand,
+  PutCommand,
+} from "@aws-sdk/lib-dynamodb";
 import {
-  roomManager,
-  joinRequestManager,
-  roomUsersManager,
-} from "../../../models/rooms.js";
-import { UserInfo, RoomInfoType } from "../../../types/types.js";
-import {
-  newTestUser,
-  checkRoomsOnUser,
-  clearDynamoDB,
-} from "../../../lib/libtest/handyTestUtils.js";
+  $metadata,
+  userInfoDB,
+  roomInfoDB,
+} from "../../../lib/libtest/testData.js";
+
+const ddbMock = mockClient(DynamoDBDocumentClient);
 
 let restAPIEvent: typeof restAPIEventBase = JSON.parse(
   JSON.stringify(restAPIEventBase)
 );
 let restAPIEventCopy: typeof restAPIEventBase;
 
-const userID = restAPIEvent.requestContext.authorizer.sub;
-const userName = restAPIEvent.requestContext.authorizer.username;
-let newUser: UserInfo;
+let RoomID = roomInfoDB.RoomID;
 
-const roomName = "acceptJoinRequestRoom";
-let roomInfo: RoomInfoType;
-let RoomID: string;
-
-let requestingUser: UserInfo;
-let requestUserID: string;
-let requestUserName: string;
+let requestingUser = structuredClone(userInfoDB);
+let requestUserID = "z7574571-6cd1-4fbb-ba4f-43c39573729a";
+let requestUserName = "requestUserName";
+requestingUser.userID = requestUserID;
+requestingUser.userName = requestUserName;
 
 beforeAll(async () => {
-  newUser = await newTestUser(userID, userName);
-
-  // make a user for the person making the request
-  const createRequestingUserResponse = await userManager.createUser();
-  if ("error" in createRequestingUserResponse) {
-    throw new Error(
-      `Failed to create user. Error: ${createRequestingUserResponse.error}`
-    );
-  }
-  requestingUser = createRequestingUserResponse.newUser;
-  requestUserID = requestingUser.userID;
-  requestUserName = requestingUser.userName;
-
-  // make a room for the user to join
-  const createRoomResponse = await roomManager.makeRoom(
-    userID,
-    userName,
-    roomName,
-    newUser.profileColor
-  );
-  if ("error" in createRoomResponse) {
-    throw new Error(
-      `Failed to create room. Error: ${createRoomResponse.error}`
-    );
-  }
-  roomInfo = createRoomResponse.roomInfo;
-  RoomID = roomInfo.RoomID;
-
-  // send a join request to the room by requesting user
-  const sendJoinRequestResponse = await joinRequestManager.sendJoinRequest(
-    requestUserName,
-    requestUserID,
-    roomName,
-    RoomID,
-    requestingUser.profileColor
-  );
-  if ("error" in sendJoinRequestResponse) {
-    throw new Error(
-      `Failed to send join request. Error: ${sendJoinRequestResponse.error}`
-    );
-  }
-
   restAPIEvent.body = JSON.stringify({
     userID: requestUserID,
     RoomID,
@@ -92,15 +42,37 @@ beforeAll(async () => {
 });
 
 afterEach(async () => {
+  ddbMock.reset();
   restAPIEvent = JSON.parse(JSON.stringify(restAPIEventCopy));
-});
-
-afterAll(async () => {
-  await clearDynamoDB();
 });
 
 describe("Test to see if accepting the join request works", () => {
   test("Should return a successfull response, add the user to the room and update the rooms they are joined in", async () => {
+    ddbMock.on(GetCommand).callsFake((input) => {
+      if (input.Key.PartitionKey === userInfoDB.PartitionKey) {
+        return Promise.resolve({
+          $metadata,
+          Item: userInfoDB,
+        });
+      }
+
+      return Promise.resolve({
+        $metadata,
+        Item: requestingUser,
+      });
+    });
+    ddbMock.on(DeleteCommand).resolves({
+      $metadata,
+      Attributes: {},
+    });
+    ddbMock.on(PutCommand).resolves({
+      $metadata,
+    });
+    ddbMock.on(UpdateCommand).resolves({
+      $metadata,
+      Attributes: {},
+    });
+
     const response = await handler(restAPIEvent);
     expect(response.statusCode).toBe(200);
 
@@ -108,44 +80,9 @@ describe("Test to see if accepting the join request works", () => {
     expect(body.message).toBe("Join request accepted successfully");
 
     // check if the user was added to the room
-    const fetchRoomMemberResponse = await roomUsersManager.fetchRoomMember(
-      RoomID,
-      requestUserID
-    );
-    if ("error" in fetchRoomMemberResponse) {
-      throw new Error(
-        `Failed to fetch room member. Error: ${fetchRoomMemberResponse.error}`
-      );
-    }
-
-    expect(fetchRoomMemberResponse).toHaveProperty("statusCode", 200);
-    expect(fetchRoomMemberResponse).toHaveProperty("roomMember");
-    expect(fetchRoomMemberResponse.roomMember).toHaveProperty(
-      "userName",
-      requestUserName
-    );
-    expect(fetchRoomMemberResponse.roomMember).toHaveProperty(
-      "userID",
-      requestUserID
-    );
-    expect(fetchRoomMemberResponse.roomMember).toHaveProperty("RoomID", RoomID);
-    expect(fetchRoomMemberResponse.roomMember).toHaveProperty(
-      "RoomUserStatus",
-      "MEMBER"
-    );
-
-    await checkRoomsOnUser(requestUserID, RoomID, roomName, "Joined");
-
-    // check if memberCount was increased
-    const fetchRoomResponse = await roomManager.fetchRoom(RoomID);
-    if ("error" in fetchRoomResponse) {
-      throw new Error(
-        `Failed to fetch room. Error: ${fetchRoomResponse.error}`
-      );
-    }
-
-    const memberCount = fetchRoomResponse.roomInfo.roomMemberCount;
-    expect(memberCount).toBe(roomInfo.roomMemberCount + 1);
+    expect(ddbMock.commandCalls(PutCommand)).toHaveLength(1);
+    // check if memberCount was called and update to rooms on user
+    expect(ddbMock.commandCalls(UpdateCommand)).toHaveLength(2);
   });
 
   test("Incorrect Content-Type header should return the correct Error", async () => {

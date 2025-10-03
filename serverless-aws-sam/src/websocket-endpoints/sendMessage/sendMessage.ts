@@ -5,6 +5,7 @@ import {
 } from "@aws-sdk/client-apigatewaymanagementapi";
 import { roomConnectionsWSManager } from "../../models/web-socket-messages.js";
 import { messagesManagerDB } from "../../models/messagesDB.js";
+import { roomManager } from "../../models/rooms.js";
 
 interface sendMessageBody {
   action: "sendmessage";
@@ -56,6 +57,17 @@ export const handler = async (event: APIGatewayProxyWebsocketEventV2) => {
     };
   }
 
+  // increase message count which has max messages check for room
+  let addMessageCountResponse = await roomManager.addMessageCount(RoomID, 1);
+
+  if ("error" in addMessageCountResponse) {
+    console.log("message update error: ", addMessageCountResponse.error);
+    return {
+      statusCode: addMessageCountResponse.statusCode,
+      body: addMessageCountResponse.error,
+    };
+  }
+
   const roomConnectionData = roomConnectionResponse.data;
   const userID = roomConnectionData.userID;
   const userName = roomConnectionData.userName;
@@ -68,6 +80,7 @@ export const handler = async (event: APIGatewayProxyWebsocketEventV2) => {
   const allRoomConnectionsResponse =
     await roomConnectionsWSManager.fetchAllRoomConnections(RoomID);
   if ("error" in allRoomConnectionsResponse) {
+    await roomManager.addMessageCount(RoomID, -1);
     return {
       statusCode: allRoomConnectionsResponse.statusCode,
       body: allRoomConnectionsResponse.error,
@@ -117,6 +130,7 @@ export const handler = async (event: APIGatewayProxyWebsocketEventV2) => {
     messageDate
   );
   if ("error" in messageResponse) {
+    await roomManager.addMessageCount(RoomID, -1);
     return {
       statusCode: messageResponse.statusCode,
       body: messageResponse.error,
