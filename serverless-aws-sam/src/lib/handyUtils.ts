@@ -21,12 +21,9 @@ async function addSetCookieHeaders(
   let access_token = event.requestContext.authorizer?.access_token as
     | string
     | undefined;
-  let id_token = event.requestContext.authorizer?.id_token as
-    | string
-    | undefined;
   const domain = process.env.DOMAIN as string;
 
-  if (!access_token || !id_token) {
+  if (!access_token) {
     return returnSuccessObject;
   }
 
@@ -43,21 +40,11 @@ async function addSetCookieHeaders(
     domain,
     expires: expires_in,
   });
-  const id_token_cookie = cookie.serialize("id_token", id_token, {
-    httpOnly: false,
-    secure,
-    path: "/",
-    domain,
-    expires: expires_in,
-  });
 
   returnSuccessObject.multiValueHeaders =
     returnSuccessObject.multiValueHeaders || {};
 
-  returnSuccessObject.multiValueHeaders["Set-Cookie"] = [
-    access_token_cookie,
-    id_token_cookie,
-  ];
+  returnSuccessObject.multiValueHeaders["Set-Cookie"] = [access_token_cookie];
 
   return returnSuccessObject;
 }

@@ -32,10 +32,12 @@ const config = {
     }),
     new webpack.DefinePlugin({
       "process.env.IS_DEV_SERVER": JSON.stringify(true),
-      "process.env.DOMAIN": JSON.stringify("localhost"),
-      "process.env.DOMAIN_URL": JSON.stringify("http://localhost:3000"),
-      "process.env.SUB_DOMAIN": JSON.stringify("localhost"),
-      "process.env.SUB_DOMAIN_URL": JSON.stringify("http://localhost:8040"),
+      "process.env.DOMAIN": JSON.stringify("main.localhost"),
+      "process.env.DOMAIN_URL": JSON.stringify("https://main.localhost:3000"),
+      "process.env.SUB_DOMAIN": JSON.stringify("sub.main.localhost"),
+      "process.env.SUB_DOMAIN_URL": JSON.stringify(
+        "https://sub.main.localhost:8040"
+      ),
     }),
   ],
   module: {

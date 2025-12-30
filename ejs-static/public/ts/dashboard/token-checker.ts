@@ -2,11 +2,10 @@ import { getCookie } from "../utilities/cookies";
 // import { TokenRefresh } from "../types";
 
 async function signOut() {
-  document.cookie =
-    "access_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-  document.cookie = "id_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-  document.cookie =
-    "refresh_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+  const domain = process.env.DOMAIN;
+
+  document.cookie = `access_token=; Domain=${domain}; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
+  document.cookie = `refresh_token=; Domain=${domain}; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
 
   const redirect_uri = process.env.SUB_DOMAIN_URL as string;
   window.location.href = redirect_uri;

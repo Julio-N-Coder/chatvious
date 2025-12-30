@@ -1,5 +1,4 @@
 node_modules
-Notes.md
 dist
 .env
 .aws-sam
@@ -12,3 +11,5 @@ serverless-aws-sam/src/utils/aws-mock/keys/*
 !serverless-aws-sam/src/utils/aws-mock/keys/.gitkeep
 .venv/
 __pycache__
+certs/*
+!certs/.gitkeep

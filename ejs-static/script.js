@@ -1,5 +1,7 @@
 import express from "express";
 import path from "path";
+import fs from "fs";
+import https from "https";
 import {
   fakeDashboardData,
   ownedRoomInfo,
@@ -73,7 +75,10 @@ app.get("/user/profilePage", (req, res) => {
   );
 });
 
-app.listen(3000, () => {
+const cert = fs.readFileSync(path.resolve("..", "certs/chatvious-cert.pem"));
+const key = fs.readFileSync(path.resolve("..", "certs/chatvious-cert-key.pem"));
+
+https.createServer({ key, cert }, app).listen(3000, () => {
   console.log("Server is running on port 3000");
-  console.log("url: http://localhost:3000");
+  console.log("url: http://main.localhost:3000");
 });

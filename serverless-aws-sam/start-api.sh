@@ -11,18 +11,19 @@ if !(sam --version > /dev/null 2>&1); then
 	exit 1
 fi
 
-source "${SERVERLESS_BASE_DIR}/src/bash-scripts/utils/mocks.sh"
+cd "${SERVERLESS_BASE_DIR}"
+source "src/bash-scripts/utils/mocks.sh"
 
 start_api_cleanup() {
 	# mocks cleanup
 	cleanup
 
 	# remove leftover containers from "sam local start-api"
-    if [[ -n "$(docker ps -aq)" ]]; then
-        echo "removing leftover containers"
-        docker stop $(docker ps -aq)
-        docker rm $(docker ps -aq)
-    fi
+	if [[ -n "$(docker ps -aq)" ]]; then
+		echo "removing leftover containers"
+		docker stop $(docker ps -aq)
+		docker rm $(docker ps -aq)
+	fi
 }
 
 trap start_api_cleanup EXIT
@@ -30,4 +31,9 @@ trap start_api_cleanup EXIT
 start_dynamodb
 start_mock_ssm
 
-sam local start-api --add-host host.docker.internal:host-gateway --env-vars ./env-vars/env.json
+sam local start-api \
+	--add-host host.docker.internal:host-gateway \
+	--ssl-cert-file "../certs/chatvious-cert.pem" \
+	--ssl-key-file "../certs/chatvious-cert-key.pem" \
+	--env-vars "env-vars/env.json" \
+	"$@"

@@ -66,15 +66,7 @@ export default function Navbar() {
               </NavLink>
             </li>
             <li>
-              <a
-                href={`${
-                  process.env.IS_DEV_SERVER
-                    ? "http://localhost:3000"
-                    : process.env.DOMAIN_URL
-                }/dashboard`}
-              >
-                Dashboard
-              </a>
+              <a href={`${process.env.DOMAIN_URL}/dashboard`}>Dashboard</a>
             </li>
           </ul>
         </details>
@@ -93,14 +85,7 @@ export default function Navbar() {
         >
           About
         </NavLink>
-        <a
-          href={`${
-            process.env.IS_DEV_SERVER
-              ? "http://localhost:3000"
-              : process.env.DOMAIN_URL
-          }/dashboard`}
-          className="nav-tabs-lg"
-        >
+        <a href={`${process.env.DOMAIN_URL}/dashboard`} className="nav-tabs-lg">
           DashBoard
         </a>
       </div>

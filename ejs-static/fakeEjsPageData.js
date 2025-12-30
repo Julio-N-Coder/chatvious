@@ -24,8 +24,8 @@ const randomRoomIfo = {
   createdAt: "2024-08-02T21:34:22.328Z",
 };
 
-const staticContentUrl = "http://localhost:8040";
-const domainUrl = "http://localhost:3000";
+const staticContentUrl = "https://sub.main.localhost:8040";
+const domainUrl = "https://main.localhost:3000";
 
 const fakeUserInfo = {
   userID: "fd24d28c-ef01-45dc-a1ee-2bf8f3e92540",

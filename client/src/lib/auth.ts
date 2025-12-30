@@ -15,15 +15,12 @@ function getCookie(cookieName: string) {
 }
 
 function signOut() {
-  document.cookie =
-    "access_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-  document.cookie = "id_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-  document.cookie =
-    "refresh_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+  const domain = process.env.DOMAIN;
 
-  const redirect_uri = process.env.IS_DEV_SERVER
-    ? "http://localhost:8040/"
-    : (process.env.SUB_DOMAIN_URL as string);
+  document.cookie = `access_token=; Domain=${domain}; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
+  document.cookie = `refresh_token=; Domain=${domain}; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
+
+  const redirect_uri = process.env.SUB_DOMAIN_URL as string;
 
   window.location.href = redirect_uri;
 }
