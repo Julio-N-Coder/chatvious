@@ -41,9 +41,6 @@ Parameters:
     Type: String
     Description: The public key to be stored in SSM Parameter Store for verifying JWTs.
     NoEcho: true
-  AllowedOrigin:
-    Type: String
-    Default: "http://localhost:8040"
 
 Resources:
   ChatviousTable:
@@ -591,7 +588,7 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: Chatvious_deleteAccount
-      Description: Deletes a user account from the chatvious cognito userPool
+      Description: Deletes a user account chatvious
       CodeUri: ./src
       Handler: userRoutes/deleteAccount/deleteAccount.handler
       Runtime: provided.al2023
@@ -782,12 +779,6 @@ Resources:
         EndpointConfiguration: REGIONAL
         Route53:
           HostedZoneId: !Ref ChatviousDomainHostedZoneId
-      Cors:
-        AllowMethods: "'OPTIONS, POST, GET'"
-        AllowHeaders: "'Content-Type,Cookie'"
-        AllowOrigin: !Sub "'${AllowedOrigin}'"
-        AllowCredentials: true
-        MaxAge: 5
 
   WebSocketManageConnectionsPolicy:
     Type: AWS::IAM::ManagedPolicy

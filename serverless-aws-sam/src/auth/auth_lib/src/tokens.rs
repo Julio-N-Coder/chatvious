@@ -281,11 +281,14 @@ impl TokensClient {
         match self.generate_token_set_base(token_user_info, &config).await {
             Ok(token_set_enum) => match token_set_enum {
                 TokenSetEnum::TokenSet(token_set) => Ok(token_set),
-                TokenSetEnum::RefreshedTokenSet(_) => {
-                    Err(Box::from("Wrong TokenSetEnum variant returned"))
-                }
+                TokenSetEnum::RefreshedTokenSet(_) => Err(Box::from(
+                    "Wrong TokenSetEnum variant returned. RefreshTokenSet was passed.",
+                )),
             },
-            Err(error) => Err(error),
+            Err(error) => {
+                print!("Token Server Error");
+                Err(error)
+            }
         }
     }
 
@@ -298,10 +301,15 @@ impl TokensClient {
 
         match self.generate_token_set_base(token_user_info, &config).await {
             Ok(token_set_enum) => match token_set_enum {
-                TokenSetEnum::TokenSet(_) => Err(Box::from("Wrong TokenSetEnum variant returned")),
+                TokenSetEnum::TokenSet(_) => Err(Box::from(
+                    "Wrong TokenSetEnum variant returned. TokenSet was passed.",
+                )),
                 TokenSetEnum::RefreshedTokenSet(refreshed_token_set) => Ok(refreshed_token_set),
             },
-            Err(error) => Err(error),
+            Err(error) => {
+                print!("Token Server Error");
+                Err(error)
+            }
         }
     }
 }

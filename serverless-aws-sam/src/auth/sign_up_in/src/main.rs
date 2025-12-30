@@ -10,8 +10,8 @@ use std::collections::HashMap;
 
 async fn function_handler(event: LambdaEvent<Value>) -> Result<Response, Error> {
     let request: auth_lib::Request = serde_json::from_value(event.payload)?;
-    let origin =
-        std::env::var("SUB_DOMAIN_URL").unwrap_or_else(|_| "http://localhost:8040".to_string());
+    let origin = std::env::var("SUB_DOMAIN_URL")
+        .unwrap_or_else(|_| "https://sub.main.localhost:8040".to_string());
 
     let mut headers = HashMap::new();
     headers.insert(
@@ -31,6 +31,18 @@ async fn function_handler(event: LambdaEvent<Value>) -> Result<Response, Error> 
         "Access-Control-Allow-Methods".to_string(),
         "OPTIONS,POST,GET".to_string(),
     );
+
+    // Handle cors request
+    if request.http_method == "OPTIONS" {
+        headers.insert("Access-Control-Max-Age".to_string(), "86400".to_string()); // 24 hours
+
+        return Ok(Response {
+            status_code: 200,
+            headers: Some(headers),
+            multi_value_headers: None,
+            body: "".to_string(),
+        });
+    }
 
     // validate body
     let (body, headers) = match sign_up_in::validate_body(request, headers) {
@@ -133,7 +145,7 @@ fn return_lambda_success(
     headers: HashMap<String, String>,
     token_set: TokenSet,
 ) -> Result<Response, Error> {
-    let domain = std::env::var("DOMAIN").unwrap_or_else(|_| "localhost".to_string());
+    let domain = std::env::var("DOMAIN").unwrap_or_else(|_| "main.localhost".to_string());
     let mut multi_value_headers = HashMap::new();
 
     let cookies = vec![

@@ -69,22 +69,14 @@ pub fn return_error(
 pub fn cookie(name: &str, value: &str, domain: &str, max_age: i64) -> String {
     let expires = Utc::now() + Duration::seconds(max_age);
 
-    // Only add "Secure" if not running locally
-    let secure = if domain == "localhost" {
-        ""
-    } else {
-        "Secure; "
-    };
-
     format!(
-        "{}={}; Domain={}; Path=/; Expires={}; Max-Age={}; {}{}SameSite=Lax",
+        "{}={}; Domain={}; Path=/; Expires={}; Max-Age={}; Secure; {}SameSite=None",
         name,
         value,
         domain,
         expires.format("%a, %d %b %Y %H:%M:%S GMT"),
         max_age,
         "", // "HttpOnly; " is off for now
-        secure,
     )
 }
 

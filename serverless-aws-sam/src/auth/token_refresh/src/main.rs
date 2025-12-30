@@ -8,8 +8,8 @@ use std::collections::HashMap;
 async fn function_handler(event: LambdaEvent<Value>) -> Result<Response, Error> {
     let payload = event.payload;
     let request: Request = serde_json::from_value(payload)?;
-    let origin =
-        std::env::var("SUB_DOMAIN_URL").unwrap_or_else(|_| "http://localhost:8040".to_string());
+    let origin = std::env::var("SUB_DOMAIN_URL")
+        .unwrap_or_else(|_| "https://sub.main.localhost:8040".to_string());
 
     let mut headers = HashMap::new();
     headers.insert(
@@ -29,6 +29,18 @@ async fn function_handler(event: LambdaEvent<Value>) -> Result<Response, Error> 
         "Access-Control-Allow-Methods".to_string(),
         "OPTIONS,POST,GET".to_string(),
     );
+
+    // Handle cors request
+    if request.http_method == "OPTIONS" {
+        headers.insert("Access-Control-Max-Age".to_string(), "86400".to_string()); // 24 hours
+
+        return Ok(Response {
+            status_code: 200,
+            headers: Some(headers),
+            multi_value_headers: None,
+            body: "".to_string(),
+        });
+    }
 
     // check if Content-Type header is application/json. Can be lowercase
     if let Some(request_headers) = &request.headers {
@@ -89,7 +101,7 @@ async fn function_handler(event: LambdaEvent<Value>) -> Result<Response, Error> 
         Err(_) => return auth_lib::return_error(headers, 500, "Internal Server Error"),
     };
 
-    let domain = std::env::var("DOMAIN").unwrap_or_else(|_| "localhost".to_string());
+    let domain = std::env::var("DOMAIN").unwrap_or_else(|_| "main.localhost".to_string());
     let mut multi_value_headers = HashMap::new();
 
     let cookies = vec![auth_lib::cookie(
