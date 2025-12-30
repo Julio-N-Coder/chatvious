@@ -49,7 +49,9 @@ public class KeyService {
 
             return keyFactory.generatePrivate(keySpec);
         } catch (Exception e) {
-            throw new RuntimeException("Failed to load private key from SSM", e);
+            String error = "Failed to load public key from SSM. Error: " + e;
+            System.out.println(error);
+            throw new RuntimeException(error);
         }
     }
 
@@ -68,7 +70,9 @@ public class KeyService {
 
             return keyFactory.generatePublic(keySpec);
         } catch (Exception e) {
-            throw new RuntimeException("Failed to load public key from SSM", e);
+            String error = "Failed to load public key from SSM. Error: " + e;
+            System.out.println(error);
+            throw new RuntimeException(error);
         }
     }
 
