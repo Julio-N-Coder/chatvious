@@ -45,30 +45,28 @@ check_llrt() {
 }
 
 # parse arguments
-if [[ $# -gt 0 ]]; then
+for arg in "$@"; do
 	DO_DEFAULT=false
-	for arg in "$@"; do
-		case "$arg" in
-		--authorizer) DO_AUTHORIZE=true ;;
-		--all) DO_ALL=true ;;
-		-h | --help)
-			show_help
-			exit 0
-			;;
-		--*)
-			echo "Unknown option: $arg" >&2
+	case "$arg" in
+	--authorizer) DO_AUTHORIZE=true ;;
+	--all) DO_ALL=true ;;
+	-h | --help)
+		show_help
+		exit 0
+		;;
+	--*)
+		echo "Unknown option: $arg" >&2
+		exit 1
+		;;
+	*)
+		if [[ -n "$FUNCTION_NAME" ]]; then
+			echo "Error: only one function name can be specified." >&2
 			exit 1
-			;;
-		*)
-			if [[ -n "$FUNCTION_NAME" ]]; then
-				echo "Error: only one function name can be specified." >&2
-				exit 1
-			fi
-			FUNCTION_NAME="$arg"
-			;;
-		esac
-	done
-fi
+		fi
+		FUNCTION_NAME="$arg"
+		;;
+	esac
+done
 
 # check for invalid combos
 if $DO_ALL && [[ -n "$FUNCTION_NAME" ]]; then
