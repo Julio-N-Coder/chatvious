@@ -113,7 +113,7 @@ check_cookie_attr() {
 
 check_common_cookie_attrs() {
 	local name="$1"
-	check_cookie_attr "$name" "Domain" "localhost"
+	check_cookie_attr "$name" "Domain" "main.localhost"
 	check_cookie_attr "$name" "Path" "/"
 }
 

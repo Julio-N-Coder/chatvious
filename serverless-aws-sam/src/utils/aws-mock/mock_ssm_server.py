@@ -4,6 +4,9 @@ Lightweight mock AWS SSM Parameter Store server for local development.
 Reads parameters from a JSON file and serves them via AWS-compatible API.
 """
 
+# I suggest not using this script while connected to nordvpn
+# as it appears to take a while to bind to 0.0.0.0
+
 import json
 import os
 import sys
@@ -52,6 +55,7 @@ class MockSSMHandler(BaseHTTPRequestHandler):
         ]:
             self.handle_get_parameter(post_data)
         else:
+            print("SSM: Wrong X-Amz-Target")
             self.send_error_response("UnknownOperation", f"Unknown operation: {target}")
 
     def handle_get_parameter(self, post_data):
@@ -113,6 +117,7 @@ class MockSSMHandler(BaseHTTPRequestHandler):
 
     def send_error_response(self, error_code, message):
         """Send an error response"""
+        print("SSM: sending an error message: ", message)
         error_response = {
             "__type": f"com.amazon.coral.service#{error_code}",
             "message": message,
@@ -200,10 +205,14 @@ def main():
     check_and_generate_keys()
 
     port = int(os.getenv("SSM_MOCK_PORT", 8009))
-    server_address = ("0.0.0.0", port)
+    host = os.getenv("SSM_BIND_HOST", "0.0.0.0")
+    server_address = (host, port)
+
     server = HTTPServer(server_address, MockSSMHandler)
 
-    print(f"Starting Mock SSM Parameter Store server on http://localhost:{port}...")
+    print(
+        f"Starting Mock SSM Parameter Store server on http://{"localhost" if host == "0.0.0.0" else host}:{port}..."
+    )
 
     try:
         server.serve_forever()

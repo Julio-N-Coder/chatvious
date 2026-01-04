@@ -70,6 +70,7 @@ success_run() {
 	if ! check_context; then
 		echo -e "${RED}ERROR: Context is missing or null" >&2
 		echo -e "$RESET" >&2
+		echo "response: $response" >&2
 		exit 1
 	fi
 
@@ -117,6 +118,7 @@ context="$(echo "$response" | jq -c '.context')"
 if check_context; then
 	echo -e "${RED}ERROR: Context is not null or missing" >&2
 	echo -e "$RESET" >&2
+	echo "response: $response" >&2
 	exit 1
 fi
 
