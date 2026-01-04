@@ -134,7 +134,7 @@ Resources:
       Description: Renders dashboard Page for Chatvious
       CodeUri: ./src
       Handler: dashboard.handler
-      Runtime: nodejs20.x
+      Runtime: nodejs24.x
       MemorySize: 256
       Timeout: 6
       Architectures:
@@ -163,7 +163,7 @@ Resources:
       Description: Renders roomInfo Page for Chatvious
       CodeUri: ./src
       Handler: roomInfo.handler
-      Runtime: nodejs20.x
+      Runtime: nodejs24.x
       MemorySize: 256
       Timeout: 6
       Architectures:
@@ -192,7 +192,7 @@ Resources:
       Description: Renders chatRoom Page for Chatvious
       CodeUri: ./src
       Handler: chatRoom.handler
-      Runtime: nodejs20.x
+      Runtime: nodejs24.x
       MemorySize: 256
       Timeout: 6
       Architectures:
@@ -221,7 +221,7 @@ Resources:
       Description: Renders profile Page for Chatvious
       CodeUri: ./src
       Handler: profilePage.handler
-      Runtime: nodejs20.x
+      Runtime: nodejs24.x
       MemorySize: 256
       Timeout: 6
       Architectures:
@@ -800,7 +800,7 @@ Resources:
       Description: The Lambda Authorizer for chatvious websockets
       CodeUri: ./src
       Handler: websocket-endpoints/lambda-authorizer/websocket-auth.handler
-      Runtime: nodejs20.x
+      Runtime: nodejs24.x
       MemorySize: 128
       Timeout: 10
       Architectures:
@@ -832,7 +832,7 @@ Resources:
       Description: The Default Websocket route for when a user first connects to a chat room
       CodeUri: ./src
       Handler: websocket-endpoints/connect/connect.handler
-      Runtime: nodejs20.x
+      Runtime: nodejs24.x
       MemorySize: 128
       Timeout: 6
       Architectures:
@@ -859,7 +859,7 @@ Resources:
       Description: The Default Websocket route for when a user disconnects from a chat room
       CodeUri: ./src
       Handler: websocket-endpoints/disconnect/disconnect.handler
-      Runtime: nodejs20.x
+      Runtime: nodejs24.x
       MemorySize: 128
       Timeout: 6
       Architectures:
@@ -887,7 +887,7 @@ Resources:
       Description: A Websocket route for a user to join a chat room
       CodeUri: ./src
       Handler: websocket-endpoints/joinRoom/joinRoom.handler
-      Runtime: nodejs20.x
+      Runtime: nodejs24.x
       MemorySize: 128
       Timeout: 6
       Architectures:
@@ -915,7 +915,7 @@ Resources:
       Description: A Websocket route for a user to send a message in a chat room
       CodeUri: ./src
       Handler: websocket-endpoints/sendMessage/sendMessage.handler
-      Runtime: nodejs20.x
+      Runtime: nodejs24.x
       MemorySize: 128
       Timeout: 6
       Architectures:
